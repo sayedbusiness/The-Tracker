@@ -1,0 +1,265 @@
+# Going to production — every step, with costs
+
+Plain-English walkthrough of every "how do I actually ship this" question.
+I've grouped by what costs nothing vs. what costs money so you can decide.
+
+---
+
+## TL;DR — what I already did vs. what only you can do
+
+| Step                                  | Who does it | Cost                |
+|---------------------------------------|-------------|---------------------|
+| Wire Anthropic AI chat                | ✅ Done     | Pay-per-use (cheap) |
+| Wire Gemini meal vision               | ✅ Done     | Free tier generous  |
+| Put your keys in `.env.local`         | ✅ Done     | Free                |
+| Verify both keys work                 | ✅ Done     | Free                |
+| Deploy to web (Vercel)                | You         | Free                |
+| Set up live database (Supabase)       | You, later  | Free                |
+| Publish to iOS App Store              | You         | **$99/year**        |
+| Publish to Google Play Store          | You         | **$25 one-time**    |
+| Build .dmg / .msi (Mac/Windows)       | You         | Free                |
+| Sign Mac/Windows desktop binaries     | You         | $99/yr + $200-400/yr|
+
+---
+
+## ① The database question (you said you're confused — here's the answer)
+
+**Short answer: you don't need a database right now.** The app works
+perfectly on mock data. Skip this section and come back when you want
+your data to persist across devices and refreshes.
+
+When you're ready, the cheapest path is **Supabase**:
+
+1. Go to [supabase.com](https://supabase.com) → "Start your project"
+2. Sign in with GitHub
+3. Click "New project"
+4. Project name: `apex-os` · Region: closest to you · Password: pick a strong one (save it)
+5. Wait ~2 minutes for provisioning
+6. Once ready, go to **Project Settings → Database → Connection string → URI**
+7. Copy the **Session pooler** URL — it looks like:
+   `postgresql://postgres.xxx:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:5432/postgres`
+8. Paste into `.env.local` as `DATABASE_URL=...` (also paste `DIRECT_URL=...` with the direct connection string)
+9. Run:
+   ```bash
+   npx prisma db push      # creates all 24 tables
+   npx prisma db seed      # seeds your demo data (optional)
+   ```
+
+**Cost:** Free forever for projects under 500 MB and 2 GB egress/month —
+which you won't hit for a long time. Their paid tier starts at $25/mo
+when you outgrow that.
+
+**Why Supabase over other options:**
+- Postgres + auth + storage + realtime in one product
+- Row-level security maps cleanly to our multi-user data model
+- pgvector is included for AI memory embeddings (you'd otherwise need
+  Pinecone at ~$70/mo)
+
+---
+
+## ② Deploy to the web (Vercel) — 5 minutes, free
+
+This makes your app accessible at a real URL like `apex-os.vercel.app`
+or `os.yourdomain.com`. Anyone you give the link to can use it.
+
+### Step 1 — Push your code to GitHub
+You've already done this. The repo is at
+`github.com/sayedbusiness/The-Tracker`.
+
+### Step 2 — Sign up for Vercel
+1. Go to [vercel.com](https://vercel.com) → "Sign up"
+2. Choose "Continue with GitHub"
+3. Authorize Vercel to read your repos
+
+### Step 3 — Import the repo
+1. Dashboard → "Add New… → Project"
+2. Find `The-Tracker` in the list → click "Import"
+3. Vercel auto-detects Next.js — leave all defaults
+4. Click "Environment Variables" and add:
+
+   | Key | Value (paste from your `.env.local`) |
+   |---|---|
+   | `ANTHROPIC_API_KEY` | your new (rotated) Anthropic key |
+   | `ANTHROPIC_MODEL` | `claude-opus-4-7` |
+   | `GEMINI_API_KEY` | your new (rotated) Gemini key |
+   | `GEMINI_MODEL` | `gemini-2.5-flash` |
+
+   *(Skip `DATABASE_URL` until you've set up Supabase — Vercel will use
+   the mock data layer if it's missing.)*
+
+5. Click **Deploy**
+
+In ~90 seconds you'll have a live URL. Every future `git push` to the
+`claude/productivity-system-design-GUnfJ` branch auto-deploys a preview;
+merging to `main` deploys to production.
+
+**Cost:** Free forever for personal projects (Hobby tier). You'd only
+hit limits if your app gets thousands of users per day.
+
+### Step 4 — (Optional) Custom domain
+1. Buy a domain anywhere ([Cloudflare Registrar](https://cloudflare.com)
+   is cheapest, ~$10/yr for `.com`)
+2. In Vercel project → Settings → Domains → add your domain
+3. Vercel shows you DNS records to add at your registrar — paste them
+4. SSL cert provisioned automatically in ~5 minutes
+
+---
+
+## ③ Apple Developer — the truth about cost
+
+Yes, the Apple Developer Program **costs $99/year**. There's no way around
+it if you want to publish to the App Store or distribute beta builds via
+TestFlight. Here's the breakdown:
+
+### What $99/year gets you
+- TestFlight (beta-test on real iPhones — up to 10,000 testers)
+- Submit to the App Store
+- Code-signing certificates (so apps install on real devices, not just simulator)
+- Push notifications
+- All the entitlements (HealthKit, in-app purchase, etc.)
+
+### What if you don't pay?
+You can still:
+- Run the app on iOS Simulator on your Mac (free, but only on Mac)
+- Run on your own physical iPhone for 7 days at a time using a free Apple ID
+  (the app expires and must be re-signed weekly)
+- Use the PWA install path — works on every iPhone today, no Apple
+  Developer account required, runs full-screen, no App Store
+
+**My honest recommendation:** Don't pay the $99 until you have actual
+users asking for App Store distribution. The PWA experience on iPhone
+in 2026 is genuinely good — full-screen, home-screen icon, push
+notifications via Web Push, even works offline. You can run for months
+without paying Apple a dollar.
+
+### When you're ready to pay
+1. Go to [developer.apple.com](https://developer.apple.com/programs/)
+2. Click "Enroll"
+3. Sign in with your Apple ID (or create one)
+4. Choose **Individual** ($99/yr) unless you have a registered LLC/business
+   (then choose **Organization** — same price but needs a D-U-N-S number)
+5. Pay with credit card → wait 24–48 hours for approval
+6. You'll get an email when you're in
+
+### Publishing the actual app (after enrollment)
+```bash
+# One-time: install Capacitor
+npm i -D @capacitor/cli @capacitor/core @capacitor/ios
+
+# Switch Next.js to static export mode for native builds
+# (Edit next.config.ts — add `output: "export"`)
+
+npm run build
+npx cap add ios          # creates ios/ folder
+npx cap open ios         # opens Xcode
+
+# In Xcode:
+# 1. Select "APEX OS" → "Signing & Capabilities" → check "Automatically manage signing"
+# 2. Team: pick your Apple Developer account
+# 3. Bundle ID: co.apexgrowth.os (matches capacitor.config.ts)
+# 4. Product → Archive → "Distribute App" → "App Store Connect"
+```
+
+This walks you through TestFlight (for beta testers) or App Store
+submission (review takes 24–72 hours).
+
+---
+
+## ④ Google Play Store — much cheaper
+
+Google charges a **one-time $25 fee** to publish to Play Store, ever.
+
+1. Go to [play.google.com/console](https://play.google.com/console)
+2. Sign in with Google → "Get started"
+3. Choose "Personal" or "Organization"
+4. Pay $25 → instant access (sometimes 1–2 day verification)
+
+Publishing flow:
+```bash
+npm i -D @capacitor/android
+npm run build
+npx cap add android
+npx cap open android      # opens Android Studio
+# Build → Generate Signed Bundle → upload .aab to Play Console
+```
+
+---
+
+## ⑤ Native Mac/Windows desktop — free unless you sign
+
+You can build the desktop apps for free right now:
+
+```bash
+# One-time setup (requires Rust):
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+npm i -D @tauri-apps/cli @tauri-apps/api
+
+# Build for your current platform:
+npx tauri build
+```
+
+Output lands in `src-tauri/target/release/bundle/`:
+- macOS: `.dmg` installer + `.app` bundle
+- Windows: `.msi` and `.exe` installers
+- Linux: `.deb` and `.AppImage`
+
+**The catch:** unsigned builds trigger scary warnings ("APEX OS can't be
+opened because it is from an unidentified developer"). For personal use,
+right-click → Open works fine.
+
+**To remove the warnings (production distribution):**
+- Mac: $99/yr Apple Developer (same one as iOS) → notarize via `xcrun notarytool`
+- Windows: $200–400/yr from DigiCert or Sectigo for an EV code-signing cert
+
+For personal use on your own machines: skip both. Just enable
+right-click-open the first time you launch.
+
+---
+
+## ⑥ The honest order I'd do this in
+
+If I were you, here's the sequence with no wasted spend:
+
+1. **Today, $0** — Push your branch, deploy to Vercel, install as a PWA
+   on your iPhone and Mac. You now have the full app on every device
+   you own, accessible from a URL or your home screen.
+
+2. **When the AI usage gets meaningful** — top up the Anthropic key
+   (~$5/mo to start, you'll know when). Same for Gemini.
+
+3. **When you want data to persist across devices** — spin up Supabase,
+   paste the URL into Vercel env, run `npx prisma db push`. Still $0.
+
+4. **When you want to share TestFlight links with friends or list on
+   the App Store** — pay Apple $99. Not before.
+
+5. **When you want a native Mac/Windows binary on someone else's
+   machine without scary warnings** — Apple Developer for Mac
+   notarization. Skip Windows EV cert unless you're going commercial.
+
+6. **When you want a custom domain** — buy `apex.yourname.com` for
+   ~$10/yr at Cloudflare and point it at Vercel.
+
+The whole thing runs at **$0/month** for personal use indefinitely.
+API usage will be a few dollars a month at most.
+
+---
+
+## Security: rotate those keys
+
+Now that everything is working, **rotate both API keys** at:
+
+1. [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+   → delete the current one → create a new one → paste into `.env.local`
+   AND into Vercel env vars
+
+2. [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+   → same process
+
+Restart your dev server (`npm run dev`) after updating `.env.local`.
+Vercel auto-redeploys when you update env vars in their dashboard.
+
+The keys you shared in chat earlier should be considered compromised
+even if no one else has seen them — chat transcripts get logged,
+screenshots happen, devices get stolen. Rotating is a 60-second hygiene
+habit that saves you from a 6-figure bill if a key leaks.

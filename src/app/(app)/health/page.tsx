@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RingProgress } from "@/components/ui/progress";
+import { PhotoMealScanner } from "@/components/health/photo-meal-scanner";
 import { foodLog, todayMetrics } from "@/lib/mock-data";
 import {
   Area,
@@ -84,9 +85,7 @@ export default function HealthPage() {
             <Button variant="secondary">
               <Plus className="h-4 w-4" /> Log meal
             </Button>
-            <Button>
-              <Camera className="h-4 w-4" /> Scan photo
-            </Button>
+            <PhotoMealScanner />
           </>
         }
       />
@@ -161,7 +160,7 @@ export default function HealthPage() {
                   Photo meal scan
                 </div>
                 <div className="text-[10px] text-slate-500">
-                  GPT-4o Vision · 96% accuracy
+                  Gemini 2.5 · multimodal vision
                 </div>
               </div>
             </div>
@@ -169,13 +168,8 @@ export default function HealthPage() {
               Snap a picture of your plate. The AI identifies ingredients,
               estimates portion size, and logs macros in under 3 seconds.
             </p>
-            <div className="mt-auto flex flex-col gap-2 pt-4">
-              <Button variant="secondary" className="w-full">
-                <Camera className="h-4 w-4" /> Take photo
-              </Button>
-              <button className="text-[10px] text-slate-500 hover:text-slate-300">
-                Or upload from camera roll
-              </button>
+            <div className="mt-auto pt-4">
+              <PhotoMealScanner />
             </div>
           </div>
         </motion.div>

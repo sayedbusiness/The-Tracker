@@ -42,7 +42,7 @@ The system is built around four pillars:
 | ORM              | **Prisma 6**                    | Type-safe queries, migrations, supports pgvector                                   |
 | AI brain         | **Claude Opus 4.7 (Anthropic)** | Best-in-class reasoning, long context (200K+) for memory                          |
 | Vector memory    | **pgvector** (in Postgres)      | One DB to operate, no separate Pinecone bill                                      |
-| Vision (food)    | **GPT-4o** (multimodal)         | Best-in-class meal-photo recognition                                              |
+| Vision (food)    | **Gemini 2.5 Flash** (multimodal) | Fast, cheap, strict-JSON output for meal-photo recognition                       |
 | Auth             | **Supabase Auth**               | Email magic link + OAuth (Apple, Google), JWT, RLS-aware                          |
 | Real-time        | **Supabase Realtime**           | Postgres-backed live queries for streaks/leaderboards                              |
 | Push             | **Expo Notifications**          | One API for iOS/Android/web                                                       |
