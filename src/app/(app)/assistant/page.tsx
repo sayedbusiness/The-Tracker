@@ -49,39 +49,66 @@ export default function AssistantPage() {
     });
   }, [messages, typing]);
 
-  const send = (text?: string) => {
+  const send = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content) return;
+    const now = () =>
+      new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
     const userMsg = {
       id: `m${Date.now()}`,
       role: "user" as const,
       content,
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }),
+      time: now(),
     };
-    setMessages((m) => [...m, userMsg]);
+    const assistantId = `m${Date.now() + 1}`;
+    setMessages((m) => [
+      ...m,
+      userMsg,
+      { id: assistantId, role: "assistant" as const, content: "", time: now() },
+    ]);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
-      const reply = generateReply(content);
-      setMessages((m) => [
-        ...m,
-        {
-          id: `m${Date.now() + 1}`,
-          role: "assistant" as const,
-          content: reply,
-          time: new Date().toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }),
-        },
-      ]);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          messages: [...messages, userMsg].map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+          personality: "strategist",
+        }),
+      });
+      if (!res.body) throw new Error("No response stream");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setMessages((m) =>
+          m.map((msg) => (msg.id === assistantId ? { ...msg, content: acc } : msg))
+        );
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setMessages((m) =>
+        m.map((msgIt) =>
+          msgIt.id === assistantId
+            ? { ...msgIt, content: `*(Chat error: ${msg})*` }
+            : msgIt
+        )
+      );
+    } finally {
       setTyping(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -278,25 +305,3 @@ export default function AssistantPage() {
   );
 }
 
-function generateReply(input: string) {
-  const i = input.toLowerCase();
-  if (i.includes("leverage") || i.includes("today")) {
-    return "The Meridian Capital call at 2 PM. Highest-value moment on your calendar this week. I've pulled their last 3 LinkedIn posts, their team's hiring activity, and the objection from your last call. Pre-call brief is in your inbox.";
-  }
-  if (i.includes("90 days") || i.includes("plan")) {
-    return "Three north-stars for the next 90 days:\n\n1. Get Apex to $120k MRR (currently $83.5k — you need 3.5 new deals at $10k or to close Vertex).\n2. Body recomp to 175 lb at <12% — 5.4 lb to go, on pace.\n3. Finish Designing Data-Intensive Applications + 5 more books.\n\nI'll schedule weekly checkpoints. Want me to lock the first one?";
-  }
-  if (i.includes("drop") || i.includes("output")) {
-    return "Two reasons:\n\n• Tuesday & Wednesday you slept 5.8 hrs avg — you're a 7-hour minimum operator. Anything less and your P0 completion drops below 70%.\n• You took 3 unscheduled calls in your peak window (8–11 AM). Each one cost you ~38 minutes of recovery.\n\nFix: lights out by 10:45 PM and lock the morning. I'll auto-decline meetings before noon starting tomorrow.";
-  }
-  if (i.includes("sleep")) {
-    return "Your sleep optimization plan:\n\n• Lights out 10:30 PM, wake 5:45 AM — your data shows this window gives you 92% deep work next-day.\n• No screens after 10:00 PM. Kindle + paperback only.\n• Magnesium glycinate 30 min before bed.\n• Bedroom temp 65°F.\n\nI'll send a 9:45 PM wind-down ping starting tonight.";
-  }
-  if (i.includes("push") || i.includes("level")) {
-    return "Tomorrow we add a 4th deep work block. Difficulty rating moves from 3.6 → 4.0. You'll feel the extra weight. That's the point.\n\nNon-negotiables for tomorrow:\n• 5:30 AM wake — no snooze\n• Workout before email\n• Phone in another room until 11 AM\n• Meridian prep done by 12:30\n\nI'll be watching. So will you.";
-  }
-  if (i.includes("audit") || i.includes("consistency")) {
-    return "Last 30 days:\n\n✓ Workouts: 24/30 (80% — elite)\n✓ Sleep ≥ 7h: 22/30 (73% — needs work)\n✓ Deep work ≥ 3 blocks: 26/30 (87% — elite)\n✓ Reading: 30/30 (100% — keep it)\n✗ Phone < 2h: 18/30 (60% — drag)\n\nYour weakest link is phone discipline. Want me to enable Forest mode lock 9 PM → 7 AM?";
-  }
-  return "Got it. Give me a moment to think through this against your last 30 days of data, your active goals, and your energy curve. The honest answer is coming.";
-}
