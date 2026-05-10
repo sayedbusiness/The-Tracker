@@ -1,0 +1,487 @@
+// ─────────────────────────────────────────────────────────────
+// APEX OS — Prisma schema
+//
+// The full data model for the Life Operating System.
+// Designed for Postgres (Supabase) with row-level security and
+// optional pgvector extension for AI memory embeddings.
+// ─────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pgcrypto, pgvector(map: "vector")]
+}
+
+// ─── Core identity ──────────────────────────────────────────
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String?
+  avatarUrl     String?
+  timezone      String   @default("UTC")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Gamification
+  level             Int @default(1)
+  xp                Int @default(0)
+  streakDays        Int @default(0)
+  longestStreak     Int @default(0)
+  disciplineScore   Int @default(50)
+  productivityScore Int @default(50)
+  focusScore        Int @default(50)
+  agencyScore       Int @default(50)
+
+  // Preferences
+  coachPersonality CoachPersonality @default(STRATEGIST)
+  honestyLevel     Int              @default(9)
+  morningBriefAt   String           @default("07:00")
+  windDownAt       String           @default("21:45")
+
+  // Relations
+  tasks         Task[]
+  habits        Habit[]
+  habitLogs     HabitLog[]
+  meals         Meal[]
+  workouts      Workout[]
+  sleepLogs     SleepLog[]
+  bodyMetrics   BodyMetric[]
+  moodLogs      MoodLog[]
+  insights      AiInsight[]
+  memories      AiMemory[]
+  conversations Conversation[]
+  achievements  AchievementProgress[]
+  clients       Client[]
+  deals         Deal[]
+  campaigns     Campaign[]
+  learningProgress LearningProgress[]
+  breaches      DisciplineBreach[]
+  challenges    Challenge[]
+}
+
+enum CoachPersonality {
+  STRATEGIST
+  DRILL_SERGEANT
+  MENTOR
+  STOIC
+}
+
+// ─── Tasks & habits ─────────────────────────────────────────
+model Task {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  category    TaskCategory
+  priority    Priority
+  estimatedMinutes Int
+  actualMinutes    Int?
+  difficulty       Int @default(3) // 1-5
+  energy           Energy @default(MED)
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  deadline    DateTime?
+  scheduledAt DateTime?
+  parentTaskId String?
+  parentTask   Task?    @relation("Subtasks", fields: [parentTaskId], references: [id])
+  subtasks     Task[]   @relation("Subtasks")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, completed, scheduledAt])
+}
+
+enum TaskCategory {
+  AGENCY
+  HEALTH
+  LEARNING
+  PERSONAL
+  DEEP_WORK
+}
+
+enum Priority {
+  P0
+  P1
+  P2
+  P3
+}
+
+enum Energy {
+  LOW
+  MED
+  HIGH
+}
+
+model Habit {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  icon        String   @default("✦")
+  color       String   @default("violet")
+  cadence     Cadence  @default(DAILY)
+  targetPerWeek Int    @default(7)
+  currentStreak Int    @default(0)
+  longestStreak Int    @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  logs        HabitLog[]
+
+  @@index([userId, active])
+}
+
+enum Cadence {
+  DAILY
+  WEEKLY
+  CUSTOM
+}
+
+model HabitLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+  note      String?
+
+  @@index([habitId, completedAt])
+}
+
+// ─── Discipline engine ──────────────────────────────────────
+model DisciplineBreach {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String
+  severity  Severity
+  cost      String   // human-readable description of what it cost
+  occurredAt DateTime @default(now())
+
+  @@index([userId, occurredAt])
+}
+
+enum Severity {
+  LOW
+  WARN
+  HIGH
+}
+
+model Challenge {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  target    String
+  progress  Int      @default(0)
+  total     Int
+  rewardXp  Int      @default(0)
+  rewardBadgeId String?
+  startedAt DateTime @default(now())
+  endsAt    DateTime?
+  completedAt DateTime?
+
+  @@index([userId, completedAt])
+}
+
+// ─── Health & body ──────────────────────────────────────────
+model Meal {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealType  MealType
+  name      String
+  photoUrl  String?
+  calories  Int
+  protein   Float
+  carbs     Float
+  fat       Float
+  loggedAt  DateTime @default(now())
+  aiConfidence Float? // For photo-recognized meals
+
+  @@index([userId, loggedAt])
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+  DRINK
+}
+
+model Workout {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "Push", "Run · 5k", etc.
+  durationMin Int
+  intensity Int      @default(50) // 0-100
+  caloriesBurned Int?
+  notes     String?
+  performedAt DateTime @default(now())
+
+  @@index([userId, performedAt])
+}
+
+model SleepLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bedTime   DateTime
+  wakeTime  DateTime
+  totalHours Float
+  deepHours Float?
+  remHours  Float?
+  hrv       Int?
+  restingHr Int?
+  score     Int?     // 0-100
+  source    String?  // "manual", "healthkit", "oura", "whoop"
+
+  @@index([userId, bedTime])
+}
+
+model BodyMetric {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weight    Float?
+  bodyFat   Float?
+  muscleMass Float?
+  loggedAt  DateTime @default(now())
+
+  @@index([userId, loggedAt])
+}
+
+model MoodLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mood      Int      // 1-10
+  energy    Int      // 1-10
+  focus     Int      // 1-10
+  notes     String?
+  loggedAt  DateTime @default(now())
+
+  @@index([userId, loggedAt])
+}
+
+// ─── AI memory + insights ───────────────────────────────────
+model AiInsight {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      InsightType
+  title     String
+  body      String
+  confidence Float   // 0-1
+  dataPoints Int     @default(0)
+  dismissed Boolean  @default(false)
+  actionTaken Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt, dismissed])
+}
+
+enum InsightType {
+  PATTERN
+  WARNING
+  WIN
+  CHALLENGE
+  RECOMMENDATION
+}
+
+/// Long-term AI memory store. Embeddings live in pgvector for
+/// semantic retrieval; metadata kept here for filtering & audit.
+model AiMemory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  category  String   // "goal", "preference", "fact", "event"
+  /// Vector embedding (pgvector). Stored as Unsupported because
+  /// Prisma doesn't natively type vector columns yet.
+  embedding Unsupported("vector(1536)")?
+  importance Int     @default(50) // 0-100, used for retrieval ranking
+  source    String?  // chat:msg-id | event:task-completed | etc.
+  createdAt DateTime @default(now())
+  lastAccessedAt DateTime?
+
+  @@index([userId, category])
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String   @default("New conversation")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  Message[]
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           Role
+  content        String
+  tokensIn       Int?
+  tokensOut      Int?
+  modelUsed      String?
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+enum Role {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+// ─── Achievements ───────────────────────────────────────────
+model Achievement {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String
+  icon        String
+  rarity      Rarity
+  rewardXp    Int      @default(0)
+  criteria    Json
+  progress    AchievementProgress[]
+}
+
+enum Rarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHIC
+}
+
+model AchievementProgress {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  progress      Float    @default(0) // 0-1
+  unlockedAt    DateTime?
+
+  @@unique([userId, achievementId])
+}
+
+// ─── Apex Growth Corp (Agency) ──────────────────────────────
+model Client {
+  id        String   @id @default(uuid())
+  userId    String   // Owner / account manager
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  logo      String?
+  mrr       Int      @default(0)
+  status    ClientStatus @default(ACTIVE)
+  healthScore Int    @default(80) // 0-100
+  startedAt DateTime @default(now())
+  notes     String?
+  campaigns Campaign[]
+  deals     Deal[]
+
+  @@index([userId, status])
+}
+
+enum ClientStatus {
+  ONBOARDING
+  ACTIVE
+  AT_RISK
+  CHURNED
+}
+
+model Deal {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company     String
+  contact     String?
+  contactEmail String?
+  value       Int
+  stage       DealStage
+  probability Int      @default(20)
+  source      String?
+  closeDate   DateTime?
+  notes       String?
+  clientId    String?
+  client      Client?  @relation(fields: [clientId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, stage])
+}
+
+enum DealStage {
+  LEAD
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+model Campaign {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id])
+  name      String
+  channel   String
+  budget    Int
+  spent     Int      @default(0)
+  status    CampaignStatus @default(PLANNING)
+  performance Int    @default(0) // % of target
+  startsAt  DateTime?
+  endsAt    DateTime?
+
+  @@index([userId, status])
+}
+
+enum CampaignStatus {
+  PLANNING
+  RUNNING
+  REVIEW
+  COMPLETE
+  PAUSED
+}
+
+// ─── Learning ───────────────────────────────────────────────
+model LearningTrack {
+  id          String   @id @default(uuid())
+  title       String
+  instructor  String
+  category    String
+  duration    String
+  lessons     Int
+  coverColor  String   @default("violet")
+  progress    LearningProgress[]
+}
+
+model LearningProgress {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trackId   String
+  track     LearningTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  completedLessons Int @default(0)
+  lastStudiedAt    DateTime?
+  notes     String?
+
+  @@unique([userId, trackId])
+}

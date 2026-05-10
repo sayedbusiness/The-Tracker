@@ -1,0 +1,293 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import {
+  ListTodo,
+  Plus,
+  Filter,
+  Sparkles,
+  TrendingUp,
+  Calendar,
+  Zap,
+  Brain,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/tasks/page-header";
+import { TodayTasks } from "@/components/dashboard/today-tasks";
+import { tasks } from "@/lib/mock-data";
+
+const filters = [
+  { id: "all", label: "All", count: tasks.length },
+  { id: "today", label: "Today", count: tasks.length },
+  { id: "p0", label: "P0", count: tasks.filter((t) => t.priority === "p0").length },
+  { id: "deep-work", label: "Deep Work", count: tasks.filter((t) => t.category === "deep-work").length },
+  { id: "agency", label: "Agency", count: tasks.filter((t) => t.category === "agency").length },
+  { id: "health", label: "Health", count: tasks.filter((t) => t.category === "health").length },
+];
+
+export default function TasksPage() {
+  const [filter, setFilter] = useState("all");
+
+  const stats = useMemo(() => {
+    const done = tasks.filter((t) => t.completed).length;
+    const totalMin = tasks.reduce((sum, t) => sum + t.estimated, 0);
+    const doneMin = tasks
+      .filter((t) => t.completed)
+      .reduce((sum, t) => sum + t.estimated, 0);
+    const avgDifficulty =
+      tasks.reduce((sum, t) => sum + t.difficulty, 0) / tasks.length;
+    return {
+      done,
+      total: tasks.length,
+      totalMin,
+      doneMin,
+      avgDifficulty: avgDifficulty.toFixed(1),
+    };
+  }, []);
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-6">
+      <PageHeader
+        eyebrow="AI Adaptive Tasks"
+        title={
+          <>
+            <span className="gradient-text">Today's plan,</span> intelligently
+            sequenced
+          </>
+        }
+        subtitle="The AI re-prioritizes your day based on your energy curve, deadlines, and completion patterns. Difficulty scales with you — the more you ship, the harder the next day gets."
+        icon={ListTodo}
+        accent="violet"
+        actions={
+          <>
+            <Button variant="secondary" size="md">
+              <Filter className="h-4 w-4" /> Filters
+            </Button>
+            <Button size="md">
+              <Plus className="h-4 w-4" /> Add task
+            </Button>
+          </>
+        }
+      />
+
+      {/* Smart stats strip */}
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatBlock
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="Completion"
+          value={`${stats.done}/${stats.total}`}
+          sub={`${Math.round((stats.done / stats.total) * 100)}% • on pace`}
+          accent="violet"
+        />
+        <StatBlock
+          icon={<Calendar className="h-4 w-4" />}
+          label="Deep work"
+          value={`${stats.doneMin}m`}
+          sub={`of ${stats.totalMin}m planned`}
+          accent="cyan"
+        />
+        <StatBlock
+          icon={<Zap className="h-4 w-4" />}
+          label="Avg difficulty"
+          value={stats.avgDifficulty}
+          sub="+0.4 vs last week"
+          accent="amber"
+        />
+        <StatBlock
+          icon={<Brain className="h-4 w-4" />}
+          label="AI confidence"
+          value="92%"
+          sub="optimal sequencing"
+          accent="emerald"
+        />
+      </section>
+
+      {/* AI suggestion card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-indigo-500/5 to-cyan-500/10 p-5"
+      >
+        <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-violet-500/20 blur-3xl" />
+        <div className="relative flex items-start gap-4">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 shadow-[0_0_20px_rgba(124,58,237,0.5)]">
+            <Sparkles className="h-4 w-4 text-white" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-white">
+                AI Coach · Adaptive recommendation
+              </span>
+              <Badge variant="violet">LEVEL UP</Badge>
+            </div>
+            <p className="mt-1 text-sm leading-relaxed text-slate-300">
+              You've crushed P1 tasks at 92% for 14 days straight. Tomorrow I'm
+              adding a 90-min deep-work block at 7:30 AM. Your peak window is
+              7–11 AM, and you have free space. Sleep before 10:45 PM tonight.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button size="sm" variant="primary">
+                Accept the challenge
+              </Button>
+              <Button size="sm" variant="secondary">
+                Show reasoning
+              </Button>
+              <Button size="sm" variant="ghost">
+                Snooze
+              </Button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Filter chips */}
+      <div className="flex flex-wrap gap-2">
+        {filters.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={`group flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-all ${
+              filter === f.id
+                ? "border-violet-400/30 bg-violet-500/15 text-white"
+                : "border-white/[0.06] bg-white/[0.02] text-slate-400 hover:border-white/[0.12] hover:text-white"
+            }`}
+          >
+            {f.label}
+            <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-bold tabular text-slate-300">
+              {f.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Tasks */}
+      <div className="surface-card rounded-2xl p-6">
+        <TodayTasks />
+      </div>
+
+      {/* Energy / difficulty intelligence panel */}
+      <section className="grid gap-4 lg:grid-cols-3">
+        <div className="surface-card rounded-2xl p-5 lg:col-span-2">
+          <h3 className="text-sm font-semibold text-white">
+            Difficulty calibration · last 30 days
+          </h3>
+          <p className="mt-1 text-xs text-slate-500">
+            The AI raises task difficulty when your completion rate stays above
+            85% for 7+ days. It lowers difficulty if you skip 3 days in a row —
+            without ever making it easy enough to coast.
+          </p>
+          <div className="mt-5 space-y-3">
+            {[
+              { label: "Week 1", level: 2.4, output: 67 },
+              { label: "Week 2", level: 2.8, output: 74 },
+              { label: "Week 3", level: 3.2, output: 81 },
+              { label: "Week 4 · this week", level: 3.6, output: 89 },
+              { label: "Week 5 · projected", level: 4.0, output: 92, projected: true },
+            ].map((w) => (
+              <div key={w.label} className="flex items-center gap-3">
+                <span
+                  className={`w-44 shrink-0 text-xs ${
+                    w.projected ? "text-violet-300" : "text-slate-400"
+                  }`}
+                >
+                  {w.label}
+                </span>
+                <div className="flex flex-1 items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-2 flex-1 rounded-full ${
+                        i < Math.round(w.level)
+                          ? w.projected
+                            ? "bg-gradient-to-r from-violet-400 to-cyan-400"
+                            : "bg-white/40"
+                          : "bg-white/[0.06]"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="w-12 shrink-0 text-right text-xs tabular text-slate-400">
+                  {w.output}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="surface-card rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-white">Your energy curve</h3>
+          <p className="mt-1 text-xs text-slate-500">
+            Based on 87 completed work sessions.
+          </p>
+          <div className="mt-5 space-y-2">
+            {[
+              { time: "5–7 AM", energy: 60, color: "from-amber-500 to-amber-400" },
+              { time: "7–9 AM", energy: 95, color: "from-emerald-500 to-emerald-400" },
+              { time: "9–11 AM", energy: 92, color: "from-emerald-500 to-emerald-400" },
+              { time: "11 AM–1 PM", energy: 78, color: "from-violet-500 to-violet-400" },
+              { time: "1–3 PM", energy: 52, color: "from-amber-500 to-orange-400" },
+              { time: "3–5 PM", energy: 68, color: "from-cyan-500 to-cyan-400" },
+              { time: "5–7 PM", energy: 75, color: "from-violet-500 to-violet-400" },
+              { time: "7–10 PM", energy: 48, color: "from-rose-500 to-rose-400" },
+            ].map((row) => (
+              <div key={row.time} className="flex items-center gap-2">
+                <span className="w-24 text-[11px] text-slate-500">{row.time}</span>
+                <div className="flex-1 h-2 overflow-hidden rounded-full bg-white/[0.04]">
+                  <div
+                    className={`h-full bg-gradient-to-r ${row.color}`}
+                    style={{ width: `${row.energy}%` }}
+                  />
+                </div>
+                <span className="w-8 text-right text-[11px] tabular text-slate-400">
+                  {row.energy}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function StatBlock({
+  icon,
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub: string;
+  accent: "violet" | "emerald" | "cyan" | "amber";
+}) {
+  const accents = {
+    violet: "text-violet-300 from-violet-500/20",
+    emerald: "text-emerald-300 from-emerald-500/20",
+    cyan: "text-cyan-300 from-cyan-500/20",
+    amber: "text-amber-300 from-amber-500/20",
+  };
+  return (
+    <div className="surface-card relative overflow-hidden rounded-2xl p-4">
+      <div
+        className={`pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br to-transparent blur-2xl ${accents[accent]}`}
+      />
+      <div className="relative flex items-center gap-2">
+        <div className={`grid h-7 w-7 place-items-center rounded-lg bg-white/[0.04] ${accents[accent]}`}>
+          {icon}
+        </div>
+        <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
+          {label}
+        </span>
+      </div>
+      <div className="relative mt-2 text-2xl font-semibold tabular text-white">
+        {value}
+      </div>
+      <div className="relative mt-0.5 text-[11px] text-slate-500">{sub}</div>
+    </div>
+  );
+}
