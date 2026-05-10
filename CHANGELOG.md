@@ -1,0 +1,124 @@
+# CHANGELOG
+
+All notable changes to APEX OS will be documented here.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
+---
+
+## [Unreleased]
+
+### Planned for v0.2 — Live data
+- Supabase auth (email magic link + Apple/Google OAuth)
+- Row-level security policies for every Prisma model
+- Server actions replacing the mock data layer
+- Real-time subscriptions for streaks and leaderboards
+- Daily cron evaluating the adaptive difficulty engine
+
+### Planned for v0.3 — Live AI
+- Anthropic streaming chat via Server-Sent Events
+- pgvector embedding pipeline for `AiMemory`
+- Hybrid retrieval (semantic + importance + recency)
+- GPT-4o photo meal recognition with portion estimation
+- Daily insight generation cron
+
+### Planned for v0.4 — Cross-platform
+- Capacitor 6 wrap → iOS TestFlight + Play Store internal
+- Tauri 2 wrap → macOS .dmg + Windows .msi
+- Expo Notifications across all platforms
+- Apple HealthKit + Google Fit read-sync
+
+### Planned for v0.5 — Network effects
+- Opt-in public leaderboards
+- Accountability-partner coach mode
+- Shareable streak badges + milestone OG images
+
+---
+
+## [0.1.0] — 2026-05-10
+
+The bootstrap. First production-grade scaffold of the AI Life Operating System.
+
+### Added
+
+**Surfaces (10 fully designed routes + login)**
+- `/` — AI Life Dashboard with hero stats, 8 vital metrics, 7-day
+  productivity chart, real-time AI insights, today's tasks, habit grid,
+  and daily discipline reinforcement
+- `/tasks` — AI Adaptive Todo system: smart filtering, AI coach
+  recommendation card, difficulty calibration timeline, and energy-curve
+  intelligence panel
+- `/discipline` — Discipline Engine: score ring, daily reinforcement
+  quote, active challenges (Operator, 75 Hard Apex Edition, Deep Work
+  Marathon), breach log, non-negotiable habits
+- `/health` — Macro ring + calorie tracking, photo-meal scan CTA, vitals
+  (water/steps/sleep/HR), weight trend, sleep bar chart, workout log
+- `/agency` — Apex Growth Corp command center: KPI strip, MRR
+  trajectory chart, sales pipeline kanban (5 stages), client roster
+  with health scores, active campaigns, AI business advisor
+- `/learn` — Curated track library, in-progress hero cards, AI lesson
+  summaries with quiz/notes/save actions
+- `/assistant` — AI Coach chat: typing indicator, suggested prompts,
+  persistent memory rail, coach personality switcher (strategist /
+  drill / mentor / stoic)
+- `/insights` — Pattern analysis: life-balance radar (you vs. peer),
+  30-day life score trend, behavioral correlations ranked by strength,
+  AI memory activity timeline
+- `/achievements` — Level/XP hero, rarity-tiered badge grid (common →
+  mythic), Operator leaderboard with rank movement
+- `/settings` — Profile, AI behavior, notifications, integrations,
+  devices, privacy & data
+- `/login` — Cinematic entry surface with animated logo and promises
+
+**Design system**
+- Dark-first cinematic palette (void → obsidian → graphite → onyx)
+- Signature accent gradient (violet → indigo → cyan)
+- Glassmorphism utilities (`glass`, `glass-strong`, `surface-card`,
+  `surface-elevated`)
+- Custom keyframes (aurora, shimmer, float, pulse-glow, fade-up,
+  scale-in, slide-in-right, gradient)
+- Tabular numerics, minimal scrollbars, premium selection
+- Ambient backdrop with radial gradients and SVG grain texture
+- Fully responsive: mobile bottom nav, tablet, desktop sidebar
+
+**Reusable primitives**
+- `Button` (6 variants × 5 sizes, asChild support)
+- `Card` (glass / surface / elevated)
+- `Progress` linear + `RingProgress` SVG ring with animated gradient
+- `Badge` (6 color variants)
+- `PageHeader` (eyebrow + title + subtitle + icon accent + actions)
+
+**Shell**
+- Sticky sidebar with active-route motion layoutId
+- Top bar with greeting, search, streak + discipline chips, notifications
+- Mobile bottom nav with glow-on-active
+- `cmdk`-powered command palette (⌘K) with groups, keyboard nav,
+  navigation + quick actions
+
+**Database schema (24 models, Prisma 6)**
+- Identity: `User` (+ XP/level/scores/preferences)
+- Tasks: `Task` (with subtasks), `Habit`, `HabitLog`
+- Discipline: `DisciplineBreach`, `Challenge`
+- Health: `Meal`, `Workout`, `SleepLog`, `BodyMetric`, `MoodLog`
+- AI: `AiInsight`, `AiMemory` (with `vector(1536)` embedding column),
+  `Conversation`, `Message`
+- Gamification: `Achievement`, `AchievementProgress`
+- Agency: `Client`, `Deal`, `Campaign`
+- Learning: `LearningTrack`, `LearningProgress`
+- Enums for every categorical field
+
+**Documentation**
+- README with full architecture diagram, tech stack rationale,
+  cross-platform strategy, data flow, AI memory pipeline, adaptive
+  difficulty algorithm, feature status matrix, design principles, and
+  roadmap through v0.5
+
+### Verified
+- `npm install` clean (509 packages, zero vulnerabilities surfaced)
+- `tsc --noEmit` passes (TypeScript strict)
+- `next build` passes — 14 routes prerendered as static, 150–260 KB
+  First Load JS per route
+
+[Unreleased]: https://github.com/sayedbusiness/the-tracker/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/sayedbusiness/the-tracker/releases/tag/v0.1.0
