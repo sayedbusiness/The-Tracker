@@ -16,16 +16,16 @@ export function HeroStats() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-gradient-to-br from-violet-500/[0.08] via-indigo-500/[0.04] to-cyan-500/[0.06] p-6 lg:p-8"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-gradient-to-br from-blue-600/[0.08] via-blue-600/[0.04] to-sky-500/[0.06] p-6 lg:p-8"
     >
       {/* Aurora background */}
-      <div className="pointer-events-none absolute -top-32 -right-20 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-cyan-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -top-32 -right-20 h-80 w-80 rounded-full bg-blue-600/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-sky-500/15 blur-3xl" />
       <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:48px_48px]" />
 
       <div className="relative grid gap-8 lg:grid-cols-[1fr_auto]">
         <div>
-          <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-violet-300/80">
+          <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-blue-300/80">
             Day 1 · everything starts now
           </div>
           <h1 className="text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -98,8 +98,8 @@ function Pill({
 }) {
   const accents = {
     amber: "text-amber-300 bg-amber-500/10 border-amber-500/20",
-    violet: "text-violet-300 bg-violet-500/10 border-violet-500/20",
-    cyan: "text-cyan-300 bg-cyan-500/10 border-cyan-500/20",
+    violet: "text-blue-300 bg-blue-600/10 border-blue-600/20",
+    cyan: "text-sky-300 bg-sky-500/10 border-sky-500/20",
     emerald: "text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
   };
   return (

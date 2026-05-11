@@ -110,11 +110,11 @@ export default function TasksPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-indigo-500/5 to-cyan-500/10 p-5"
+        className="relative overflow-hidden rounded-3xl border border-blue-600/20 bg-gradient-to-br from-blue-600/10 via-blue-600/5 to-sky-500/10 p-5"
       >
-        <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-violet-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-blue-600/20 blur-3xl" />
         <div className="relative flex items-start gap-4">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 shadow-[0_0_20px_rgba(124,58,237,0.5)]">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-400 shadow-[0_0_20px_rgba(30,58,138,0.5)]">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div className="min-w-0 flex-1">
@@ -149,7 +149,7 @@ export default function TasksPage() {
             onClick={() => setFilter(f.id)}
             className={`group flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-all ${
               filter === f.id
-                ? "border-violet-400/30 bg-violet-500/15 text-white"
+                ? "border-blue-400/30 bg-blue-600/15 text-white"
                 : "border-white/[0.06] bg-white/[0.02] text-slate-400 hover:border-white/[0.12] hover:text-white"
             }`}
           >
@@ -187,7 +187,7 @@ export default function TasksPage() {
               <div key={w.label} className="flex items-center gap-3">
                 <span
                   className={`w-44 shrink-0 text-xs ${
-                    w.current ? "text-violet-300" : "text-slate-400"
+                    w.current ? "text-blue-300" : "text-slate-400"
                   }`}
                 >
                   {w.label}
@@ -199,7 +199,7 @@ export default function TasksPage() {
                       className={`h-2 flex-1 rounded-full ${
                         i < Math.round(w.level)
                           ? w.current
-                            ? "bg-gradient-to-r from-violet-400 to-cyan-400"
+                            ? "bg-gradient-to-r from-blue-400 to-sky-400"
                             : "bg-white/20"
                           : "bg-white/[0.06]"
                       }`}
@@ -259,9 +259,9 @@ function StatBlock({
   accent: "violet" | "emerald" | "cyan" | "amber";
 }) {
   const accents = {
-    violet: "text-violet-300 from-violet-500/20",
+    violet: "text-blue-300 from-blue-600/20",
     emerald: "text-emerald-300 from-emerald-500/20",
-    cyan: "text-cyan-300 from-cyan-500/20",
+    cyan: "text-sky-300 from-sky-500/20",
     amber: "text-amber-300 from-amber-500/20",
   };
   return (

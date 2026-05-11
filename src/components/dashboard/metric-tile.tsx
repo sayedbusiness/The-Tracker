@@ -22,20 +22,20 @@ export function MetricTile({
   accent?: "violet" | "emerald" | "cyan" | "amber" | "rose" | "indigo";
 }) {
   const accents = {
-    violet: "from-violet-500 to-indigo-500",
+    violet: "from-blue-600 to-blue-600",
     emerald: "from-emerald-500 to-teal-500",
-    cyan: "from-cyan-500 to-blue-500",
+    cyan: "from-sky-500 to-blue-500",
     amber: "from-amber-500 to-orange-500",
     rose: "from-rose-500 to-pink-500",
-    indigo: "from-indigo-500 to-violet-500",
+    indigo: "from-blue-600 to-blue-600",
   };
   const glows = {
-    violet: "shadow-[0_0_24px_rgba(124,58,237,0.25)]",
+    violet: "shadow-[0_0_24px_rgba(30,58,138,0.25)]",
     emerald: "shadow-[0_0_24px_rgba(16,185,129,0.25)]",
-    cyan: "shadow-[0_0_24px_rgba(6,182,212,0.25)]",
+    cyan: "shadow-[0_0_24px_rgba(59,130,246,0.25)]",
     amber: "shadow-[0_0_24px_rgba(245,158,11,0.25)]",
     rose: "shadow-[0_0_24px_rgba(244,63,94,0.25)]",
-    indigo: "shadow-[0_0_24px_rgba(99,102,241,0.25)]",
+    indigo: "shadow-[0_0_24px_rgba(29,78,216,0.25)]",
   };
 
   return (

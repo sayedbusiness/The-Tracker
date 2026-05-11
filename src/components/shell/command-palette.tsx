@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import {
   LayoutDashboard,
+  CalendarDays,
   ListTodo,
   Flame,
   Heart,
@@ -20,7 +21,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const items = [
-  { group: "Navigate", icon: LayoutDashboard, label: "Open Dashboard", action: "/" },
+  { group: "Navigate", icon: LayoutDashboard, label: "Open Today", action: "/" },
+  { group: "Navigate", icon: CalendarDays, label: "Open 30-Day Plan", action: "/plan" },
   { group: "Navigate", icon: ListTodo, label: "Open Tasks", action: "/tasks" },
   { group: "Navigate", icon: Flame, label: "Open Discipline Engine", action: "/discipline" },
   { group: "Navigate", icon: Heart, label: "Open Health", action: "/health" },
@@ -102,7 +104,7 @@ export function CommandPalette({
                         }}
                         className={cn(
                           "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300",
-                          "data-[selected=true]:bg-gradient-to-r data-[selected=true]:from-violet-500/15 data-[selected=true]:to-transparent data-[selected=true]:text-white"
+                          "data-[selected=true]:bg-gradient-to-r data-[selected=true]:from-blue-600/15 data-[selected=true]:to-transparent data-[selected=true]:text-white"
                         )}
                       >
                         <Icon className="h-4 w-4 text-slate-500" />

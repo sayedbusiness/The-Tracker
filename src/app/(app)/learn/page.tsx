@@ -18,12 +18,12 @@ import { Badge } from "@/components/ui/badge";
 import { learningTracks } from "@/lib/mock-data";
 
 const coverGradients = {
-  violet: "from-violet-500 via-indigo-500 to-purple-600",
-  cyan: "from-cyan-500 via-blue-500 to-indigo-600",
-  emerald: "from-emerald-500 via-teal-500 to-cyan-600",
+  violet: "from-blue-600 via-blue-600 to-blue-700",
+  cyan: "from-sky-500 via-blue-500 to-blue-700",
+  emerald: "from-emerald-500 via-teal-500 to-sky-600",
   amber: "from-amber-500 via-orange-500 to-rose-500",
-  rose: "from-rose-500 via-pink-500 to-fuchsia-600",
-  indigo: "from-indigo-500 via-violet-500 to-purple-600",
+  rose: "from-rose-500 via-pink-500 to-blue-700",
+  indigo: "from-blue-600 via-blue-600 to-blue-700",
 };
 
 export default function LearnPage() {
@@ -43,7 +43,7 @@ export default function LearnPage() {
         eyebrow="Learning · Second brain"
         title={
           <>
-            Read. Watch. <span className="gradient-violet">Compound.</span>
+            Read. Watch. <span className="gradient-electric">Compound.</span>
           </>
         }
         subtitle="Curated content from the best operators and thinkers. The AI summarizes, quizzes, and surfaces what to study next based on your goals."
@@ -139,7 +139,7 @@ export default function LearnPage() {
                     initial={{ width: 0 }}
                     animate={{ width: `${track.progress * 100}%` }}
                     transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full bg-gradient-to-r from-violet-500 to-cyan-400"
+                    className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
                   />
                 </div>
               </div>
@@ -202,7 +202,7 @@ export default function LearnPage() {
                 </div>
                 <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-white/[0.05]">
                   <div
-                    className="h-full bg-gradient-to-r from-violet-500 to-cyan-400"
+                    className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
                     style={{ width: `${track.progress * 100}%` }}
                   />
                 </div>
@@ -215,7 +215,7 @@ export default function LearnPage() {
       {/* AI summaries */}
       <section className="surface-card rounded-2xl p-5">
         <div className="mb-4 flex items-center gap-2">
-          <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400">
+          <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-400">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
@@ -260,7 +260,7 @@ function LearnStat({
   return (
     <div className="surface-card rounded-2xl p-4">
       <div className="flex items-center gap-2">
-        <div className="grid h-7 w-7 place-items-center rounded-lg bg-violet-500/15 text-violet-300">
+        <div className="grid h-7 w-7 place-items-center rounded-lg bg-blue-600/15 text-blue-300">
           {icon}
         </div>
         <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500">

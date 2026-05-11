@@ -94,10 +94,10 @@ export default function SettingsPage() {
 
       {/* Profile hero */}
       <section className="surface-elevated relative overflow-hidden rounded-3xl p-6">
-        <div className="pointer-events-none absolute -top-20 -right-20 h-60 w-60 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-20 -right-20 h-60 w-60 rounded-full bg-blue-600/10 blur-3xl" />
         <div className="relative flex items-center gap-4">
           <div className="relative">
-            <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 via-indigo-500 to-cyan-400 text-2xl font-black text-white shadow-[0_0_30px_rgba(124,58,237,0.5)]">
+            <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 via-blue-600 to-sky-400 text-2xl font-black text-white shadow-[0_0_30px_rgba(30,58,138,0.5)]">
               {user.avatar}
             </div>
             <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full border-2 border-black bg-gradient-to-br from-amber-400 to-orange-500 text-[10px] font-black text-black">
@@ -127,7 +127,7 @@ export default function SettingsPage() {
           >
             <div className="border-b border-white/[0.04] px-5 py-4">
               <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 text-violet-400" />
+                <Icon className="h-4 w-4 text-blue-400" />
                 <h2 className="text-sm font-semibold text-white">{section.title}</h2>
               </div>
             </div>

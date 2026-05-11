@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 
 const colorMap = {
   emerald: "from-emerald-500/20 to-emerald-500/0 border-emerald-500/30 text-emerald-300",
-  indigo: "from-indigo-500/20 to-indigo-500/0 border-indigo-500/30 text-indigo-300",
-  violet: "from-violet-500/20 to-violet-500/0 border-violet-500/30 text-violet-300",
-  cyan: "from-cyan-500/20 to-cyan-500/0 border-cyan-500/30 text-cyan-300",
+  indigo: "from-blue-600/20 to-blue-600/0 border-blue-600/30 text-blue-300",
+  violet: "from-blue-600/20 to-blue-600/0 border-blue-600/30 text-blue-300",
+  cyan: "from-sky-500/20 to-sky-500/0 border-sky-500/30 text-sky-300",
   rose: "from-rose-500/20 to-rose-500/0 border-rose-500/30 text-rose-300",
   amber: "from-amber-500/20 to-amber-500/0 border-amber-500/30 text-amber-300",
 };

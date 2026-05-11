@@ -25,8 +25,8 @@ export function Progress({ value, max = 100, className, barClassName, glow }: Pr
         animate={{ width: `${pct}%` }}
         transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          "h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400",
-          glow && "shadow-[0_0_12px_rgba(124,58,237,0.6)]",
+          "h-full rounded-full bg-gradient-to-r from-blue-600 via-blue-600 to-sky-400",
+          glow && "shadow-[0_0_12px_rgba(30,58,138,0.6)]",
           barClassName
         )}
       />

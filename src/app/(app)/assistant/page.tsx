@@ -117,7 +117,7 @@ export default function AssistantPage() {
         eyebrow="Personal AI Coach"
         title={
           <>
-            Always on. <span className="gradient-violet">Always sharp.</span>
+            Always on. <span className="gradient-electric">Always sharp.</span>
           </>
         }
         subtitle="Your strategist, coach, mentor, and accountability partner. The AI knows your patterns, goals, and weaknesses — and is brutally honest by design."
@@ -128,8 +128,8 @@ export default function AssistantPage() {
       <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_300px]">
         {/* Chat surface */}
         <div className="surface-elevated relative flex h-[72vh] flex-col overflow-hidden rounded-3xl">
-          <div className="pointer-events-none absolute -top-20 -right-20 h-40 w-40 rounded-full bg-violet-500/15 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -top-20 -right-20 h-40 w-40 rounded-full bg-blue-600/15 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-sky-500/10 blur-3xl" />
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-6">
             <AnimatePresence initial={false}>
@@ -147,7 +147,7 @@ export default function AssistantPage() {
                     className={cn(
                       "grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold",
                       msg.role === "assistant"
-                        ? "bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_0_15px_rgba(124,58,237,0.4)]"
+                        ? "bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-[0_0_15px_rgba(30,58,138,0.4)]"
                         : "bg-white/[0.06] text-slate-200"
                     )}
                   >
@@ -162,7 +162,7 @@ export default function AssistantPage() {
                       "max-w-[78%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
                       msg.role === "assistant"
                         ? "border border-white/[0.06] bg-white/[0.03] text-slate-100"
-                        : "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-[0_4px_20px_rgba(124,58,237,0.35)]"
+                        : "bg-gradient-to-br from-blue-700 to-blue-700 text-white shadow-[0_4px_20px_rgba(30,58,138,0.35)]"
                     )}
                   >
                     {msg.content}
@@ -186,13 +186,13 @@ export default function AssistantPage() {
                 animate={{ opacity: 1 }}
                 className="flex items-center gap-2 text-xs text-slate-500"
               >
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-400">
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400">
                   <Sparkles className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex gap-1 rounded-full bg-white/[0.04] px-3 py-2">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-400 [animation-delay:-0.3s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-400 [animation-delay:-0.15s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-400" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400 [animation-delay:-0.3s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400 [animation-delay:-0.15s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400" />
                 </div>
               </motion.div>
             )}
@@ -210,14 +210,14 @@ export default function AssistantPage() {
                       onClick={() => send(p.label)}
                       className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-[11px] text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-white"
                     >
-                      <Icon className="h-3 w-3 text-violet-400" />
+                      <Icon className="h-3 w-3 text-blue-400" />
                       {p.label}
                     </button>
                   );
                 })}
               </div>
             )}
-            <div className="flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-black/40 p-2 focus-within:border-violet-400/30 focus-within:ring-2 focus-within:ring-violet-400/20">
+            <div className="flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-black/40 p-2 focus-within:border-blue-400/30 focus-within:ring-2 focus-within:ring-blue-400/20">
               <button className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-white/[0.05] hover:text-white">
                 <Paperclip className="h-4 w-4" />
               </button>
@@ -234,7 +234,7 @@ export default function AssistantPage() {
               <button
                 onClick={() => send()}
                 disabled={!input.trim()}
-                className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_0_15px_rgba(124,58,237,0.4)] transition-all hover:shadow-[0_0_25px_rgba(124,58,237,0.6)] disabled:opacity-40 disabled:shadow-none"
+                className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-[0_0_15px_rgba(30,58,138,0.4)] transition-all hover:shadow-[0_0_25px_rgba(30,58,138,0.6)] disabled:opacity-40 disabled:shadow-none"
               >
                 <Send className="h-4 w-4" />
               </button>
@@ -246,7 +246,7 @@ export default function AssistantPage() {
         <aside className="space-y-4">
           <div className="surface-card rounded-2xl p-4">
             <div className="mb-3 flex items-center gap-2">
-              <Brain className="h-4 w-4 text-violet-400" />
+              <Brain className="h-4 w-4 text-blue-400" />
               <h3 className="text-sm font-semibold text-white">AI Memory</h3>
             </div>
             <p className="mb-3 text-[11px] leading-relaxed text-slate-500">
@@ -287,13 +287,13 @@ export default function AssistantPage() {
                   className={cn(
                     "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-xs transition-colors",
                     m.active
-                      ? "border-violet-400/30 bg-violet-500/10 text-white"
+                      ? "border-blue-400/30 bg-blue-600/10 text-white"
                       : "border-white/[0.05] bg-white/[0.02] text-slate-400 hover:bg-white/[0.04]"
                   )}
                 >
                   <span>{m.label}</span>
                   {m.active && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(124,58,237,0.8)]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.8)]" />
                   )}
                 </button>
               ))}

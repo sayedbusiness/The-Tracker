@@ -6,10 +6,10 @@ import { aiInsights } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 const accents = {
-  pattern: "from-violet-500/20 to-indigo-500/0 border-violet-500/20 text-violet-300",
+  pattern: "from-blue-600/20 to-blue-600/0 border-blue-600/20 text-blue-300",
   warning: "from-amber-500/20 to-orange-500/0 border-amber-500/20 text-amber-300",
   win: "from-emerald-500/20 to-teal-500/0 border-emerald-500/20 text-emerald-300",
-  challenge: "from-cyan-500/20 to-blue-500/0 border-cyan-500/20 text-cyan-300",
+  challenge: "from-sky-500/20 to-blue-500/0 border-sky-500/20 text-sky-300",
 };
 
 export function AiInsights() {
@@ -17,7 +17,7 @@ export function AiInsights() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-cyan-400 shadow-[0_0_20px_rgba(124,58,237,0.5)]">
+          <div className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-blue-600 to-sky-400 shadow-[0_0_20px_rgba(30,58,138,0.5)]">
             <Sparkles className="h-3.5 w-3.5 text-white" />
           </div>
           <div>

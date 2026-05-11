@@ -9,15 +9,15 @@ import { cn } from "@/lib/utils";
 const categoryColors = {
   agency: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
   health: "bg-rose-500/15 text-rose-300 border-rose-500/20",
-  learning: "bg-indigo-500/15 text-indigo-300 border-indigo-500/20",
+  learning: "bg-blue-600/15 text-blue-300 border-blue-600/20",
   personal: "bg-amber-500/15 text-amber-300 border-amber-500/20",
-  "deep-work": "bg-violet-500/15 text-violet-300 border-violet-500/20",
+  "deep-work": "bg-blue-600/15 text-blue-300 border-blue-600/20",
 };
 
 const priorityColors = {
   p0: "text-rose-400",
   p1: "text-amber-400",
-  p2: "text-cyan-400",
+  p2: "text-sky-400",
   p3: "text-slate-500",
 };
 
@@ -57,7 +57,7 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
           <div className="mt-1 text-xs text-slate-400">
             Add at least one P0 and one health task. The AI will suggest the rest.
           </div>
-          <button className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-violet-600 to-cyan-500 px-3 py-1.5 text-xs font-medium text-white shadow-[0_4px_15px_rgba(124,58,237,0.35)] transition-all hover:shadow-[0_6px_20px_rgba(124,58,237,0.55)]">
+          <button className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-700 to-sky-500 px-3 py-1.5 text-xs font-medium text-white shadow-[0_4px_15px_rgba(30,58,138,0.35)] transition-all hover:shadow-[0_6px_20px_rgba(30,58,138,0.55)]">
             <Plus className="h-3 w-3" /> Add your first task
           </button>
         </div>
@@ -80,7 +80,7 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
               "grid h-6 w-6 shrink-0 place-items-center rounded-lg border transition-all",
               task.completed
                 ? "border-emerald-500/40 bg-emerald-500/20"
-                : "border-white/[0.1] hover:border-violet-400/40 hover:bg-violet-500/10"
+                : "border-white/[0.1] hover:border-blue-400/40 hover:bg-blue-600/10"
             )}
           >
             {task.completed && <Check className="h-3.5 w-3.5 text-emerald-300" />}
@@ -129,7 +129,7 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
                 key={i}
                 className={cn(
                   "h-1 w-1 rounded-full",
-                  i < task.difficulty ? "bg-violet-400" : "bg-white/[0.06]"
+                  i < task.difficulty ? "bg-blue-400" : "bg-white/[0.06]"
                 )}
               />
             ))}

@@ -76,7 +76,7 @@ export default function HealthPage() {
         eyebrow="Health & Performance"
         title={
           <>
-            Your body is the <span className="gradient-violet">vehicle.</span>
+            Your body is the <span className="gradient-electric">vehicle.</span>
           </>
         }
         subtitle="Track meals with a photo, log workouts, monitor sleep and recovery. The AI cross-correlates everything against your productivity score."
@@ -140,7 +140,7 @@ export default function HealthPage() {
                   label="Fat"
                   value={totals.fat}
                   target={macroTargets.fat}
-                  color="from-violet-500 to-violet-400"
+                  color="from-blue-600 to-blue-400"
                 />
               </div>
             </div>
@@ -152,10 +152,10 @@ export default function HealthPage() {
           whileHover={{ y: -2 }}
           className="surface-elevated relative overflow-hidden rounded-3xl p-6"
         >
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-sky-500/10 blur-3xl" />
           <div className="relative flex h-full flex-col">
             <div className="flex items-center gap-2">
-              <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+              <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]">
                 <Camera className="h-4 w-4 text-white" />
               </div>
               <div>
@@ -255,7 +255,7 @@ export default function HealthPage() {
               <div className="hidden gap-3 text-[10px] sm:flex">
                 <Stat label="P" value={meal.protein} color="text-emerald-300" />
                 <Stat label="C" value={meal.carbs} color="text-amber-300" />
-                <Stat label="F" value={meal.fat} color="text-violet-300" />
+                <Stat label="F" value={meal.fat} color="text-blue-300" />
               </div>
               <div className="shrink-0 text-right">
                 <div className="text-sm font-semibold tabular text-white">
@@ -429,9 +429,9 @@ function VitalCard({
   accent: "cyan" | "emerald" | "indigo" | "rose";
 }) {
   const colors = {
-    cyan: "from-cyan-500 to-blue-500",
+    cyan: "from-sky-500 to-blue-500",
     emerald: "from-emerald-500 to-teal-500",
-    indigo: "from-indigo-500 to-violet-500",
+    indigo: "from-blue-600 to-blue-600",
     rose: "from-rose-500 to-pink-500",
   };
   return (

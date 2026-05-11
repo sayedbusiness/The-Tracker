@@ -58,7 +58,7 @@ export default function InsightsPage() {
         eyebrow="Pattern analysis · AI memory"
         title={
           <>
-            What the system has <span className="gradient-violet">learned</span> about you
+            What the system has <span className="gradient-electric">learned</span> about you
           </>
         }
         subtitle="Every action, every skip, every spike. The AI mines patterns across months of your data and surfaces the signal hiding in the noise."
@@ -175,7 +175,7 @@ export default function InsightsPage() {
             transition={{ delay: i * 0.06 }}
             className="surface-card relative overflow-hidden rounded-2xl p-5"
           >
-            <div className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-violet-500/10 blur-3xl" />
+            <div className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-blue-600/10 blur-3xl" />
             <div className="relative">
               <div className="flex items-center gap-2">
                 <div className="text-xl">{insight.icon}</div>
@@ -221,7 +221,7 @@ export default function InsightsPage() {
               How your actions actually drive outcomes — ranked by impact.
             </p>
           </div>
-          <Brain className="h-4 w-4 text-violet-400" />
+          <Brain className="h-4 w-4 text-blue-400" />
         </div>
         <div className="space-y-2">
           {correlations.length === 0 ? (
@@ -292,7 +292,7 @@ export default function InsightsPage() {
       <section className="surface-card rounded-2xl p-5">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-400">
               <Brain className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -315,11 +315,11 @@ export default function InsightsPage() {
               className="relative flex gap-4 py-3 last:pb-0"
             >
               <div className="relative">
-                <div className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-violet-500/30 to-cyan-400/30 ring-1 ring-violet-400/30">
-                  <span className="h-1.5 w-1.5 rounded-full bg-violet-300" />
+                <div className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-blue-600/30 to-sky-400/30 ring-1 ring-blue-400/30">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-300" />
                 </div>
                 {i < memories.length - 1 && (
-                  <div className="absolute left-1/2 top-6 h-full w-px -translate-x-1/2 bg-gradient-to-b from-violet-400/20 to-transparent" />
+                  <div className="absolute left-1/2 top-6 h-full w-px -translate-x-1/2 bg-gradient-to-b from-blue-400/20 to-transparent" />
                 )}
               </div>
               <div className="flex-1">

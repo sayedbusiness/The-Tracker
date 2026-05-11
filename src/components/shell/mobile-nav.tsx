@@ -39,7 +39,7 @@ export function MobileNav() {
               <Icon
                 className={cn(
                   "h-4 w-4",
-                  active && "text-violet-300 drop-shadow-[0_0_8px_rgba(124,58,237,0.7)]"
+                  active && "text-blue-300 drop-shadow-[0_0_8px_rgba(30,58,138,0.7)]"
                 )}
               />
               <span className={cn(active && "font-semibold")}>{item.label}</span>

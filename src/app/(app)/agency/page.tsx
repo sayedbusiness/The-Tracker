@@ -55,8 +55,8 @@ const stageLabels: Record<PipelineStage, string> = {
 
 const stageColors: Record<PipelineStage, string> = {
   lead: "border-slate-500/20 from-slate-500/10",
-  qualified: "border-cyan-500/20 from-cyan-500/10",
-  proposal: "border-violet-500/20 from-violet-500/10",
+  qualified: "border-sky-500/20 from-sky-500/10",
+  proposal: "border-blue-600/20 from-blue-600/10",
   negotiation: "border-amber-500/20 from-amber-500/10",
   won: "border-emerald-500/20 from-emerald-500/10",
   lost: "border-rose-500/20 from-rose-500/10",
@@ -196,10 +196,10 @@ export default function AgencyPage() {
         </div>
 
         <div className="surface-elevated relative overflow-hidden rounded-2xl p-5">
-          <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-violet-500/15 blur-3xl" />
+          <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-blue-600/15 blur-3xl" />
           <div className="relative">
             <div className="flex items-center gap-2">
-              <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400">
+              <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-400">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <div>
@@ -304,7 +304,7 @@ export default function AgencyPage() {
                       </div>
                       <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
                         <div
-                          className="h-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400"
+                          className="h-full bg-gradient-to-r from-blue-600 via-blue-600 to-sky-400"
                           style={{ width: `${d.probability}%` }}
                         />
                       </div>
@@ -456,7 +456,7 @@ export default function AgencyPage() {
                 </div>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
                   <div
-                    className="h-full bg-gradient-to-r from-violet-500 to-cyan-400"
+                    className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
                     style={{ width: `${(c.spent / c.budget) * 100}%` }}
                   />
                 </div>
@@ -486,8 +486,8 @@ function Kpi({
 }) {
   const colors = {
     emerald: "from-emerald-500 to-teal-500",
-    violet: "from-violet-500 to-indigo-500",
-    cyan: "from-cyan-500 to-blue-500",
+    violet: "from-blue-600 to-blue-600",
+    cyan: "from-sky-500 to-blue-500",
     amber: "from-amber-500 to-orange-500",
     rose: "from-rose-500 to-pink-500",
   };
@@ -530,7 +530,7 @@ function Insight({
   const tones = {
     warn: { border: "border-amber-500/20", bg: "bg-amber-500/[0.04]", icon: "⚠️" },
     win: { border: "border-emerald-500/20", bg: "bg-emerald-500/[0.04]", icon: "🚀" },
-    info: { border: "border-cyan-500/20", bg: "bg-cyan-500/[0.04]", icon: "💡" },
+    info: { border: "border-sky-500/20", bg: "bg-sky-500/[0.04]", icon: "💡" },
   };
   const t = tones[tone];
   return (

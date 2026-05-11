@@ -38,9 +38,9 @@ export function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             {user.streak}
           </span>
         </div>
-        <div className="hidden items-center gap-1.5 rounded-xl border border-violet-500/20 bg-violet-500/10 px-2.5 py-1.5 md:flex">
-          <Zap className="h-3.5 w-3.5 text-violet-300" />
-          <span className="text-xs font-semibold tabular text-violet-200">
+        <div className="hidden items-center gap-1.5 rounded-xl border border-blue-600/20 bg-blue-600/10 px-2.5 py-1.5 md:flex">
+          <Zap className="h-3.5 w-3.5 text-blue-300" />
+          <span className="text-xs font-semibold tabular text-blue-200">
             {user.disciplineScore}
           </span>
         </div>

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
+  CalendarDays,
   ListTodo,
   Flame,
   Heart,
@@ -20,7 +21,8 @@ import { cn } from "@/lib/utils";
 import { user } from "@/lib/mock-data";
 
 const nav = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, hint: "G D" },
+  { href: "/", label: "Today", icon: LayoutDashboard, hint: "G D" },
+  { href: "/plan", label: "30-Day Plan", icon: CalendarDays, hint: "G P" },
   { href: "/tasks", label: "Tasks", icon: ListTodo, hint: "G T" },
   { href: "/discipline", label: "Discipline", icon: Flame, hint: "G I" },
   { href: "/health", label: "Health", icon: Heart, hint: "G H" },
@@ -38,7 +40,7 @@ export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
     <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col border-r border-white/[0.05] bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-2xl lg:flex">
       {/* Brand */}
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-gradient-to-br from-violet-500 via-indigo-500 to-cyan-400 shadow-[0_4px_20px_rgba(124,58,237,0.5)]">
+        <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 via-blue-600 to-sky-400 shadow-[0_4px_20px_rgba(30,58,138,0.5)]">
           <div className="absolute inset-0 flex items-center justify-center text-sm font-black tracking-tighter text-white">
             A
           </div>
@@ -85,14 +87,14 @@ export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
               {active && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-violet-500/15 via-indigo-500/10 to-transparent ring-1 ring-inset ring-violet-400/20"
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600/15 via-blue-600/10 to-transparent ring-1 ring-inset ring-blue-400/20"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
               <Icon
                 className={cn(
                   "relative h-4 w-4 transition-colors",
-                  active ? "text-violet-300" : "text-slate-500 group-hover:text-slate-300"
+                  active ? "text-blue-300" : "text-slate-500 group-hover:text-slate-300"
                 )}
               />
               <span className="relative flex-1">{item.label}</span>
@@ -108,7 +110,7 @@ export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
       <div className="m-3 rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-3">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-400 text-xs font-bold text-white">
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 text-xs font-bold text-white">
               {user.avatar}
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full border border-black/40 bg-gradient-to-br from-amber-400 to-amber-600 text-[8px] font-black text-black">
@@ -127,7 +129,7 @@ export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
             initial={{ width: 0 }}
             animate={{ width: `${(user.xp / user.xpToNext) * 100}%` }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="h-full bg-gradient-to-r from-violet-500 to-cyan-400"
+            className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
           />
         </div>
         <Link

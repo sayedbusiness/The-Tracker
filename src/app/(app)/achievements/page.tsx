@@ -47,16 +47,16 @@ const rarityStyles = {
     glow: "",
   },
   rare: {
-    border: "border-cyan-500/30",
-    bg: "from-cyan-500/10",
-    text: "text-cyan-300",
-    glow: "shadow-[0_0_20px_rgba(6,182,212,0.2)]",
+    border: "border-sky-500/30",
+    bg: "from-sky-500/10",
+    text: "text-sky-300",
+    glow: "shadow-[0_0_20px_rgba(59,130,246,0.2)]",
   },
   epic: {
-    border: "border-violet-500/30",
-    bg: "from-violet-500/10",
-    text: "text-violet-300",
-    glow: "shadow-[0_0_25px_rgba(124,58,237,0.25)]",
+    border: "border-blue-600/30",
+    bg: "from-blue-600/10",
+    text: "text-blue-300",
+    glow: "shadow-[0_0_25px_rgba(30,58,138,0.25)]",
   },
   legendary: {
     border: "border-amber-500/30",
@@ -135,7 +135,7 @@ export default function AchievementsPage() {
       <motion.section
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-transparent to-cyan-500/10 p-4"
+        className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-transparent to-sky-500/10 p-4"
       >
         <div className="flex items-center gap-3">
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 shadow-[0_0_20px_rgba(16,185,129,0.5)]">
@@ -217,8 +217,8 @@ export default function AchievementsPage() {
                             : a.rarity === "legendary"
                               ? "from-amber-400 to-orange-400"
                               : a.rarity === "epic"
-                                ? "from-violet-400 to-purple-400"
-                                : "from-cyan-400 to-blue-400"
+                                ? "from-blue-400 to-blue-400"
+                                : "from-sky-400 to-blue-400"
                         }`}
                         style={{ width: `${(a.progress ?? 0) * 100}%` }}
                       />

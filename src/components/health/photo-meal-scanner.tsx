@@ -114,7 +114,7 @@ export function PhotoMealScanner({
             >
               <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3">
                 <div className="flex items-center gap-2">
-                  <div className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500">
+                  <div className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-500">
                     <Sparkles className="h-3.5 w-3.5 text-white" />
                   </div>
                   <span className="text-sm font-semibold text-white">
@@ -141,7 +141,7 @@ export function PhotoMealScanner({
                     />
                     {status === "uploading" && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 backdrop-blur-sm">
-                        <Loader2 className="h-7 w-7 animate-spin text-violet-300" />
+                        <Loader2 className="h-7 w-7 animate-spin text-blue-300" />
                         <span className="text-xs font-medium text-slate-200">
                           Analyzing portions, ingredients, macros…
                         </span>
@@ -189,7 +189,7 @@ export function PhotoMealScanner({
                               key={ing}
                               className="flex items-center gap-2 text-xs text-slate-300"
                             >
-                              <span className="h-1 w-1 rounded-full bg-cyan-400" />
+                              <span className="h-1 w-1 rounded-full bg-sky-400" />
                               {ing}
                             </li>
                           ))}
@@ -241,7 +241,7 @@ function Macro({
     rose: "text-rose-300",
     emerald: "text-emerald-300",
     amber: "text-amber-300",
-    violet: "text-violet-300",
+    violet: "text-blue-300",
   };
   return (
     <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-2 text-center">

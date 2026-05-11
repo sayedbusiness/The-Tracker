@@ -14,10 +14,11 @@ import { HeroStats } from "@/components/dashboard/hero-stats";
 import { MetricTile } from "@/components/dashboard/metric-tile";
 import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { AiInsights } from "@/components/dashboard/ai-insights";
-import { TodayTasks } from "@/components/dashboard/today-tasks";
+import { TodayTimeline } from "@/components/dashboard/today-timeline";
 import { HabitsGrid } from "@/components/dashboard/habits-grid";
 import { DisciplineQuote } from "@/components/dashboard/discipline-quote";
 import { todayMetrics } from "@/lib/mock-data";
+import { getTodayPlan } from "@/lib/thirty-day-plan";
 
 export default function DashboardPage() {
   const m = todayMetrics;
@@ -118,9 +119,9 @@ export default function DashboardPage() {
             <ProductivityChart />
           </div>
 
-          {/* Tasks */}
+          {/* Today's hour-by-hour timeline */}
           <div className="surface-card rounded-2xl p-6">
-            <TodayTasks compact />
+            <TodayTimeline plan={getTodayPlan()} />
           </div>
 
           {/* Quote */}
@@ -149,7 +150,7 @@ export default function DashboardPage() {
 }
 
 function Legend({ color, label }: { color: "violet" | "cyan"; label: string }) {
-  const colors = { violet: "bg-violet-400", cyan: "bg-cyan-400" };
+  const colors = { violet: "bg-blue-400", cyan: "bg-sky-400" };
   return (
     <span className="flex items-center gap-1.5 text-slate-400">
       <span className={`h-1.5 w-1.5 rounded-full ${colors[color]}`} />
