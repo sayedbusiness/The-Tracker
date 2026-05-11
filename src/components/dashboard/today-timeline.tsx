@@ -120,11 +120,16 @@ export function TodayTimeline({ plan }: { plan: DayPlan | null }) {
         <div className="mt-3 text-sm font-semibold text-white">
           Outside the 30-day cycle
         </div>
-        <p className="mt-1 text-xs text-slate-400">
-          Your 30-day operating system runs May 12 – June 10. Today's date
-          isn't in that range — but the system is ready for cycle 2 when
-          you're ready.
+        <p className="mx-auto mt-1 max-w-md text-xs text-slate-400">
+          Your 30-day operating system runs <b className="text-white">May 11 → June 9</b>.
+          Today's date isn't in that range — but you can still open any day.
         </p>
+        <a
+          href="/plan/1"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-700 to-sky-500 px-4 py-2 text-xs font-medium text-white shadow-[0_4px_15px_rgba(30,58,138,0.4)] transition-all hover:shadow-[0_6px_20px_rgba(59,130,246,0.55)]"
+        >
+          Open Day 1 →
+        </a>
       </div>
     );
   }

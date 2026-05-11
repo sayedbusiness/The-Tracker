@@ -111,7 +111,7 @@ export default function PlanPage() {
                 return (
                   <Link
                     key={d.dayNumber}
-                    href={isToday ? "/" : "/plan"}
+                    href={`/plan/${d.dayNumber}`}
                     className="block"
                   >
                     <motion.div

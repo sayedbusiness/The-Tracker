@@ -4,8 +4,8 @@
  * Built from your Notion plan, restructured for the new start date and
  * your real schedule (school 8am–2:50pm, gym 7–8pm, bed 10pm).
  *
- *   Day 1 = Monday May 12, 2026
- *   Day 30 = Tuesday June 10, 2026
+ *   Day 1 = Monday May 11, 2026
+ *   Day 30 = Tuesday June 9, 2026
  *
  * Each day combines:
  *   - The standard daily template (prayers, Quran, skincare, content, gym)
@@ -53,9 +53,9 @@ export interface Block {
 
 export interface DayPlan {
   dayNumber: number; // 1..30
-  date: string; // "2026-05-12"
+  date: string; // "2026-05-11"
   weekday: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
-  fullDate: string; // "Monday, May 12"
+  fullDate: string; // "Monday, May 11"
   weekNumber: 1 | 2 | 3 | 4 | 5;
   isWeeklyReview: boolean;
   isJummah: boolean;
@@ -424,7 +424,7 @@ for (let i = 1; i <= 30; i++) {
 const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
   // ─── WEEK 1 — Foundation ───────────────────────
   {
-    dayNumber: 1, date: "2026-05-12", weekday: "Mon", fullDate: "Monday, May 12",
+    dayNumber: 1, date: "2026-05-11", weekday: "Mon", fullDate: "Monday, May 11",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Lock in the system. Make Day 1 unmissable.",
     coldCallTarget: 50,
@@ -432,7 +432,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Research: scroll TikTok 30 min, save 10 viral hooks. Outline affiliate video #1.",
   },
   {
-    dayNumber: 2, date: "2026-05-13", weekday: "Tue", fullDate: "Tuesday, May 13",
+    dayNumber: 2, date: "2026-05-12", weekday: "Tue", fullDate: "Tuesday, May 12",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Build the muscle. 100 dials, no excuses.",
     coldCallTarget: 100,
@@ -440,7 +440,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot affiliate video #1 — hook + transformation. Edit + queue for tomorrow.",
   },
   {
-    dayNumber: 3, date: "2026-05-14", weekday: "Wed", fullDate: "Wednesday, May 14",
+    dayNumber: 3, date: "2026-05-13", weekday: "Wed", fullDate: "Wednesday, May 13",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Refine the script. Listen back to your own voice.",
     coldCallTarget: 110,
@@ -448,7 +448,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Post affiliate video #1 (burner accounts). Outline affiliate video #2.",
   },
   {
-    dayNumber: 4, date: "2026-05-15", weekday: "Thu", fullDate: "Thursday, May 15",
+    dayNumber: 4, date: "2026-05-14", weekday: "Thu", fullDate: "Thursday, May 14",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Pull your own call recording. Find 5 mistakes.",
     coldCallTarget: 60,
@@ -456,7 +456,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot + edit affiliate video #2.",
   },
   {
-    dayNumber: 5, date: "2026-05-16", weekday: "Fri", fullDate: "Friday, May 16",
+    dayNumber: 5, date: "2026-05-15", weekday: "Fri", fullDate: "Friday, May 15",
     isWeeklyReview: false, isJummah: true, isLightDay: false,
     oneThing: "Owner hours. Call decision-makers before 11 AM.",
     coldCallTarget: 150,
@@ -464,7 +464,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Post affiliate video #2.",
   },
   {
-    dayNumber: 6, date: "2026-05-17", weekday: "Sat", fullDate: "Saturday, May 17",
+    dayNumber: 6, date: "2026-05-16", weekday: "Sat", fullDate: "Saturday, May 16",
     isWeeklyReview: false, isJummah: false, isLightDay: true,
     oneThing: "Batch shoot. Stack inventory.",
     coldCallTarget: 40,
@@ -472,7 +472,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Outline affiliate videos #3 + #4. Start DNS authentication for contact.apexgrowthcorp.com.",
   },
   {
-    dayNumber: 7, date: "2026-05-18", weekday: "Sun", fullDate: "Sunday, May 18",
+    dayNumber: 7, date: "2026-05-17", weekday: "Sun", fullDate: "Sunday, May 17",
     isWeeklyReview: true, isJummah: false, isLightDay: true,
     oneThing: "Weekly review. What's working? What's not?",
     coldCallTarget: 0,
@@ -482,7 +482,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
 
   // ─── WEEK 2 — Volume ───────────────────────────
   {
-    dayNumber: 8, date: "2026-05-19", weekday: "Mon", fullDate: "Monday, May 19",
+    dayNumber: 8, date: "2026-05-18", weekday: "Mon", fullDate: "Monday, May 18",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "GHL trial check + follow up every warm prospect from Week 1.",
     coldCallTarget: 65,
@@ -490,7 +490,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot + edit + post affiliate video #3.",
   },
   {
-    dayNumber: 9, date: "2026-05-20", weekday: "Tue", fullDate: "Tuesday, May 20",
+    dayNumber: 9, date: "2026-05-19", weekday: "Tue", fullDate: "Tuesday, May 19",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "200 dials. Track set rate honestly.",
     coldCallTarget: 70,
@@ -498,7 +498,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot affiliate video #4 — new hook angle.",
   },
   {
-    dayNumber: 10, date: "2026-05-21", weekday: "Wed", fullDate: "Wednesday, May 21",
+    dayNumber: 10, date: "2026-05-20", weekday: "Wed", fullDate: "Wednesday, May 20",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Rev-share 'what's riskier' frame — roleplay 10x before any closing call.",
     coldCallTarget: 75,
@@ -506,7 +506,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot + edit + post affiliate video #5. Edit + post #4.",
   },
   {
-    dayNumber: 11, date: "2026-05-22", weekday: "Thu", fullDate: "Thursday, May 22",
+    dayNumber: 11, date: "2026-05-21", weekday: "Thu", fullDate: "Thursday, May 21",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Pull a call recording. Find 5 mistakes. Adjust script.",
     coldCallTarget: 60,
@@ -515,7 +515,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot + edit affiliate video #6.",
   },
   {
-    dayNumber: 12, date: "2026-05-23", weekday: "Fri", fullDate: "Friday, May 23",
+    dayNumber: 12, date: "2026-05-22", weekday: "Fri", fullDate: "Friday, May 22",
     isWeeklyReview: false, isJummah: true, isLightDay: false,
     oneThing: "Owners before 11 AM. Pipeline review — push every warm prospect.",
     coldCallTarget: 65,
@@ -523,7 +523,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Post affiliate video #6.",
   },
   {
-    dayNumber: 13, date: "2026-05-24", weekday: "Sat", fullDate: "Saturday, May 24",
+    dayNumber: 13, date: "2026-05-23", weekday: "Sat", fullDate: "Saturday, May 23",
     isWeeklyReview: false, isJummah: false, isLightDay: true,
     oneThing: "Batch-shoot 4 affiliate videos. Stack the queue.",
     coldCallTarget: 25,
@@ -531,7 +531,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Outline affiliate videos #7–10 (Week 3 batch plan).",
   },
   {
-    dayNumber: 14, date: "2026-05-25", weekday: "Sun", fullDate: "Sunday, May 25",
+    dayNumber: 14, date: "2026-05-24", weekday: "Sun", fullDate: "Sunday, May 24",
     isWeeklyReview: true, isJummah: false, isLightDay: true,
     oneThing: "Honest weekly review. What's actually working?",
     coldCallTarget: 0,
@@ -541,7 +541,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
 
   // ─── WEEK 3 — Intensity ─────────────────────────
   {
-    dayNumber: 15, date: "2026-05-26", weekday: "Mon", fullDate: "Monday, May 26",
+    dayNumber: 15, date: "2026-05-25", weekday: "Mon", fullDate: "Monday, May 25",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Build 1 specific reframe for each top objection.",
     coldCallTarget: 65,
@@ -549,7 +549,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Edit + post affiliate video #7.",
   },
   {
-    dayNumber: 16, date: "2026-05-27", weekday: "Tue", fullDate: "Tuesday, May 27",
+    dayNumber: 16, date: "2026-05-26", weekday: "Tue", fullDate: "Tuesday, May 26",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Email game on. 20 personalized cold emails (not AI spam).",
     coldCallTarget: 70,
@@ -558,7 +558,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot affiliate video #8.",
   },
   {
-    dayNumber: 17, date: "2026-05-28", weekday: "Wed", fullDate: "Wednesday, May 28",
+    dayNumber: 17, date: "2026-05-27", weekday: "Wed", fullDate: "Wednesday, May 27",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Roleplay objection handling 30 min — Discord partner if possible.",
     coldCallTarget: 75,
@@ -567,7 +567,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Edit + post affiliate video #8.",
   },
   {
-    dayNumber: 18, date: "2026-05-29", weekday: "Thu", fullDate: "Thursday, May 29",
+    dayNumber: 18, date: "2026-05-28", weekday: "Thu", fullDate: "Thursday, May 28",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Tonality + pacing — record yourself reading the script. Kill 1 filler word.",
     coldCallTarget: 80,
@@ -575,7 +575,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot affiliate video #9 + edit.",
   },
   {
-    dayNumber: 19, date: "2026-05-30", weekday: "Fri", fullDate: "Friday, May 30",
+    dayNumber: 19, date: "2026-05-29", weekday: "Fri", fullDate: "Friday, May 29",
     isWeeklyReview: false, isJummah: true, isLightDay: false,
     oneThing: "Push every warm prospect for a decision today.",
     coldCallTarget: 75,
@@ -583,7 +583,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Post affiliate video #9.",
   },
   {
-    dayNumber: 20, date: "2026-05-31", weekday: "Sat", fullDate: "Saturday, May 31",
+    dayNumber: 20, date: "2026-05-30", weekday: "Sat", fullDate: "Saturday, May 30",
     isWeeklyReview: false, isJummah: false, isLightDay: true,
     oneThing: "Batch shoot. Refine Notion CRM. Self-care.",
     coldCallTarget: 25,
@@ -591,7 +591,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Batch shoot 4 affiliate videos.",
   },
   {
-    dayNumber: 21, date: "2026-06-01", weekday: "Sun", fullDate: "Sunday, June 1",
+    dayNumber: 21, date: "2026-05-31", weekday: "Sun", fullDate: "Sunday, May 31",
     isWeeklyReview: true, isJummah: false, isLightDay: true,
     oneThing: "Plan Week 4. Where does the money come from? Where is it going?",
     coldCallTarget: 0,
@@ -601,7 +601,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
 
   // ─── WEEK 4 — Compound ──────────────────────────
   {
-    dayNumber: 22, date: "2026-06-02", weekday: "Mon", fullDate: "Monday, June 2",
+    dayNumber: 22, date: "2026-06-01", weekday: "Mon", fullDate: "Monday, June 1",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Document YOUR sales process in Notion. What's working, what's not.",
     coldCallTarget: 85,
@@ -610,7 +610,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Edit + post affiliate video #10.",
   },
   {
-    dayNumber: 23, date: "2026-06-03", weekday: "Tue", fullDate: "Tuesday, June 3",
+    dayNumber: 23, date: "2026-06-02", weekday: "Tue", fullDate: "Tuesday, June 2",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Quality over volume today. 30 dials, slower, more re-loops.",
     coldCallTarget: 30,
@@ -618,7 +618,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot 2 affiliate videos.",
   },
   {
-    dayNumber: 24, date: "2026-06-04", weekday: "Wed", fullDate: "Wednesday, June 4",
+    dayNumber: 24, date: "2026-06-03", weekday: "Wed", fullDate: "Wednesday, June 3",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Audit Instantly deliverability stats. Don't fly blind.",
     coldCallTarget: 90,
@@ -627,7 +627,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Edit + post 2 affiliate videos from yesterday.",
   },
   {
-    dayNumber: 25, date: "2026-06-05", weekday: "Thu", fullDate: "Thursday, June 5",
+    dayNumber: 25, date: "2026-06-04", weekday: "Thu", fullDate: "Thursday, June 4",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Reach out to ANY happy person in your network — referrals push (5–10% fee).",
     coldCallTarget: 95,
@@ -636,7 +636,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot 2 affiliate videos.",
   },
   {
-    dayNumber: 26, date: "2026-06-06", weekday: "Fri", fullDate: "Friday, June 6",
+    dayNumber: 26, date: "2026-06-05", weekday: "Fri", fullDate: "Friday, June 5",
     isWeeklyReview: false, isJummah: true, isLightDay: false,
     oneThing: "Owner hours. Push for closes today.",
     coldCallTarget: 85,
@@ -644,7 +644,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Edit + post 2 affiliate videos.",
   },
   {
-    dayNumber: 27, date: "2026-06-07", weekday: "Sat", fullDate: "Saturday, June 7",
+    dayNumber: 27, date: "2026-06-06", weekday: "Sat", fullDate: "Saturday, June 6",
     isWeeklyReview: false, isJummah: false, isLightDay: true,
     oneThing: "Batch shoot 5 affiliate videos — you're fast now. Move fast.",
     coldCallTarget: 20,
@@ -652,7 +652,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Batch shoot 5 affiliate videos.",
   },
   {
-    dayNumber: 28, date: "2026-06-08", weekday: "Sun", fullDate: "Sunday, June 8",
+    dayNumber: 28, date: "2026-06-07", weekday: "Sun", fullDate: "Sunday, June 7",
     isWeeklyReview: true, isJummah: false, isLightDay: true,
     oneThing: "Big-picture review. What to cut from Month 2? Focus is power.",
     coldCallTarget: 0,
@@ -662,7 +662,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
 
   // ─── WEEK 5 — Crescendo ─────────────────────────
   {
-    dayNumber: 29, date: "2026-06-09", weekday: "Mon", fullDate: "Monday, June 9",
+    dayNumber: 29, date: "2026-06-08", weekday: "Mon", fullDate: "Monday, June 8",
     isWeeklyReview: false, isJummah: false, isLightDay: false,
     oneThing: "Last referrals push — 5 warm contacts.",
     coldCallTarget: 100,
@@ -671,7 +671,7 @@ const ALL_DAYS: Array<Omit<DayPlan, "weekNumber">> = [
     affiliateAction: "Shoot + edit + post affiliate video.",
   },
   {
-    dayNumber: 30, date: "2026-06-10", weekday: "Tue", fullDate: "Tuesday, June 10",
+    dayNumber: 30, date: "2026-06-09", weekday: "Tue", fullDate: "Tuesday, June 9",
     isWeeklyReview: true, isJummah: false, isLightDay: false,
     oneThing: "Final day. Slower script. Intentional. Feel every word.",
     coldCallTarget: 100,

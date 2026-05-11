@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  ListTodo,
+  CalendarDays,
   Sparkles,
   Briefcase,
   Heart,
@@ -12,8 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const items = [
-  { href: "/", icon: LayoutDashboard, label: "Home" },
-  { href: "/tasks", icon: ListTodo, label: "Tasks" },
+  { href: "/", icon: LayoutDashboard, label: "Today" },
+  { href: "/plan", icon: CalendarDays, label: "30 Day" },
   { href: "/assistant", icon: Sparkles, label: "AI" },
   { href: "/agency", icon: Briefcase, label: "Agency" },
   { href: "/health", icon: Heart, label: "Health" },
@@ -22,7 +22,10 @@ const items = [
 export function MobileNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 lg:hidden">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 px-3 lg:hidden"
+      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+    >
       <div className="glass-strong mx-auto flex max-w-md items-center justify-between rounded-2xl px-2 py-1.5">
         {items.map((item) => {
           const active = pathname === item.href;
