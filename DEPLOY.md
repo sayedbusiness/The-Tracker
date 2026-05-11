@@ -5,6 +5,29 @@ I've grouped by what costs nothing vs. what costs money so you can decide.
 
 ---
 
+## 🔒 Locking your live URL (must do before sharing the link)
+
+Anyone with your Vercel URL can currently see your data. To gate it:
+
+1. Pick a password you'll remember (e.g. `apex-sayed-2026`)
+2. Go to **vercel.com** → your project → **Settings** → **Environment Variables**
+3. Add a new variable:
+   - **Key:** `APEX_PASSWORD`
+   - **Value:** your chosen password
+   - **Environments:** Production AND Preview (default)
+4. Click **Save**
+5. Go to the **Deployments** tab → click **⋯** on the latest deploy → **Redeploy**
+
+After that redeploy finishes (~90s), anyone visiting your URL will see a
+login screen. Type the password once and you're in for 30 days (cookie
+remembers you per device). If anyone else has the URL but not the
+password, they're blocked.
+
+To kick yourself out and force re-login, delete the `APEX_PASSWORD` env
+var, redeploy, then re-add it. Or change the value to a new password.
+
+---
+
 ## TL;DR — what I already did vs. what only you can do
 
 | Step                                  | Who does it | Cost                |

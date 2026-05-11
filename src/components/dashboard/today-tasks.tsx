@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Check, Clock, Flame, Plus, Sparkles } from "lucide-react";
 import { tasks as initialTasks, type Task } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 const categoryColors = {
   agency: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
@@ -22,12 +23,26 @@ const priorityColors = {
 };
 
 export function TodayTasks({ compact = false }: { compact?: boolean }) {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const today = new Date().toISOString().slice(0, 10);
+  const [completedIds, setCompletedIds] = useLocalStorage<Set<string>>(
+    `apex:tasks:${today}`,
+    new Set<string>(),
+    { serializer: "set" }
+  );
+
+  const tasks = useMemo<Task[]>(
+    () =>
+      initialTasks.map((t) => ({ ...t, completed: completedIds.has(t.id) })),
+    [completedIds]
+  );
 
   const toggleTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
+    setCompletedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const visible = compact ? tasks.slice(0, 5) : tasks;

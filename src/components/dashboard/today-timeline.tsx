@@ -32,6 +32,7 @@ import {
   type BlockKind,
   type DayPlan,
 } from "@/lib/thirty-day-plan";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 const KIND_META: Record<
   BlockKind,
@@ -77,8 +78,16 @@ function blockEndMin(b: Block): number {
 }
 
 export function TodayTimeline({ plan }: { plan: DayPlan | null }) {
-  const [starbucks, setStarbucks] = useState(false);
-  const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const dayKey = plan ? `day-${plan.dayNumber}` : "noop";
+  const [starbucks, setStarbucks] = useLocalStorage<boolean>(
+    `apex:starbucks:${dayKey}`,
+    false
+  );
+  const [completed, setCompleted] = useLocalStorage<Set<string>>(
+    `apex:completed:${dayKey}`,
+    new Set<string>(),
+    { serializer: "set" }
+  );
   const [showAll, setShowAll] = useState(false);
 
   const blocks = useMemo<Block[]>(() => {
