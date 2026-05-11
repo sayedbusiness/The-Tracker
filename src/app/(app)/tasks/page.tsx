@@ -37,13 +37,15 @@ export default function TasksPage() {
       .filter((t) => t.completed)
       .reduce((sum, t) => sum + t.estimated, 0);
     const avgDifficulty =
-      tasks.reduce((sum, t) => sum + t.difficulty, 0) / tasks.length;
+      tasks.length === 0
+        ? "—"
+        : (tasks.reduce((sum, t) => sum + t.difficulty, 0) / tasks.length).toFixed(1);
     return {
       done,
       total: tasks.length,
       totalMin,
       doneMin,
-      avgDifficulty: avgDifficulty.toFixed(1),
+      avgDifficulty,
     };
   }, []);
 
@@ -78,7 +80,7 @@ export default function TasksPage() {
           icon={<TrendingUp className="h-4 w-4" />}
           label="Completion"
           value={`${stats.done}/${stats.total}`}
-          sub={`${Math.round((stats.done / stats.total) * 100)}% • on pace`}
+          sub={stats.total === 0 ? "no tasks yet" : `${Math.round((stats.done / stats.total) * 100)}%`}
           accent="violet"
         />
         <StatBlock
@@ -92,14 +94,14 @@ export default function TasksPage() {
           icon={<Zap className="h-4 w-4" />}
           label="Avg difficulty"
           value={stats.avgDifficulty}
-          sub="+0.4 vs last week"
+          sub="calibrating"
           accent="amber"
         />
         <StatBlock
           icon={<Brain className="h-4 w-4" />}
           label="AI confidence"
-          value="92%"
-          sub="optimal sequencing"
+          value="—"
+          sub="needs 7 days of data"
           accent="emerald"
         />
       </section>
@@ -118,24 +120,21 @@ export default function TasksPage() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-white">
-                AI Coach · Adaptive recommendation
+                AI Coach · Day 1 setup
               </span>
-              <Badge variant="violet">LEVEL UP</Badge>
+              <Badge variant="violet">GET STARTED</Badge>
             </div>
             <p className="mt-1 text-sm leading-relaxed text-slate-300">
-              You've crushed P1 tasks at 92% for 14 days straight. Tomorrow I'm
-              adding a 90-min deep-work block at 7:30 AM. Your peak window is
-              7–11 AM, and you have free space. Sleep before 10:45 PM tonight.
+              Add your first 3 tasks for today. Pick at least one P0 (the
+              one thing you must do), one health task, and one deep work
+              block. I'll learn your energy curve as you complete them.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button size="sm" variant="primary">
-                Accept the challenge
+                <Plus className="h-3 w-3" /> Add first task
               </Button>
               <Button size="sm" variant="secondary">
-                Show reasoning
-              </Button>
-              <Button size="sm" variant="ghost">
-                Snooze
+                Suggest a template
               </Button>
             </div>
           </div>
@@ -171,7 +170,7 @@ export default function TasksPage() {
       <section className="grid gap-4 lg:grid-cols-3">
         <div className="surface-card rounded-2xl p-5 lg:col-span-2">
           <h3 className="text-sm font-semibold text-white">
-            Difficulty calibration · last 30 days
+            Difficulty calibration
           </h3>
           <p className="mt-1 text-xs text-slate-500">
             The AI raises task difficulty when your completion rate stays above
@@ -180,16 +179,15 @@ export default function TasksPage() {
           </p>
           <div className="mt-5 space-y-3">
             {[
-              { label: "Week 1", level: 2.4, output: 67 },
-              { label: "Week 2", level: 2.8, output: 74 },
-              { label: "Week 3", level: 3.2, output: 81 },
-              { label: "Week 4 · this week", level: 3.6, output: 89 },
-              { label: "Week 5 · projected", level: 4.0, output: 92, projected: true },
+              { label: "Week 1 · this week", level: 1.0, output: 0, current: true },
+              { label: "Week 2 · target", level: 2.0, output: 0 },
+              { label: "Week 3 · target", level: 2.5, output: 0 },
+              { label: "Week 4 · target", level: 3.0, output: 0 },
             ].map((w) => (
               <div key={w.label} className="flex items-center gap-3">
                 <span
                   className={`w-44 shrink-0 text-xs ${
-                    w.projected ? "text-violet-300" : "text-slate-400"
+                    w.current ? "text-violet-300" : "text-slate-400"
                   }`}
                 >
                   {w.label}
@@ -200,16 +198,16 @@ export default function TasksPage() {
                       key={i}
                       className={`h-2 flex-1 rounded-full ${
                         i < Math.round(w.level)
-                          ? w.projected
+                          ? w.current
                             ? "bg-gradient-to-r from-violet-400 to-cyan-400"
-                            : "bg-white/40"
+                            : "bg-white/20"
                           : "bg-white/[0.06]"
                       }`}
                     />
                   ))}
                 </div>
                 <span className="w-12 shrink-0 text-right text-xs tabular text-slate-400">
-                  {w.output}%
+                  {w.output > 0 ? `${w.output}%` : "—"}
                 </span>
               </div>
             ))}
@@ -219,29 +217,24 @@ export default function TasksPage() {
         <div className="surface-card rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-white">Your energy curve</h3>
           <p className="mt-1 text-xs text-slate-500">
-            Based on 87 completed work sessions.
+            No sessions logged yet — this map fills in automatically.
           </p>
           <div className="mt-5 space-y-2">
             {[
-              { time: "5–7 AM", energy: 60, color: "from-amber-500 to-amber-400" },
-              { time: "7–9 AM", energy: 95, color: "from-emerald-500 to-emerald-400" },
-              { time: "9–11 AM", energy: 92, color: "from-emerald-500 to-emerald-400" },
-              { time: "11 AM–1 PM", energy: 78, color: "from-violet-500 to-violet-400" },
-              { time: "1–3 PM", energy: 52, color: "from-amber-500 to-orange-400" },
-              { time: "3–5 PM", energy: 68, color: "from-cyan-500 to-cyan-400" },
-              { time: "5–7 PM", energy: 75, color: "from-violet-500 to-violet-400" },
-              { time: "7–10 PM", energy: 48, color: "from-rose-500 to-rose-400" },
-            ].map((row) => (
-              <div key={row.time} className="flex items-center gap-2">
-                <span className="w-24 text-[11px] text-slate-500">{row.time}</span>
-                <div className="flex-1 h-2 overflow-hidden rounded-full bg-white/[0.04]">
-                  <div
-                    className={`h-full bg-gradient-to-r ${row.color}`}
-                    style={{ width: `${row.energy}%` }}
-                  />
-                </div>
-                <span className="w-8 text-right text-[11px] tabular text-slate-400">
-                  {row.energy}
+              "5–7 AM",
+              "7–9 AM",
+              "9–11 AM",
+              "11 AM–1 PM",
+              "1–3 PM",
+              "3–5 PM",
+              "5–7 PM",
+              "7–10 PM",
+            ].map((time) => (
+              <div key={time} className="flex items-center gap-2">
+                <span className="w-24 text-[11px] text-slate-500">{time}</span>
+                <div className="flex-1 h-2 overflow-hidden rounded-full bg-white/[0.04]" />
+                <span className="w-8 text-right text-[11px] tabular text-slate-500">
+                  —
                 </span>
               </div>
             ))}

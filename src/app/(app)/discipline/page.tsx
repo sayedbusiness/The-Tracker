@@ -16,54 +16,40 @@ import { Badge } from "@/components/ui/badge";
 import { RingProgress } from "@/components/ui/progress";
 import { user, disciplineQuotes, habits } from "@/lib/mock-data";
 
-const breaches = [
-  {
-    id: "b1",
-    label: "Skipped workout — Thu, May 7",
-    cost: "Productivity dropped 27% that day",
-    severity: "warn",
-  },
-  {
-    id: "b2",
-    label: "Late sleep — Mon, May 5 (12:30 AM)",
-    cost: "Tuesday focus score: 65 (your floor)",
-    severity: "warn",
-  },
-  {
-    id: "b3",
-    label: "Phone usage spike — Sat, May 3 (4h 22m)",
-    cost: "12 deep work blocks lost",
-    severity: "high",
-  },
-];
+const breaches: Array<{
+  id: string;
+  label: string;
+  cost: string;
+  severity: "low" | "warn" | "high";
+}> = [];
 
 const challenges = [
   {
     id: "c1",
     name: "Morning Operator",
     target: "Wake 5 AM · 30 days",
-    progress: 17,
+    progress: 0,
     total: 30,
     reward: "+1500 XP · Operator badge",
-    active: true,
+    active: false,
   },
   {
     id: "c2",
     name: "75 Hard — Apex Edition",
     target: "Workout 2× · No alcohol · Read · Cold plunge",
-    progress: 47,
+    progress: 0,
     total: 75,
     reward: "+5000 XP · Hardened badge",
-    active: true,
+    active: false,
   },
   {
     id: "c3",
     name: "Deep Work Marathon",
     target: "60 hrs of deep work this month",
-    progress: 38,
+    progress: 0,
     total: 60,
     reward: "+2000 XP · Monk-Mode badge",
-    active: true,
+    active: false,
   },
   {
     id: "c4",
@@ -110,13 +96,13 @@ export default function DisciplinePage() {
             />
             <div>
               <div className="text-[10px] uppercase tracking-[0.2em] text-amber-300">
-                Discipline rating · Tier IV
+                Discipline rating · Tier I
               </div>
               <div className="mt-1 text-3xl font-bold gradient-gold">
-                ELITE
+                UNRANKED
               </div>
               <div className="mt-1 text-xs text-slate-400">
-                Top 4% globally. Two breaches from Tier V.
+                Build your first 7 days to earn a rating.
               </div>
               <div className="mt-3 flex items-center gap-2 text-xs">
                 <Flame className="h-4 w-4 text-orange-400" />
@@ -147,7 +133,7 @@ export default function DisciplinePage() {
             <span className="gradient-gold">This is the cost.</span>"
           </blockquote>
           <div className="mt-3 text-xs text-slate-500">
-            — Daily message · written by the AI based on your last 7 days.
+            — Day-1 message. As your data grows, the AI will write these for you based on your own patterns.
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {disciplineQuotes.slice(0, 3).map((q, i) => (
@@ -166,9 +152,9 @@ export default function DisciplinePage() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-white">
-            Active challenges
+            Available challenges
           </h2>
-          <Badge variant="amber">3 / 5 SLOTS</Badge>
+          <Badge variant="amber">0 / 5 ACTIVE</Badge>
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           {challenges.map((c) => (
@@ -229,26 +215,37 @@ export default function DisciplinePage() {
                 The AI logs every commitment you break — and the cost.
               </p>
             </div>
-            <Badge variant="rose">3 LAST 30 DAYS</Badge>
+            <Badge variant="emerald">0 LAST 30 DAYS</Badge>
           </div>
           <div className="space-y-2">
-            {breaches.map((b) => (
-              <div
-                key={b.id}
-                className="flex items-center gap-3 rounded-xl border border-rose-500/10 bg-rose-500/[0.04] p-3"
-              >
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/15">
-                  <Skull className="h-4 w-4 text-rose-300" />
+            {breaches.length === 0 ? (
+              <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/[0.04] p-4 text-center">
+                <div className="text-2xl">🧘</div>
+                <div className="mt-1 text-sm font-medium text-white">
+                  Clean record so far
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-white">{b.label}</div>
-                  <div className="mt-0.5 text-xs text-rose-300/80">
-                    {b.cost}
-                  </div>
+                <div className="mt-0.5 text-xs text-slate-400">
+                  Skipped workouts, late nights, and broken commitments will
+                  appear here. Keep it empty.
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-500" />
               </div>
-            ))}
+            ) : (
+              breaches.map((b) => (
+                <div
+                  key={b.id}
+                  className="flex items-center gap-3 rounded-xl border border-rose-500/10 bg-rose-500/[0.04] p-3"
+                >
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/15">
+                    <Skull className="h-4 w-4 text-rose-300" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-white">{b.label}</div>
+                    <div className="mt-0.5 text-xs text-rose-300/80">{b.cost}</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-500" />
+                </div>
+              ))
+            )}
           </div>
           <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] p-3 text-xs">
             <div className="flex items-start gap-2">

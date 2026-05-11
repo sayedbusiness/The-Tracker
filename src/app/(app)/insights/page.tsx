@@ -29,60 +29,26 @@ import {
 import { aiInsights, monthlyTrend } from "@/lib/mock-data";
 
 const radarData = [
-  { subject: "Discipline", you: 92, avg: 65 },
-  { subject: "Focus", you: 78, avg: 60 },
-  { subject: "Health", you: 84, avg: 58 },
-  { subject: "Productivity", you: 87, avg: 62 },
-  { subject: "Learning", you: 81, avg: 55 },
-  { subject: "Business", you: 94, avg: 70 },
+  { subject: "Discipline", you: 0, avg: 65 },
+  { subject: "Focus", you: 0, avg: 60 },
+  { subject: "Health", you: 0, avg: 58 },
+  { subject: "Productivity", you: 0, avg: 62 },
+  { subject: "Learning", you: 0, avg: 55 },
+  { subject: "Business", you: 0, avg: 70 },
 ];
 
-const correlations = [
-  {
-    pair: "Workout AM → Output that day",
-    strength: 0.84,
-    direction: "positive",
-    insight: "Days that start with a workout produce 2.3× completed deep work blocks.",
-  },
-  {
-    pair: "Sleep < 6h → Next-day P0 completion",
-    strength: 0.71,
-    direction: "negative",
-    insight: "Short sleep drops your P0 task completion by 34%.",
-  },
-  {
-    pair: "Phone usage > 2h → Focus score",
-    strength: 0.63,
-    direction: "negative",
-    insight: "Every 30 extra minutes on phone = focus score -8 points.",
-  },
-  {
-    pair: "Reading at night → Sleep quality",
-    strength: 0.58,
-    direction: "positive",
-    insight: "Reading 30+ min before bed correlates with +0.7h deep sleep.",
-  },
-  {
-    pair: "Cold plunge → Energy score",
-    strength: 0.52,
-    direction: "positive",
-    insight: "Cold plunge mornings have a +1.8 energy score on a 10-point scale.",
-  },
-  {
-    pair: "Late coffee → Sleep latency",
-    strength: 0.68,
-    direction: "negative",
-    insight: "Coffee after 2 PM = 38 extra minutes to fall asleep.",
-  },
-];
+const correlations: Array<{
+  pair: string;
+  strength: number;
+  direction: "positive" | "negative";
+  insight: string;
+}> = [];
 
 const memories = [
-  { time: "Today, 07:02", text: "Sayed asked about highest-leverage task. I recommended Meridian call." },
-  { time: "Yesterday, 22:14", text: "Sayed committed to lights out by 10:45 PM. Followed through." },
-  { time: "Yesterday, 16:30", text: "Pattern detected: 3rd Tuesday in a row with afternoon energy crash. Logged." },
-  { time: "May 5, 19:00", text: "Sayed mentioned wanting to launch a productized service offering by Q3." },
-  { time: "May 4, 08:15", text: "Sayed completed 75 Hard day 45/75. On track." },
-  { time: "May 2, 11:20", text: "Sayed objected to AI suggesting evening workouts. Filed: prefers AM only." },
+  {
+    time: "Today",
+    text: "Sayed started APEX OS. Goal: lean and muscular. Starting weight: 167 lb.",
+  },
 ];
 
 export default function InsightsPage() {
@@ -110,7 +76,7 @@ export default function InsightsPage() {
                 You vs. peer-avg (top 10% operators)
               </p>
             </div>
-            <Badge variant="violet">TIER IV</Badge>
+            <Badge variant="default">DAY 1</Badge>
           </div>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -234,9 +200,7 @@ export default function InsightsPage() {
                 {insight.body}
               </p>
               <div className="mt-4 flex items-center justify-between text-[10px]">
-                <span className="text-slate-500">
-                  Based on {Math.round(insight.confidence * 84)} data points
-                </span>
+                <span className="text-slate-500">Day 1 · pattern learning starts now</span>
                 <span className="tabular text-slate-400">
                   {Math.round(insight.confidence * 100)}% conf
                 </span>
@@ -260,7 +224,20 @@ export default function InsightsPage() {
           <Brain className="h-4 w-4 text-violet-400" />
         </div>
         <div className="space-y-2">
-          {correlations.map((c, i) => (
+          {correlations.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/[0.08] p-8 text-center">
+              <div className="text-3xl">🧠</div>
+              <div className="mt-2 text-sm font-medium text-white">
+                Calibrating
+              </div>
+              <div className="mt-1 max-w-md mx-auto text-xs leading-relaxed text-slate-400">
+                The AI needs ~7 days of consistent logging before it can
+                isolate which of your behaviors actually drive outcomes.
+                Log your meals, workouts, sleep, and tasks honestly — the
+                correlations will surface here automatically.
+              </div>
+            </div>
+          ) : correlations.map((c, i) => (
             <motion.div
               key={c.pair}
               initial={{ opacity: 0, x: -8 }}

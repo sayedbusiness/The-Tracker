@@ -48,6 +48,21 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
         </div>
       )}
 
+      {tasks.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-white/[0.08] p-8 text-center">
+          <div className="text-3xl">📋</div>
+          <div className="mt-2 text-sm font-medium text-white">
+            No tasks yet — make today count
+          </div>
+          <div className="mt-1 text-xs text-slate-400">
+            Add at least one P0 and one health task. The AI will suggest the rest.
+          </div>
+          <button className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-violet-600 to-cyan-500 px-3 py-1.5 text-xs font-medium text-white shadow-[0_4px_15px_rgba(124,58,237,0.35)] transition-all hover:shadow-[0_6px_20px_rgba(124,58,237,0.55)]">
+            <Plus className="h-3 w-3" /> Add your first task
+          </button>
+        </div>
+      )}
+
       {visible.map((task, i) => (
         <motion.div
           key={task.id}

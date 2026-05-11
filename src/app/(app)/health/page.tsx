@@ -46,25 +46,27 @@ const totals = foodLog.reduce(
   { calories: 0, protein: 0, carbs: 0, fat: 0 }
 );
 
+// Day 1 — single starting weight point at 167 lb. The graph fills in
+// as the user logs weight check-ins.
 const weightData = Array.from({ length: 30 }, (_, i) => ({
   day: i + 1,
-  weight: 184 - i * 0.18 + Math.sin(i * 0.4) * 0.6,
+  weight: i === 29 ? 167 : null,
 }));
 
 const sleepData = Array.from({ length: 14 }, (_, i) => ({
   day: i + 1,
-  hours: 6 + Math.random() * 2.5,
-  deep: 1.2 + Math.random() * 0.8,
+  hours: 0,
+  deep: 0,
 }));
 
 const workouts = [
-  { day: "Mon", type: "Push", duration: 64, intensity: 92 },
-  { day: "Tue", type: "Run · 5k", duration: 28, intensity: 78 },
-  { day: "Wed", type: "Pull", duration: 71, intensity: 88 },
-  { day: "Thu", type: "Rest", duration: 0, intensity: 0 },
-  { day: "Fri", type: "Legs", duration: 82, intensity: 95 },
-  { day: "Sat", type: "Run · 8k", duration: 41, intensity: 84 },
-  { day: "Sun", type: "Mobility", duration: 35, intensity: 45 },
+  { day: "Mon", type: "—", duration: 0, intensity: 0 },
+  { day: "Tue", type: "—", duration: 0, intensity: 0 },
+  { day: "Wed", type: "—", duration: 0, intensity: 0 },
+  { day: "Thu", type: "—", duration: 0, intensity: 0 },
+  { day: "Fri", type: "—", duration: 0, intensity: 0 },
+  { day: "Sat", type: "—", duration: 0, intensity: 0 },
+  { day: "Sun", type: "—", duration: 0, intensity: 0 },
 ];
 
 export default function HealthPage() {
@@ -116,8 +118,9 @@ export default function HealthPage() {
                   </span>
                 </div>
                 <div className="mt-1 text-xs text-slate-500">
-                  {todayMetrics.caloriesTarget - totals.calories} kcal remaining ·
-                  on track
+                  {totals.calories === 0
+                    ? `${todayMetrics.caloriesTarget} kcal target · lean & muscular`
+                    : `${todayMetrics.caloriesTarget - totals.calories} kcal remaining`}
                 </div>
               </div>
               <div className="space-y-2">
@@ -219,6 +222,17 @@ export default function HealthPage() {
             <Plus className="h-3 w-3" /> Add
           </Button>
         </div>
+        {foodLog.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-white/[0.08] p-8 text-center">
+            <div className="text-3xl">🍳</div>
+            <div className="mt-2 text-sm font-medium text-white">
+              Log your first meal
+            </div>
+            <div className="mt-1 text-xs text-slate-400">
+              Tap "Scan photo" above and the AI does the rest.
+            </div>
+          </div>
+        )}
         <div className="space-y-2">
           {foodLog.map((meal, i) => (
             <motion.div
@@ -263,10 +277,7 @@ export default function HealthPage() {
               <h3 className="text-sm font-semibold text-white">Body weight</h3>
               <p className="text-[10px] text-slate-500">30-day trend</p>
             </div>
-            <div className="flex items-center gap-1 text-xs">
-              <TrendingUp className="h-3 w-3 text-emerald-400" />
-              <span className="font-semibold tabular text-emerald-300">-5.4 lb</span>
-            </div>
+            <Badge variant="cyan">DAY 1</Badge>
           </div>
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
@@ -298,8 +309,8 @@ export default function HealthPage() {
             </ResponsiveContainer>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-semibold tabular text-white">178.4</span>
-            <span className="text-xs text-slate-500">lb · target 175</span>
+            <span className="text-2xl font-semibold tabular text-white">167</span>
+            <span className="text-xs text-slate-500">lb · goal: lean & muscular</span>
           </div>
         </div>
 
@@ -308,9 +319,9 @@ export default function HealthPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white">Sleep · 14 days</h3>
-              <p className="text-[10px] text-slate-500">Avg 7.2 hrs · deep 1.7 hrs</p>
+              <p className="text-[10px] text-slate-500">No sleep logged yet</p>
             </div>
-            <Badge variant="indigo">7.4 LAST NIGHT</Badge>
+            <Badge variant="indigo">LOG TONIGHT</Badge>
           </div>
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
@@ -344,7 +355,7 @@ export default function HealthPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white">Workouts · week</h3>
-              <p className="text-[10px] text-slate-500">5 of 6 target · 281 min</p>
+              <p className="text-[10px] text-slate-500">0 of 6 target this week</p>
             </div>
             <Dumbbell className="h-4 w-4 text-emerald-400" />
           </div>

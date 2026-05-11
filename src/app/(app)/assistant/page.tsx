@@ -28,12 +28,12 @@ const suggestedPrompts = [
 ];
 
 const memoryFacts = [
-  { label: "Peak window", value: "7–11 AM" },
-  { label: "Sleep target", value: "10:45 PM" },
-  { label: "Streak", value: `${user.streak}d clean` },
-  { label: "Top goal Q2", value: "$150k MRR" },
-  { label: "Body weight target", value: "175 lb" },
-  { label: "Books this year", value: "11 / 24" },
+  { label: "Peak window", value: "Learning…" },
+  { label: "Sleep target", value: "Set it" },
+  { label: "Streak", value: `${user.streak}d` },
+  { label: "Body weight", value: "167 lb" },
+  { label: "Goal", value: "Lean & muscular" },
+  { label: "Books this year", value: "0" },
 ];
 
 export default function AssistantPage() {

@@ -84,16 +84,18 @@ export default function LearnPage() {
         <LearnStat
           icon={<Flame className="h-4 w-4" />}
           label="Learning streak"
-          value="22 days"
-          sub="don't break it"
+          value="0 days"
+          sub="start today"
         />
       </section>
 
       {/* Continue watching hero */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-white">Pick up where you left off</h2>
+        <h2 className="mb-3 text-sm font-semibold text-white">
+          {inProgress.length > 0 ? "Pick up where you left off" : "Start your first track"}
+        </h2>
         <div className="grid gap-3 md:grid-cols-2">
-          {inProgress.slice(0, 2).map((track, i) => (
+          {(inProgress.length > 0 ? inProgress : learningTracks).slice(0, 2).map((track, i) => (
             <motion.div
               key={track.id}
               initial={{ opacity: 0, y: 10 }}
@@ -212,51 +214,31 @@ export default function LearnPage() {
 
       {/* AI summaries */}
       <section className="surface-card rounded-2xl p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-white">
-                AI summary · last lesson
-              </h3>
-              <p className="text-[10px] text-slate-500">
-                Designing Data-Intensive Applications, ch. 6
-              </p>
-            </div>
+        <div className="mb-4 flex items-center gap-2">
+          <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400">
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
-          <Trophy className="h-5 w-5 text-amber-400" />
+          <div>
+            <h3 className="text-sm font-semibold text-white">
+              AI summaries unlock with your first completed lesson
+            </h3>
+            <p className="text-[10px] text-slate-500">
+              Watch, read, or listen to anything in the library, mark it complete, and the AI generates a structured recap + 5-question quiz.
+            </p>
+          </div>
         </div>
-        <div className="space-y-3 text-sm leading-relaxed text-slate-300">
-          <p>
-            <b className="text-white">Replication ≠ partitioning.</b> Replication
-            keeps the same data in multiple places (for availability + read
-            scaling). Partitioning splits data across nodes (for write scaling +
-            dataset size). You almost always combine them.
-          </p>
-          <p>
-            <b className="text-white">Key partitioning strategy: hash vs. range.</b>{" "}
-            Range partitioning supports range queries but creates hotspots when
-            data is skewed (e.g., recent timestamps). Hash partitioning
-            distributes evenly but loses ordering — and pure hash kills
-            time-series queries. Many systems do <i>both</i> (compound keys).
-          </p>
-          <p>
-            <b className="text-white">Rebalancing is the hardest part.</b> Don't
-            do mod-N hashing — N changing breaks everything. Use fixed number of
-            partitions, dynamic partitioning, or consistent hashing.
-          </p>
+        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-4 text-sm leading-relaxed text-slate-400">
+          Recommended first track for you:{" "}
+          <b className="text-white">High-Performance Sleep & Recovery</b> — sleep
+          quality is the single highest-leverage variable for body composition
+          (your stated goal). 4h 12m, 12 lessons.
         </div>
         <div className="mt-5 flex flex-wrap gap-2">
           <Button size="sm" variant="primary">
-            <Sparkles className="h-3 w-3" /> Generate quiz
+            <Sparkles className="h-3 w-3" /> Start track
           </Button>
           <Button size="sm" variant="secondary">
-            Save to notes
-          </Button>
-          <Button size="sm" variant="ghost">
-            Mark complete
+            Browse library
           </Button>
         </div>
       </section>

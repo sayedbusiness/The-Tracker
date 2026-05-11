@@ -15,19 +15,28 @@ import { PageHeader } from "@/components/tasks/page-header";
 import { Badge } from "@/components/ui/badge";
 import { user } from "@/lib/mock-data";
 
-const achievements = [
-  { id: "a1", name: "First Light", desc: "Complete your first day", icon: "🌅", unlocked: true, rarity: "common", date: "Jan 15, 2024" },
-  { id: "a2", name: "Streak Hunter", desc: "30-day discipline streak", icon: "🔥", unlocked: true, rarity: "rare", date: "Feb 14, 2024" },
-  { id: "a3", name: "Operator", desc: "100 days of disciplined execution", icon: "⚡", unlocked: true, rarity: "epic", date: "Apr 25, 2024" },
-  { id: "a4", name: "Iron Mind", desc: "75 Hard completion", icon: "🛡️", unlocked: true, rarity: "epic", date: "Jul 12, 2024" },
-  { id: "a5", name: "Six Figures", desc: "$100k+ MRR achieved", icon: "💎", unlocked: false, rarity: "legendary", progress: 0.83 },
-  { id: "a6", name: "Hardened", desc: "Complete 75 Hard — Apex Edition", icon: "⚔️", unlocked: false, rarity: "legendary", progress: 0.62 },
-  { id: "a7", name: "The Scholar", desc: "Read 24 books in a year", icon: "📚", unlocked: false, rarity: "rare", progress: 0.46 },
-  { id: "a8", name: "Monk Mode", desc: "60 hrs of deep work in a month", icon: "🧘", unlocked: false, rarity: "epic", progress: 0.63 },
-  { id: "a9", name: "Centurion", desc: "100-day workout streak", icon: "💪", unlocked: false, rarity: "epic", progress: 0.47 },
-  { id: "a10", name: "Apex Predator", desc: "Reach Tier V Discipline rating", icon: "👑", unlocked: false, rarity: "legendary", progress: 0.92 },
-  { id: "a11", name: "Untouchable", desc: "365-day streak", icon: "♾️", unlocked: false, rarity: "legendary", progress: 0.13 },
-  { id: "a12", name: "Architect", desc: "Build a $1M ARR agency", icon: "🏛️", unlocked: false, rarity: "mythic", progress: 0.08 },
+const achievements: Array<{
+  id: string;
+  name: string;
+  desc: string;
+  icon: string;
+  unlocked: boolean;
+  rarity: "common" | "rare" | "epic" | "legendary" | "mythic";
+  date?: string;
+  progress?: number;
+}> = [
+  { id: "a1", name: "First Light", desc: "Complete your first day", icon: "🌅", unlocked: false, rarity: "common", progress: 0 },
+  { id: "a2", name: "Streak Hunter", desc: "30-day discipline streak", icon: "🔥", unlocked: false, rarity: "rare", progress: 0 },
+  { id: "a3", name: "Operator", desc: "100 days of disciplined execution", icon: "⚡", unlocked: false, rarity: "epic", progress: 0 },
+  { id: "a4", name: "Iron Mind", desc: "75 Hard completion", icon: "🛡️", unlocked: false, rarity: "epic", progress: 0 },
+  { id: "a5", name: "Six Figures", desc: "$100k+ MRR achieved", icon: "💎", unlocked: false, rarity: "legendary", progress: 0 },
+  { id: "a6", name: "Hardened", desc: "Complete 75 Hard — Apex Edition", icon: "⚔️", unlocked: false, rarity: "legendary", progress: 0 },
+  { id: "a7", name: "The Scholar", desc: "Read 24 books in a year", icon: "📚", unlocked: false, rarity: "rare", progress: 0 },
+  { id: "a8", name: "Monk Mode", desc: "60 hrs of deep work in a month", icon: "🧘", unlocked: false, rarity: "epic", progress: 0 },
+  { id: "a9", name: "Centurion", desc: "100-day workout streak", icon: "💪", unlocked: false, rarity: "epic", progress: 0 },
+  { id: "a10", name: "Apex Predator", desc: "Reach Tier V Discipline rating", icon: "👑", unlocked: false, rarity: "legendary", progress: 0 },
+  { id: "a11", name: "Untouchable", desc: "365-day streak", icon: "♾️", unlocked: false, rarity: "legendary", progress: 0 },
+  { id: "a12", name: "Architect", desc: "Build a $1M ARR agency", icon: "🏛️", unlocked: false, rarity: "mythic", progress: 0 },
 ];
 
 const rarityStyles = {
@@ -92,7 +101,7 @@ export default function AchievementsPage() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[10px] uppercase tracking-[0.2em] text-amber-300">
-              Level {user.level} · Operator
+              Level {user.level} · Initiate
             </div>
             <div className="mt-1 text-3xl font-bold text-white">
               {user.xp.toLocaleString()}{" "}
@@ -102,7 +111,7 @@ export default function AchievementsPage() {
             </div>
             <div className="mt-2 text-xs text-slate-400">
               {(user.xpToNext - user.xp).toLocaleString()} XP to Level{" "}
-              {user.level + 1} — <span className="text-amber-300">Strategist</span>
+              {user.level + 1} — <span className="text-amber-300">Operator</span>
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.04]">
               <motion.div
@@ -116,8 +125,8 @@ export default function AchievementsPage() {
           <div className="grid grid-cols-2 gap-3">
             <StatChip icon={Trophy} label="Earned" value={`${unlocked}/${achievements.length}`} />
             <StatChip icon={Flame} label="Streak" value={`${user.streak}d`} />
-            <StatChip icon={Star} label="Tier" value="IV" />
-            <StatChip icon={Zap} label="Rank" value="#142" />
+            <StatChip icon={Star} label="Tier" value="I" />
+            <StatChip icon={Zap} label="Rank" value="—" />
           </div>
         </div>
       </section>
@@ -134,10 +143,10 @@ export default function AchievementsPage() {
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold text-white">
-              You're 0.5 days away from <b className="text-amber-300">Operator+</b>
+              First badge is <b className="text-amber-300">First Light</b>
             </div>
             <div className="text-xs text-slate-400">
-              Complete tomorrow's plan and unlock the badge + 1500 XP.
+              Complete every habit you commit to today and unlock it.
             </div>
           </div>
         </div>
@@ -231,18 +240,18 @@ export default function AchievementsPage() {
           <h3 className="text-sm font-semibold text-white">
             Operator leaderboard · this week
           </h3>
-          <Badge variant="amber">#142 globally</Badge>
+          <Badge variant="default">UNRANKED</Badge>
+        </div>
+        <div className="mb-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3 text-xs text-slate-400">
+          You'll appear on the leaderboard after 7 days of consistent
+          logging. Top 3 shown so you know what elite looks like.
         </div>
         <div className="space-y-1">
           {[
             { rank: 1, name: "M. Wahab", score: 9842, change: 0, you: false },
             { rank: 2, name: "L. Petrov", score: 9620, change: 1, you: false },
             { rank: 3, name: "K. Tanaka", score: 9510, change: -1, you: false },
-            { rank: 140, name: "J. Vega", score: 7240, change: 2, you: false },
-            { rank: 141, name: "R. Solanki", score: 7180, change: 1, you: false },
-            { rank: 142, name: "You · Sayed", score: 7150, change: 3, you: true },
-            { rank: 143, name: "T. Brooks", score: 7090, change: -1, you: false },
-            { rank: 144, name: "N. Adler", score: 7045, change: 0, you: false },
+            { rank: 0, name: "You · Sayed", score: 0, change: 0, you: true },
           ].map((row) => (
             <div
               key={row.rank}
@@ -253,7 +262,7 @@ export default function AchievementsPage() {
               }`}
             >
               <span className="w-10 text-[11px] font-bold tabular text-slate-500">
-                #{row.rank}
+                {row.rank === 0 ? "—" : `#${row.rank}`}
               </span>
               <span className={`flex-1 text-sm ${row.you ? "font-semibold text-amber-200" : "text-slate-300"}`}>
                 {row.name}

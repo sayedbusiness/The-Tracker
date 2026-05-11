@@ -71,11 +71,9 @@ const campaignStatusColors = {
 
 export default function AgencyPage() {
   const totalMRR = clients.reduce((sum, c) => sum + c.mrr, 0);
-  const mrrGrowth =
-    ((agencyRevenue[agencyRevenue.length - 1].mrr -
-      agencyRevenue[agencyRevenue.length - 2].mrr) /
-      agencyRevenue[agencyRevenue.length - 2].mrr) *
-    100;
+  const prevMRR = agencyRevenue[agencyRevenue.length - 2]?.mrr ?? 0;
+  const currMRR = agencyRevenue[agencyRevenue.length - 1]?.mrr ?? 0;
+  const mrrGrowth = prevMRR === 0 ? 0 : ((currMRR - prevMRR) / prevMRR) * 100;
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
@@ -128,11 +126,7 @@ export default function AgencyPage() {
           icon={Calendar}
           label="Calls booked"
           value={`${sales.appointments}`}
-          delta={
-            ((sales.appointments - sales.appointmentsLastMonth) /
-              sales.appointmentsLastMonth) *
-            100
-          }
+          sub="this month"
           accent="amber"
         />
         <Kpi
@@ -153,11 +147,10 @@ export default function AgencyPage() {
                 Revenue trajectory · 7 months
               </h3>
               <p className="text-[10px] text-slate-500">
-                MRR growth · {formatCurrency(58000)} → {formatCurrency(95500)} ·{" "}
-                <b className="text-emerald-300">+64.6%</b>
+                Track every paying client. First deal closed will populate this.
               </p>
             </div>
-            <Badge variant="emerald">+{mrrGrowth.toFixed(1)}% MoM</Badge>
+            <Badge variant="default">DAY 1</Badge>
           </div>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -220,19 +213,19 @@ export default function AgencyPage() {
             </div>
             <div className="mt-4 space-y-3">
               <Insight
-                tone="warn"
-                title="Northwind Labs health: 72"
-                body="Down from 88 last month. Two missed reporting cadences. Schedule a strategy call this week."
-              />
-              <Insight
-                tone="win"
-                title="Hire #4 unlocks Q3"
-                body="At current velocity you'll hit ceiling at $108k MRR. Adding a paid media specialist projects +$22k by Sept."
+                tone="info"
+                title="Add your first client"
+                body="Once you log paying clients here, I can rank them by churn risk, expansion potential, and account health."
               />
               <Insight
                 tone="info"
-                title="Repeat the Helios playbook"
-                body="The case study converted 3 deals at avg $26k. Productize it as your tier-2 offer."
+                title="Define your offer ladder"
+                body="Tier 1 / Tier 2 / Tier 3 with clear price points. The AI uses this to score deals and recommend stage advancement."
+              />
+              <Insight
+                tone="warn"
+                title="Lead → revenue baseline"
+                body="I'll start tracking your close rate, cycle time, and average deal size from your first added deal."
               />
             </div>
           </div>
@@ -275,6 +268,12 @@ export default function AgencyPage() {
                   </button>
                 </div>
                 <div className="space-y-2">
+                  {deals.length === 0 && (
+                    <button className="flex w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/[0.06] py-6 text-[10px] text-slate-500 transition-colors hover:bg-white/[0.02] hover:text-slate-300">
+                      <Plus className="h-3 w-3" />
+                      Add deal
+                    </button>
+                  )}
                   {deals.map((d, i) => (
                     <motion.div
                       key={d.id}
@@ -324,11 +323,22 @@ export default function AgencyPage() {
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-white">Active clients</h3>
-            <Badge variant="emerald">
+            <Badge variant={totalMRR > 0 ? "emerald" : "default"}>
               {formatCurrency(totalMRR)} MRR
             </Badge>
           </div>
           <div className="space-y-2">
+            {clients.length === 0 && (
+              <div className="rounded-xl border border-dashed border-white/[0.08] p-6 text-center">
+                <div className="text-2xl">🤝</div>
+                <div className="mt-1 text-sm font-medium text-white">
+                  No clients yet
+                </div>
+                <div className="mt-1 text-xs text-slate-400">
+                  Add your first paying client to start tracking MRR and health.
+                </div>
+              </div>
+            )}
             {clients.map((c) => (
               <motion.div
                 key={c.id}
@@ -388,6 +398,17 @@ export default function AgencyPage() {
             </Button>
           </div>
           <div className="space-y-2">
+            {campaigns.length === 0 && (
+              <div className="rounded-xl border border-dashed border-white/[0.08] p-6 text-center">
+                <div className="text-2xl">📣</div>
+                <div className="mt-1 text-sm font-medium text-white">
+                  No campaigns running
+                </div>
+                <div className="mt-1 text-xs text-slate-400">
+                  Plan your first campaign — budget, channel, target.
+                </div>
+              </div>
+            )}
             {campaigns.map((c) => (
               <motion.div
                 key={c.id}

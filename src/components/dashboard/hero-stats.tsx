@@ -6,9 +6,10 @@ import { RingProgress } from "@/components/ui/progress";
 import { user, todayMetrics } from "@/lib/mock-data";
 
 export function HeroStats() {
-  const completionPct = Math.round(
-    (todayMetrics.tasksCompleted / todayMetrics.tasksTotal) * 100
-  );
+  const completionPct =
+    todayMetrics.tasksTotal === 0
+      ? 0
+      : Math.round((todayMetrics.tasksCompleted / todayMetrics.tasksTotal) * 100);
 
   return (
     <motion.section
@@ -25,7 +26,7 @@ export function HeroStats() {
       <div className="relative grid gap-8 lg:grid-cols-[1fr_auto]">
         <div>
           <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-violet-300/80">
-            Today's mission
+            Day 1 · everything starts now
           </div>
           <h1 className="text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
             <span className="gradient-text">Become</span> the version of you
@@ -33,9 +34,9 @@ export function HeroStats() {
             tomorrow won't catch up to.
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-400">
-            You're {completionPct}% through today's plan. The Meridian call at
-            2 PM is your highest-leverage moment. AI has flagged 3 patterns from
-            your last 7 days — review when you have a minute.
+            Clean slate. Zero streak, zero XP, zero excuses. Lock in your first
+            three habits today — workouts, sleep, deep work — and the AI will
+            start learning your patterns within 7 days.
           </p>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

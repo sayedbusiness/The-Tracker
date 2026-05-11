@@ -6,17 +6,14 @@ import { user as mockUser, todayMetrics } from "@/lib/mock-data";
 export const runtime = "edge";
 
 const goals = [
-  "Hit $150k MRR at Apex Growth Corp by end of Q3",
-  "Body recomp: 175 lb at sub-12% body fat",
-  "Read 24 books this year",
-  "75 Hard — Apex Edition completion (currently day 47/75)",
+  "Build Apex Growth Corp — close first paying clients",
+  "Body composition: lean and muscular (starting 167 lb)",
+  "Set the three non-negotiable daily habits",
 ];
 
 const patterns = [
-  "Peak deep-work window is 7–11 AM (92% of best output)",
-  "Output drops 34% after <6h sleep",
-  "Workouts in AM correlate with 2.3× deep work blocks completed",
-  "Phone usage > 2h/day = focus score -8 points",
+  "Day 1 — no patterns yet. AI is in observation mode.",
+  "First pattern read expected after 7 days of consistent logging.",
 ];
 
 export async function POST(req: NextRequest) {
