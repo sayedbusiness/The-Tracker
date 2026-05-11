@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
@@ -95,19 +95,36 @@ export function TodayTimeline({ plan }: { plan: DayPlan | null }) {
     return buildDayBlocks(starbucks, plan.weekday);
   }, [plan, starbucks]);
 
-  const now = nowMinutes();
-  const currentIdx = blocks.findIndex(
-    (b) => blockStartMin(b) <= now && blockEndMin(b) > now
-  );
+  // Compute "now" only on the client to avoid SSR/CSR mismatch.
+  // -1 during SSR means no block is highlighted as "current" until hydration.
+  const [now, setNow] = useState<number>(-1);
+  useEffect(() => {
+    setNow(nowMinutes());
+    const interval = setInterval(() => setNow(nowMinutes()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentIdx =
+    now < 0
+      ? -1
+      : blocks.findIndex(
+          (b) => blockStartMin(b) <= now && blockEndMin(b) > now
+        );
   const upcomingIdx =
-    currentIdx === -1 ? blocks.findIndex((b) => blockStartMin(b) > now) : -1;
+    now < 0
+      ? -1
+      : currentIdx === -1
+        ? blocks.findIndex((b) => blockStartMin(b) > now)
+        : -1;
 
   const visibleBlocks = showAll
     ? blocks
-    : blocks.slice(
-        Math.max(0, currentIdx === -1 ? upcomingIdx - 2 : currentIdx - 1),
-        Math.max(8, (currentIdx === -1 ? upcomingIdx : currentIdx) + 6)
-      );
+    : now < 0
+      ? blocks.slice(0, 8)
+      : blocks.slice(
+          Math.max(0, currentIdx === -1 ? upcomingIdx - 2 : currentIdx - 1),
+          Math.max(8, (currentIdx === -1 ? upcomingIdx : currentIdx) + 6)
+        );
 
   const total = blocks.length;
   const done = blocks.filter((b) => completed.has(b.id)).length;

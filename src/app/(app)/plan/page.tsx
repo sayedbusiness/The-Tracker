@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -22,7 +23,14 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function PlanPage() {
-  const today = getTodayPlan();
+  // Compute today's plan only on the client to avoid SSR/CSR hydration
+  // mismatches (Vercel servers are UTC, user is local time → different
+  // dates near midnight). During SSR, todayNumber is 0 (nothing flagged
+  // as "today") which is hydration-safe.
+  const [today, setToday] = useState<ReturnType<typeof getTodayPlan>>(null);
+  useEffect(() => {
+    setToday(getTodayPlan());
+  }, []);
   const todayNumber = today?.dayNumber ?? 0;
 
   // Group by week

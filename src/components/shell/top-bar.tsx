@@ -1,23 +1,32 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Bell, Search, Zap, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { user, todayMetrics } from "@/lib/mock-data";
+import { user } from "@/lib/mock-data";
 import { getGreeting, getDayLabel } from "@/lib/utils";
 
 export function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
+  const [greeting, setGreeting] = useState<string | null>(null);
+  const [dayLabel, setDayLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    setGreeting(getGreeting());
+    setDayLabel(getDayLabel());
+  }, []);
+
   return (
     <header
       className="sticky top-0 z-30 border-b border-white/[0.04] bg-black/30 backdrop-blur-2xl"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div className="flex h-16 items-center gap-4 px-4 lg:px-8">
-        <div className="hidden flex-1 md:block">
+        <div className="hidden flex-1 md:block" suppressHydrationWarning>
           <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
-            {getDayLabel()}
+            {dayLabel ?? " "}
           </div>
           <div className="text-sm font-medium text-slate-200">
-            {getGreeting()}, {user.name}.
+            {greeting ? `${greeting}, ${user.name}.` : " "}
           </div>
         </div>
 

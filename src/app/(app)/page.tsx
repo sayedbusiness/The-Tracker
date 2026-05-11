@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Activity,
   Apple,
@@ -22,6 +23,13 @@ import { getTodayPlan } from "@/lib/thirty-day-plan";
 
 export default function DashboardPage() {
   const m = todayMetrics;
+  // Defer getTodayPlan to the client; server-side it'd run in UTC and
+  // could pick a different calendar day than the user's local time,
+  // causing a hydration mismatch that prevents links from attaching.
+  const [todayPlan, setTodayPlan] = useState<ReturnType<typeof getTodayPlan>>(null);
+  useEffect(() => {
+    setTodayPlan(getTodayPlan());
+  }, []);
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <HeroStats />
@@ -121,7 +129,7 @@ export default function DashboardPage() {
 
           {/* Today's hour-by-hour timeline */}
           <div className="surface-card rounded-2xl p-6">
-            <TodayTimeline plan={getTodayPlan()} />
+            <TodayTimeline plan={todayPlan} />
           </div>
 
           {/* Quote */}

@@ -23,7 +23,7 @@ export const user = {
   productivityScore: 0,
   focusScore: 0,
   agencyScore: 0,
-  joinedAt: new Date(),
+  joinedAt: "2026-05-11T00:00:00.000Z",
 };
 
 export const disciplineQuotes = [
@@ -45,8 +45,9 @@ export const disciplineQuotes = [
   { text: "Comfort is the enemy of progress.", attr: "P.T. Barnum" },
 ];
 
-export const todayQuote =
-  disciplineQuotes[new Date().getDate() % disciplineQuotes.length];
+// Stable index so SSR and CSR render the same quote (hydration-safe).
+// Real rotation will be driven client-side via a useEffect later.
+export const todayQuote = disciplineQuotes[0];
 
 export type Task = {
   id: string;
@@ -294,10 +295,7 @@ export const chatHistory: ChatMessageSeed[] = [
     role: "assistant",
     content:
       "Day 1, Sayed. Clean slate.\n\nHere's how this works: I learn what you do, when you do it, and what it costs you when you skip. After 7 days I'll have your first real pattern. After 30 I'll be sharper than any coach you could hire.\n\nThree things to tell me right now to give me a head start:\n\n1. Your top goal for the next 90 days\n2. The three habits you refuse to break\n3. Your sleep target (lights out + wake time)\n\nWhat's first?",
-    time: new Date().toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }),
+    // Fixed string for hydration parity. Real time stamps populate on send.
+    time: "00:00",
   },
 ];

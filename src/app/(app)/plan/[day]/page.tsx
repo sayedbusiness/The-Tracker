@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { motion } from "framer-motion";
@@ -30,9 +30,13 @@ export default function DayDetailPage({
   const plan = getDayByNumber(n);
   if (!plan) notFound();
 
-  const todayPlan = getTodayPlan();
+  // Today-aware computations must be deferred to the client.
+  const [todayPlan, setTodayPlan] = useState<ReturnType<typeof getTodayPlan>>(null);
+  useEffect(() => {
+    setTodayPlan(getTodayPlan());
+  }, []);
   const isToday = todayPlan?.dayNumber === n;
-  const isPast = todayPlan && todayPlan.dayNumber > n;
+  const isPast = todayPlan ? todayPlan.dayNumber > n : false;
   const prev = n > 1 ? n - 1 : null;
   const next = n < 30 ? n + 1 : null;
 
