@@ -368,7 +368,11 @@ const eveningBlocks: Block[] = [
   },
 ];
 
-export function buildDayBlocks(starbucks: boolean, weekday: string): Block[] {
+export function buildDayBlocks(
+  starbucks: boolean,
+  weekday: string,
+  plan?: DayPlan | null
+): Block[] {
   const isWeekend = weekday === "Sat" || weekday === "Sun";
   const blocks: Block[] = [...morningBlocks];
 
@@ -377,7 +381,6 @@ export function buildDayBlocks(starbucks: boolean, weekday: string): Block[] {
   } else if (!isWeekend) {
     blocks.push(...schoolBlocks);
   } else {
-    // Weekend, no Starbucks — replace school/Starbucks with home work session
     blocks.push({
       id: "weekend-home-work",
       time: "07:30",
@@ -390,22 +393,99 @@ export function buildDayBlocks(starbucks: boolean, weekday: string): Block[] {
     });
   }
 
-  blocks.push(...afternoonBlocks);
-
-  // Dhuhr is during school/Starbucks block — surface it as its own row
-  blocks.splice(
-    blocks.length - afternoonBlocks.length,
-    0,
-    {
-      id: "dhuhr",
-      time: "13:03",
-      durationMin: 12,
-      label: "Pray Dhuhr",
-      detail: "Iqamah 1:30pm. Slip away during break/lunch.",
-      kind: "spiritual",
-      prayer: "dhuhr",
+  // Day-specific cold call block — replaces the default if plan says rest
+  const afternoon = afternoonBlocks.map((b) => {
+    if (b.id !== "cold-calls") return b;
+    if (plan && plan.coldCallTarget === 0) {
+      return {
+        ...b,
+        label: "Rest from dialing today",
+        detail: plan.isWeeklyReview
+          ? "No cold calls — weekly review + personal/family time. Show up for the people who got you here."
+          : "No cold calls today — recovery, batch planning, study.",
+        kind: "personal" as const,
+        durationMin: 30,
+      };
     }
-  );
+    if (plan && typeof plan.coldCallTarget === "number") {
+      return {
+        ...b,
+        label: `Cold call sprint — ${plan.coldCallTarget} dials`,
+        detail: `${b.detail} Target: ${plan.coldCallTarget} dials. Make dua before dialing.`,
+      };
+    }
+    return b;
+  });
+  blocks.push(...afternoon);
+
+  // Dhuhr happens during school/Starbucks block — surface its own row
+  blocks.push({
+    id: "dhuhr",
+    time: "13:03",
+    durationMin: 12,
+    label: "Pray Dhuhr",
+    detail: "Iqamah 1:30pm. Slip away during break/lunch.",
+    kind: "spiritual",
+    prayer: "dhuhr",
+  });
+
+  // Day-specific study + affiliate inserts (slot before evening review)
+  if (plan?.studyFocus) {
+    blocks.push({
+      id: "day-study",
+      time: "18:50",
+      durationMin: 25,
+      label: "Today's study focus",
+      detail: plan.studyFocus,
+      kind: "study",
+    });
+  }
+  if (plan?.affiliateAction) {
+    blocks.push({
+      id: "day-affiliate",
+      time: "16:30",
+      durationMin: 30,
+      label: "Affiliate action",
+      detail: plan.affiliateAction,
+      kind: "affiliate",
+    });
+  }
+  if (plan?.emailTarget && plan.emailTarget > 0) {
+    blocks.push({
+      id: "day-emails",
+      time: "16:15",
+      durationMin: 25,
+      label: `Send ${plan.emailTarget} cold emails`,
+      detail: "Personalized via Instantly. Not AI spam. Track sends.",
+      kind: "agency",
+    });
+  }
+
+  // Friday → Jummah replaces Dhuhr; insert as a special block
+  if (plan?.isJummah) {
+    blocks.push({
+      id: "jummah",
+      time: "13:00",
+      durationMin: 45,
+      label: "Jummah prayer at mosque",
+      detail: "Arrive 5 min before iqamah. Eat after.",
+      kind: "spiritual",
+      prayer: "jummah",
+    });
+  }
+
+  // Weekly review → Sunday adds a 60-min block
+  if (plan?.isWeeklyReview) {
+    blocks.push({
+      id: "weekly-review",
+      time: "11:00",
+      durationMin: 60,
+      label: "Weekly review",
+      detail:
+        "Dials · sets · closing calls · money · content posts · prayers · gym. Honest scoring. Plan next week.",
+      kind: "review",
+    });
+  }
 
   blocks.push(...eveningBlocks);
   return blocks.sort((a, b) => a.time.localeCompare(b.time));

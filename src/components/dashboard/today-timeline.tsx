@@ -92,7 +92,7 @@ export function TodayTimeline({ plan }: { plan: DayPlan | null }) {
 
   const blocks = useMemo<Block[]>(() => {
     if (!plan) return [];
-    return buildDayBlocks(starbucks, plan.weekday);
+    return buildDayBlocks(starbucks, plan.weekday, plan);
   }, [plan, starbucks]);
 
   // Compute "now" only on the client to avoid SSR/CSR mismatch.
@@ -100,7 +100,8 @@ export function TodayTimeline({ plan }: { plan: DayPlan | null }) {
   const [now, setNow] = useState<number>(-1);
   useEffect(() => {
     setNow(nowMinutes());
-    const interval = setInterval(() => setNow(nowMinutes()), 60_000);
+    // Live tick every 30s so the NOW indicator + progress feel real-time.
+    const interval = setInterval(() => setNow(nowMinutes()), 30_000);
     return () => clearInterval(interval);
   }, []);
 

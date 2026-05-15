@@ -12,6 +12,7 @@ import {
   Dumbbell,
   TrendingUp,
 } from "lucide-react";
+import { WaterTracker } from "@/components/health/water-tracker";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -119,8 +120,10 @@ export default function HealthPage() {
                 </div>
                 <div className="mt-1 text-xs text-slate-500">
                   {totals.calories === 0
-                    ? `${todayMetrics.caloriesTarget} kcal target · lean & muscular`
-                    : `${todayMetrics.caloriesTarget - totals.calories} kcal remaining`}
+                    ? `${todayMetrics.caloriesTarget} kcal · cutting · 200g protein floor`
+                    : totals.calories > todayMetrics.caloriesTarget
+                      ? `+${totals.calories - todayMetrics.caloriesTarget} kcal over · breaks the cut`
+                      : `${todayMetrics.caloriesTarget - totals.calories} kcal left · stay in deficit`}
                 </div>
               </div>
               <div className="space-y-2">
@@ -178,13 +181,17 @@ export default function HealthPage() {
         </motion.div>
       </section>
 
+      {/* Live water tracker — clickable */}
+      <WaterTracker />
+
       {/* Vitals grid */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <VitalCard
           icon={Droplet}
-          label="Water"
-          value={`${todayMetrics.water} L`}
-          progress={(todayMetrics.water / todayMetrics.waterTarget) * 100}
+          label="Water target"
+          value={`${todayMetrics.waterTarget} L`}
+          progress={0}
+          sub="cutting target"
           accent="cyan"
         />
         <VitalCard

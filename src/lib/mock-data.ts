@@ -80,11 +80,11 @@ export const todayMetrics = {
   focusMinutes: 0,
   focusTarget: 240,
   calories: 0,
-  caloriesTarget: 2600, // 167 lb, lean-bulk surplus
+  caloriesTarget: 1900, // cutting target at 167 lb
   protein: 0,
-  proteinTarget: 180, // 167 lb × ~1.1g/lb
-  water: 0,
-  waterTarget: 3.5,
+  proteinTarget: 200, // ~1.2g/lb body weight, preserves muscle in deficit
+  water: 0, // tracked in 250mL increments
+  waterTarget: 3, // L per day
   steps: 0,
   stepsTarget: 10000,
   sleep: 0,

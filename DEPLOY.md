@@ -5,6 +5,27 @@ I've grouped by what costs nothing vs. what costs money so you can decide.
 
 ---
 
+## 📅 Connecting Google Calendar (3 min)
+
+The `/calendar` page reads the next 24 hours of your Google Calendar.
+You need to set up an OAuth client once:
+
+1. Go to **https://console.cloud.google.com/** → create a project (or pick an existing one)
+2. **APIs & Services → Library** → search **Google Calendar API** → enable it
+3. **APIs & Services → OAuth consent screen** → External → fill name, email → add scope `.../auth/calendar.readonly` → add your email as a test user
+4. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+   - Application type: **Web application**
+   - Authorized redirect URI: `https://<your-vercel-url>/api/calendar/callback`
+     (and `http://localhost:3000/api/calendar/callback` for local dev)
+5. Copy the **Client ID** and **Client secret**
+6. Add to Vercel env vars:
+   - `GOOGLE_CLIENT_ID` = your client id
+   - `GOOGLE_CLIENT_SECRET` = your client secret
+   - `GOOGLE_REDIRECT_URI` = `https://<your-vercel-url>/api/calendar/callback`
+7. Redeploy. Now `/calendar` shows a "Connect with Google" button → tap it → grant read access → you're synced. Cookie stays valid for 90 days.
+
+---
+
 ## 🔒 Locking your live URL (must do before sharing the link)
 
 Anyone with your Vercel URL can currently see your data. To gate it:

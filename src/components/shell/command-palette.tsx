@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 const items = [
   { group: "Navigate", icon: LayoutDashboard, label: "Open Today", action: "/" },
   { group: "Navigate", icon: CalendarDays, label: "Open 30-Day Plan", action: "/plan" },
+  { group: "Navigate", icon: ListTodo, label: "Open Work list", action: "/work" },
+  { group: "Navigate", icon: CalendarDays, label: "Open Calendar", action: "/calendar" },
   { group: "Navigate", icon: ListTodo, label: "Open Tasks", action: "/tasks" },
   { group: "Navigate", icon: Flame, label: "Open Discipline Engine", action: "/discipline" },
   { group: "Navigate", icon: Heart, label: "Open Health", action: "/health" },

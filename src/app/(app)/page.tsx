@@ -18,6 +18,7 @@ import { AiInsights } from "@/components/dashboard/ai-insights";
 import { TodayTimeline } from "@/components/dashboard/today-timeline";
 import { HabitsGrid } from "@/components/dashboard/habits-grid";
 import { DisciplineQuote } from "@/components/dashboard/discipline-quote";
+import { WaterTracker } from "@/components/health/water-tracker";
 import { todayMetrics } from "@/lib/mock-data";
 import { getTodayPlan } from "@/lib/thirty-day-plan";
 
@@ -138,6 +139,8 @@ export default function DashboardPage() {
 
         {/* Right rail */}
         <div className="space-y-6">
+          <WaterTracker />
+
           <div className="surface-card rounded-2xl p-5">
             <AiInsights />
           </div>

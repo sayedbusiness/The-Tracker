@@ -4,19 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  CalendarDays,
+  ListChecks,
+  Calendar,
   Sparkles,
-  Briefcase,
   Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", icon: LayoutDashboard, label: "Today" },
-  { href: "/plan", icon: CalendarDays, label: "30 Day" },
-  { href: "/assistant", icon: Sparkles, label: "AI" },
-  { href: "/agency", icon: Briefcase, label: "Agency" },
+  { href: "/work", icon: ListChecks, label: "Work" },
+  { href: "/calendar", icon: Calendar, label: "Cal" },
   { href: "/health", icon: Heart, label: "Health" },
+  { href: "/assistant", icon: Sparkles, label: "AI" },
 ];
 
 export function MobileNav() {
