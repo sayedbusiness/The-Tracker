@@ -101,8 +101,17 @@ export default function CalendarPage() {
             Connect with Google
           </a>
           <p className="mx-auto mt-4 max-w-md text-[10px] text-slate-500">
-            Needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET set in Vercel env.
-            See DEPLOY.md for the 3-minute Google Cloud Console setup.
+            Needs GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and
+            GOOGLE_REDIRECT_URI set in Vercel. See DEPLOY.md.
+            {" "}
+            <a
+              href="/api/calendar/debug"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-300 underline hover:text-blue-200"
+            >
+              Check what Vercel sees →
+            </a>
           </p>
         </div>
       )}
