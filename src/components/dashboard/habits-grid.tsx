@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Flame } from "lucide-react";
+import { Check } from "lucide-react";
 import { habits } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -29,17 +30,25 @@ function getDayKey(d: Date = new Date()): string {
 }
 
 export function HabitsGrid() {
-  const weekKey = getWeekKey();
-  const today = getDayKey();
-  // Persist a Set of "{habitId}@{date}" entries — one per habit per day done
+  // Defer date keys until after mount so SSR (UTC) and client (local time)
+  // produce the same render. Pre-mount we use placeholder keys that no
+  // localStorage entry will ever match.
+  const [keys, setKeys] = useState<{ weekKey: string; today: string }>({
+    weekKey: "ssr-week",
+    today: "ssr-day",
+  });
+  useEffect(() => {
+    setKeys({ weekKey: getWeekKey(), today: getDayKey() });
+  }, []);
+
   const [done, setDone] = useLocalStorage<Set<string>>(
-    `apex:habits:${weekKey}`,
+    `apex:habits:${keys.weekKey}`,
     new Set<string>(),
     { serializer: "set" }
   );
 
   const toggleToday = (habitId: string) => {
-    const key = `${habitId}@${today}`;
+    const key = `${habitId}@${keys.today}`;
     setDone((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
@@ -56,7 +65,7 @@ export function HabitsGrid() {
     return n;
   };
 
-  const isDoneToday = (habitId: string) => done.has(`${habitId}@${today}`);
+  const isDoneToday = (habitId: string) => done.has(`${habitId}@${keys.today}`);
 
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">

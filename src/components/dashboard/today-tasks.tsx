@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Clock, Flame, Plus, Sparkles } from "lucide-react";
 import { tasks as initialTasks, type Task } from "@/lib/mock-data";
@@ -23,7 +23,13 @@ const priorityColors = {
 };
 
 export function TodayTasks({ compact = false }: { compact?: boolean }) {
-  const today = new Date().toISOString().slice(0, 10);
+  // Defer "today" calculation until after mount so the localStorage key
+  // is identical between SSR (UTC) and the client's local time.
+  const [today, setToday] = useState<string>("ssr");
+  useEffect(() => {
+    setToday(new Date().toISOString().slice(0, 10));
+  }, []);
+
   const [completedIds, setCompletedIds] = useLocalStorage<Set<string>>(
     `apex:tasks:${today}`,
     new Set<string>(),
@@ -72,7 +78,7 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
           <div className="mt-1 text-xs text-slate-400">
             Add at least one P0 and one health task. The AI will suggest the rest.
           </div>
-          <button className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-700 to-sky-500 px-3 py-1.5 text-xs font-medium text-white shadow-[0_4px_15px_rgba(30,58,138,0.35)] transition-all hover:shadow-[0_6px_20px_rgba(30,58,138,0.55)]">
+          <button className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-700 to-sky-500 px-3 py-1.5 text-xs font-medium text-white shadow-[0_4px_15px_rgba(30,58,138,0.35)] transition-all hover:shadow-[0_6px_20px_rgba(59,130,246,0.55)]">
             <Plus className="h-3 w-3" /> Add your first task
           </button>
         </div>
@@ -95,7 +101,7 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
               "grid h-6 w-6 shrink-0 place-items-center rounded-lg border transition-all",
               task.completed
                 ? "border-emerald-500/40 bg-emerald-500/20"
-                : "border-white/[0.1] hover:border-blue-400/40 hover:bg-blue-600/10"
+                : "border-white/[0.1] hover:border-blue-400/40 hover:bg-blue-500/10"
             )}
           >
             {task.completed && <Check className="h-3.5 w-3.5 text-emerald-300" />}

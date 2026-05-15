@@ -1,18 +1,26 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 /**
  * SSR-safe localStorage hook with JSON serialization.
  *
- * - Reads from localStorage on mount (after hydration).
- * - Writes through on every change.
- * - Multi-tab sync via storage event.
- * - Falls back to `initial` if storage is unavailable (private browsing,
- *   server render, etc.).
+ * Critically: the `initial` value is captured in a ref so callers can
+ * pass `new Set()` or `{}` literals without triggering an effect/re-render
+ * loop. (Previous version put `initial` in a useCallback dep array; every
+ * parent re-render produced a new object reference, the effect fired,
+ * setState ran with a new identity-but-equal value, the component
+ * re-rendered, and the cycle repeated forever — freezing the React tree
+ * and making every click inert.)
  *
- * Sets are serialized as arrays automatically — pass `serializer: "set"`
- * to opt into Set-aware (de)serialization.
+ * Behavior:
+ * - SSR / first client render: returns `initial` (no localStorage read,
+ *   keeps hydration markup identical).
+ * - After mount: reads localStorage and updates state once.
+ * - Writes through to localStorage on every state change.
+ * - Multi-tab sync via the storage event.
+ *
+ * Pass `serializer: "set"` to (de)serialize a Set as a JSON array.
  */
 export function useLocalStorage<T>(
   key: string,
@@ -21,39 +29,61 @@ export function useLocalStorage<T>(
 ) {
   const { serializer = "json" } = options;
 
-  const read = useCallback((): T => {
-    if (typeof window === "undefined") return initial;
-    try {
-      const raw = window.localStorage.getItem(key);
-      if (raw === null) return initial;
-      const parsed = JSON.parse(raw);
-      if (serializer === "set") {
-        return new Set(parsed) as unknown as T;
-      }
-      return parsed as T;
-    } catch {
-      return initial;
-    }
-  }, [key, initial, serializer]);
+  // Stabilize `initial` so render-time literals (new Set(), {}, []) don't
+  // make our effects fire every render.
+  const initialRef = useRef(initial);
 
   const [value, setValue] = useState<T>(initial);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate after mount to avoid SSR mismatch
+  // Hydrate from localStorage once per `key`. We deliberately leave
+  // `initial` and `serializer` out of the dep array — `initialRef.current`
+  // is referentially stable and `serializer` is effectively a constant
+  // per call site.
   useEffect(() => {
-    setValue(read());
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (raw === null) {
+        setHydrated(true);
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      const next =
+        serializer === "set"
+          ? (new Set(parsed) as unknown as T)
+          : (parsed as T);
+      setValue(next);
+    } catch {
+      // Storage unavailable, malformed JSON, etc. — fall through.
+    }
     setHydrated(true);
-  }, [read]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
-  // Listen for cross-tab changes
+  // Listen for cross-tab updates.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const onStorage = (e: StorageEvent) => {
-      if (e.key === key) setValue(read());
+      if (e.key !== key) return;
+      try {
+        if (e.newValue === null) {
+          setValue(initialRef.current);
+          return;
+        }
+        const parsed = JSON.parse(e.newValue);
+        setValue(
+          serializer === "set"
+            ? (new Set(parsed) as unknown as T)
+            : (parsed as T)
+        );
+      } catch {
+        /* ignore */
+      }
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, [key, read]);
+  }, [key, serializer]);
 
   const update = useCallback(
     (next: T | ((prev: T) => T)) => {
@@ -70,7 +100,7 @@ export function useLocalStorage<T>(
                 : v;
             window.localStorage.setItem(key, JSON.stringify(toStore));
           } catch {
-            // Quota exceeded or storage unavailable — silently drop
+            /* quota or storage unavailable */
           }
         }
         return v;
