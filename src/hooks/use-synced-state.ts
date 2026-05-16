@@ -56,9 +56,9 @@ export function useSyncedState<T>(
   const initialRef = useRef(initial);
   const [value, setValue] = useState<T>(initial);
   const [hydrated, setHydrated] = useState(false);
-  // Tracks whether the server has confirmed KV is offline so we stop
-  // hammering it every poll cycle.
-  const kvOnlineRef = useRef(true);
+  // Tracks whether the server has confirmed sync is configured so we
+  // stop hammering it every poll cycle when it's offline / unconfigured.
+  const syncOnlineRef = useRef(true);
 
   // Hydrate from localStorage on mount.
   useEffect(() => {
@@ -78,7 +78,7 @@ export function useSyncedState<T>(
 
   // Pull latest value from server on mount + every pollMs.
   useEffect(() => {
-    if (!hydrated || !kvOnlineRef.current) return;
+    if (!hydrated || !syncOnlineRef.current) return;
     let cancelled = false;
 
     const pull = async () => {
@@ -87,7 +87,7 @@ export function useSyncedState<T>(
           cache: "no-store",
         });
         if (res.status === 503) {
-          kvOnlineRef.current = false;
+          syncOnlineRef.current = false;
           return;
         }
         if (!res.ok) return;
@@ -156,7 +156,7 @@ export function useSyncedState<T>(
             const wire = serialize(v, serializer);
             window.localStorage.setItem(key, JSON.stringify(wire));
             writeStamp(key, stamp);
-            if (kvOnlineRef.current) {
+            if (syncOnlineRef.current) {
               fetch(`/api/state/${encodeURIComponent(key)}`, {
                 method: "POST",
                 headers: { "content-type": "application/json" },
@@ -164,7 +164,7 @@ export function useSyncedState<T>(
                 keepalive: true,
               })
                 .then((r) => {
-                  if (r.status === 503) kvOnlineRef.current = false;
+                  if (r.status === 503) syncOnlineRef.current = false;
                 })
                 .catch(() => {
                   /* offline — local copy is still good */

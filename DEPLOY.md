@@ -5,27 +5,53 @@ I've grouped by what costs nothing vs. what costs money so you can decide.
 
 ---
 
-## 🔄 Cross-device sync (5 min) — see your changes on phone + laptop
+## 🔄 Cross-device sync (5 min, free, uses Supabase)
 
 Without this, every device keeps its own copy of your tasks, meals,
 challenges, etc. With it, any change on one device shows up on every
 other device within 20 seconds.
 
-**One-time setup in Vercel:**
+This uses your existing **Supabase** project — no extra cost, well
+within the free tier (500 MB Postgres / 2 GB egress / month).
 
-1. Open your project on **vercel.com** → **Storage** tab
-2. Click **Create Database** → **KV (Redis)** → name it `apex-state` → **Create**
-3. On the new KV's page, click **Connect Project** → pick your project → all environments → **Connect**
-4. Vercel automatically adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` env vars
-5. Go to **Deployments** → ⋯ on the latest → **Redeploy** (env vars only apply to new builds)
+**Step 1 — Create the storage table (one-time, ~30 seconds):**
 
-That's it. Open the app on your iPhone, add a task. Refresh on your
-Mac — the task appears. Mark a meal logged on your laptop, check the
-phone — it shows up.
+1. Go to **app.supabase.com** → open your project
+2. Click **SQL Editor** in the left rail → **New query**
+3. Paste this and click **Run**:
 
-**Cost:** Free tier covers 30k commands/day and 256 MB — your usage
-won't get near that as a single user. Paid only kicks in if you start
-sharing the app with a real team.
+   ```sql
+   create table if not exists apex_state (
+     key         text primary key,
+     value       jsonb       not null,
+     updated_at  bigint      not null
+   );
+
+   -- We only read/write this table from the server using the
+   -- service_role key, so RLS isn't needed. But enabling it (with no
+   -- public policies) makes the table invisible to anon/auth clients,
+   -- which is the safer default.
+   alter table apex_state enable row level security;
+   ```
+
+**Step 2 — Add the env vars to Vercel (if they aren't already there):**
+
+1. Go to **vercel.com** → your project → **Settings** → **Environment Variables**
+2. Confirm these two exist (Production + Preview):
+   - `NEXT_PUBLIC_SUPABASE_URL` = your project URL (e.g. `https://abcd.supabase.co`).
+     Find it in Supabase → **Project Settings → API → Project URL**.
+   - `SUPABASE_SERVICE_ROLE_KEY` = your `service_role` key (NOT the
+     anon key). Same Supabase page → **service_role · secret**.
+     **Never** put this key in client code — it's already only used
+     server-side here.
+3. If you added/changed anything, go to **Deployments** → ⋯ on the
+   latest → **Redeploy** (env vars only apply to new builds).
+
+**Step 3 — Test it:**
+
+Open the app on your phone, add a task. Wait 20 seconds. Refresh on
+your laptop — the task appears. (You can also tap refresh and it'll
+pull immediately.)
 
 **Until you set this up:** The app still works perfectly on each
 device individually. You just won't see cross-device updates. Every

@@ -3,93 +3,113 @@ import type { NextRequest } from "next/server";
 export const runtime = "edge";
 
 /**
- * Cross-device state sync via Vercel KV (Upstash REST API).
+ * Cross-device state sync via Supabase (free tier — 500 MB Postgres
+ * + 2 GB egress is plenty for a single user).
  *
- * Reads from process.env.KV_REST_API_URL + KV_REST_API_TOKEN — these
- * are populated automatically when you enable Vercel KV on the project
- * (Dashboard → Storage → Create Database → KV). No SDK needed; we hit
- * the Upstash REST endpoint directly so it works on the edge runtime.
+ * Reads from NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
+ * Hits the PostgREST endpoint directly so no SDK is needed — works
+ * on the edge runtime.
  *
- * Until KV is enabled, this route returns 503 and the client falls back
- * to localStorage-only mode. Setup is 1 click in the Vercel dashboard.
+ * One-time setup (see DEPLOY.md):
+ *   1. Create a table `apex_state(key text primary key,
+ *      value jsonb not null, updated_at bigint not null)`.
+ *   2. Add the two env vars in Vercel.
  *
- * Key namespace: every key is prefixed with "apex:" on the client, so
- * collisions with other Vercel KV usage in the project are impossible.
+ * Until those are set, this route returns 503 and the client falls
+ * back to localStorage-only mode.
  */
 
-const KV_URL = process.env.KV_REST_API_URL;
-const KV_TOKEN = process.env.KV_REST_API_TOKEN;
-const TTL_SECONDS = 60 * 60 * 24 * 90; // 90 days
+const URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
-function kvAvailable(): boolean {
-  return Boolean(KV_URL && KV_TOKEN);
+function configured(): boolean {
+  return Boolean(URL && KEY);
 }
 
-async function kvGet(key: string): Promise<{ value: unknown; updatedAt: number } | null> {
-  const res = await fetch(`${KV_URL}/get/${encodeURIComponent(key)}`, {
-    headers: { Authorization: `Bearer ${KV_TOKEN}` },
-    cache: "no-store",
-  });
+function authHeaders(extra: Record<string, string> = {}) {
+  return {
+    apikey: KEY!,
+    Authorization: `Bearer ${KEY!}`,
+    "Content-Type": "application/json",
+    ...extra,
+  };
+}
+
+async function getRow(
+  key: string
+): Promise<{ value: unknown; updatedAt: number } | null> {
+  const u = `${URL}/rest/v1/apex_state?key=eq.${encodeURIComponent(key)}&select=value,updated_at`;
+  const res = await fetch(u, { headers: authHeaders(), cache: "no-store" });
   if (!res.ok) return null;
-  const body = (await res.json()) as { result: string | null };
-  if (!body.result) return null;
-  try {
-    return JSON.parse(body.result) as { value: unknown; updatedAt: number };
-  } catch {
-    return null;
-  }
+  const rows = (await res.json()) as Array<{
+    value: unknown;
+    updated_at: number;
+  }>;
+  if (!rows[0]) return null;
+  return { value: rows[0].value, updatedAt: Number(rows[0].updated_at) };
 }
 
-async function kvSet(key: string, value: unknown, updatedAt: number) {
-  const payload = JSON.stringify({ value, updatedAt });
-  await fetch(`${KV_URL}/set/${encodeURIComponent(key)}?EX=${TTL_SECONDS}`, {
+async function upsertRow(key: string, value: unknown, updatedAt: number) {
+  // Upsert via PostgREST: POST with Prefer: resolution=merge-duplicates
+  // and on_conflict=key so existing rows get the new value+timestamp.
+  const u = `${URL}/rest/v1/apex_state?on_conflict=key`;
+  await fetch(u, {
     method: "POST",
-    headers: { Authorization: `Bearer ${KV_TOKEN}` },
-    body: payload,
+    headers: authHeaders({
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    }),
+    body: JSON.stringify({ key, value, updated_at: updatedAt }),
   });
 }
 
-async function kvDel(key: string) {
-  await fetch(`${KV_URL}/del/${encodeURIComponent(key)}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${KV_TOKEN}` },
-  });
+async function deleteRow(key: string) {
+  const u = `${URL}/rest/v1/apex_state?key=eq.${encodeURIComponent(key)}`;
+  await fetch(u, { method: "DELETE", headers: authHeaders() });
 }
 
-export async function GET(_req: NextRequest, ctx: { params: Promise<{ key: string }> }) {
+export async function GET(
+  _req: NextRequest,
+  ctx: { params: Promise<{ key: string }> }
+) {
   const { key } = await ctx.params;
-  if (!kvAvailable()) {
+  if (!configured()) {
     return Response.json(
-      { ok: false, kv: false, message: "KV not configured" },
+      { ok: false, configured: false, message: "Supabase not configured" },
       { status: 503 }
     );
   }
-  const entry = await kvGet(`apex:${key}`);
-  return Response.json({ ok: true, kv: true, entry }, { status: 200 });
+  const entry = await getRow(`apex:${key}`);
+  return Response.json({ ok: true, configured: true, entry }, { status: 200 });
 }
 
-export async function POST(req: NextRequest, ctx: { params: Promise<{ key: string }> }) {
+export async function POST(
+  req: NextRequest,
+  ctx: { params: Promise<{ key: string }> }
+) {
   const { key } = await ctx.params;
-  if (!kvAvailable()) {
+  if (!configured()) {
     return Response.json(
-      { ok: false, kv: false, message: "KV not configured" },
+      { ok: false, configured: false, message: "Supabase not configured" },
       { status: 503 }
     );
   }
   const body = (await req.json()) as { value: unknown; updatedAt?: number };
   const updatedAt = body.updatedAt ?? Date.now();
-  await kvSet(`apex:${key}`, body.value, updatedAt);
+  await upsertRow(`apex:${key}`, body.value, updatedAt);
   return Response.json({ ok: true, updatedAt }, { status: 200 });
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ key: string }> }) {
+export async function DELETE(
+  _req: NextRequest,
+  ctx: { params: Promise<{ key: string }> }
+) {
   const { key } = await ctx.params;
-  if (!kvAvailable()) {
+  if (!configured()) {
     return Response.json(
-      { ok: false, kv: false, message: "KV not configured" },
+      { ok: false, configured: false, message: "Supabase not configured" },
       { status: 503 }
     );
   }
-  await kvDel(`apex:${key}`);
+  await deleteRow(`apex:${key}`);
   return Response.json({ ok: true }, { status: 200 });
 }
