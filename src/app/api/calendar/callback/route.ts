@@ -5,6 +5,10 @@ export const runtime = "edge";
 /**
  * OAuth callback — exchanges code for tokens, stores them in HttpOnly
  * cookies (access + refresh), then redirects back to /calendar.
+ *
+ * IMPORTANT: We construct the 302 manually instead of using
+ * Response.redirect() because the latter returns immutable headers in
+ * the edge runtime, which throws when we try to append Set-Cookie.
  */
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -12,9 +16,9 @@ export async function GET(req: NextRequest) {
   const state = url.searchParams.get("state");
   const stateCookie = req.cookies.get("gcal-state")?.value;
 
-  if (!code) return errorRedirect(req, "Missing authorization code");
+  if (!code) return errorRedirect(url.origin, "Missing authorization code");
   if (!state || !stateCookie || state !== stateCookie) {
-    return errorRedirect(req, "OAuth state mismatch");
+    return errorRedirect(url.origin, "OAuth state mismatch");
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -24,7 +28,7 @@ export async function GET(req: NextRequest) {
     `${url.origin}/api/calendar/callback`;
 
   if (!clientId || !clientSecret) {
-    return errorRedirect(req, "Google credentials missing on server");
+    return errorRedirect(url.origin, "Google credentials missing on server");
   }
 
   const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
@@ -41,7 +45,10 @@ export async function GET(req: NextRequest) {
 
   if (!tokenRes.ok) {
     const body = await tokenRes.text();
-    return errorRedirect(req, `Token exchange failed: ${body.slice(0, 120)}`);
+    return errorRedirect(
+      url.origin,
+      `Token exchange failed: ${body.slice(0, 120)}`
+    );
   }
 
   const tokens = (await tokenRes.json()) as {
@@ -50,27 +57,28 @@ export async function GET(req: NextRequest) {
     expires_in: number;
   };
 
-  const res = Response.redirect(`${url.origin}/calendar`);
-  res.headers.append(
-    "set-cookie",
-    `gcal-access=${tokens.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${tokens.expires_in}`
-  );
+  const cookies: string[] = [
+    `gcal-access=${tokens.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${tokens.expires_in}`,
+    "gcal-state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0",
+  ];
   if (tokens.refresh_token) {
-    res.headers.append(
-      "set-cookie",
+    cookies.push(
       `gcal-refresh=${tokens.refresh_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${60 * 60 * 24 * 90}`
     );
   }
-  // Clear CSRF cookie
-  res.headers.append(
-    "set-cookie",
-    "gcal-state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
-  );
-  return res;
+
+  const headers = new Headers();
+  headers.set("location", `${url.origin}/calendar`);
+  for (const c of cookies) headers.append("set-cookie", c);
+
+  return new Response(null, { status: 302, headers });
 }
 
-function errorRedirect(req: NextRequest, msg: string) {
-  const url = new URL("/calendar", req.url);
-  url.searchParams.set("error", msg);
-  return Response.redirect(url);
+function errorRedirect(origin: string, msg: string) {
+  const dest = new URL("/calendar", origin);
+  dest.searchParams.set("error", msg);
+  return new Response(null, {
+    status: 302,
+    headers: { location: dest.toString() },
+  });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ListTodo,
@@ -16,38 +16,80 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/tasks/page-header";
 import { TodayTasks } from "@/components/dashboard/today-tasks";
-import { tasks } from "@/lib/mock-data";
+import type { Task } from "@/lib/mock-data";
+import { useSyncedState } from "@/hooks/use-synced-state";
 
-const filters = [
-  { id: "all", label: "All", count: tasks.length },
-  { id: "today", label: "Today", count: tasks.length },
-  { id: "p0", label: "P0", count: tasks.filter((t) => t.priority === "p0").length },
-  { id: "deep-work", label: "Deep Work", count: tasks.filter((t) => t.category === "deep-work").length },
-  { id: "agency", label: "Agency", count: tasks.filter((t) => t.category === "agency").length },
-  { id: "health", label: "Health", count: tasks.filter((t) => t.category === "health").length },
-];
+type SavedTask = Omit<Task, "completed">;
+
+const FILTER_KEYS = ["all", "today", "p0", "deep-work", "agency", "health"] as const;
+type FilterKey = (typeof FILTER_KEYS)[number];
 
 export default function TasksPage() {
-  const [filter, setFilter] = useState("all");
+  const [today, setToday] = useState<string>("ssr");
+  useEffect(() => {
+    setToday(new Date().toISOString().slice(0, 10));
+  }, []);
+
+  // Subscribes to the same key as <TodayTasks /> so both stay in sync.
+  const [tasksList] = useSyncedState<SavedTask[]>(`tasks:list:${today}`, []);
+  const [completedIds] = useSyncedState<Set<string>>(
+    `tasks:completed:${today}`,
+    new Set<string>(),
+    { serializer: "set" }
+  );
+
+  const [filter, setFilter] = useState<FilterKey>("all");
 
   const stats = useMemo(() => {
-    const done = tasks.filter((t) => t.completed).length;
-    const totalMin = tasks.reduce((sum, t) => sum + t.estimated, 0);
-    const doneMin = tasks
-      .filter((t) => t.completed)
+    const total = tasksList.length;
+    const done = tasksList.filter((t) => completedIds.has(t.id)).length;
+    const totalMin = tasksList.reduce((sum, t) => sum + t.estimated, 0);
+    const doneMin = tasksList
+      .filter((t) => completedIds.has(t.id))
       .reduce((sum, t) => sum + t.estimated, 0);
     const avgDifficulty =
-      tasks.length === 0
+      total === 0
         ? "—"
-        : (tasks.reduce((sum, t) => sum + t.difficulty, 0) / tasks.length).toFixed(1);
-    return {
-      done,
-      total: tasks.length,
-      totalMin,
-      doneMin,
-      avgDifficulty,
-    };
-  }, []);
+        : (
+            tasksList.reduce((sum, t) => sum + t.difficulty, 0) / total
+          ).toFixed(1);
+    return { done, total, totalMin, doneMin, avgDifficulty };
+  }, [tasksList, completedIds]);
+
+  const filters: { id: FilterKey; label: string; count: number }[] = [
+    { id: "all", label: "All", count: tasksList.length },
+    { id: "today", label: "Today", count: tasksList.length },
+    {
+      id: "p0",
+      label: "P0",
+      count: tasksList.filter((t) => t.priority === "p0").length,
+    },
+    {
+      id: "deep-work",
+      label: "Deep Work",
+      count: tasksList.filter((t) => t.category === "deep-work").length,
+    },
+    {
+      id: "agency",
+      label: "Agency",
+      count: tasksList.filter((t) => t.category === "agency").length,
+    },
+    {
+      id: "health",
+      label: "Health",
+      count: tasksList.filter((t) => t.category === "health").length,
+    },
+  ];
+
+  // The "Add task" button in the header scrolls to the in-list composer
+  // by clicking the existing button inside <TodayTasks />.
+  const triggerAdd = () => {
+    const el = document.querySelector<HTMLButtonElement>(
+      "[data-add-task-trigger]"
+    );
+    el?.click();
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -67,20 +109,23 @@ export default function TasksPage() {
             <Button variant="secondary" size="md">
               <Filter className="h-4 w-4" /> Filters
             </Button>
-            <Button size="md">
+            <Button size="md" onClick={triggerAdd}>
               <Plus className="h-4 w-4" /> Add task
             </Button>
           </>
         }
       />
 
-      {/* Smart stats strip */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatBlock
           icon={<TrendingUp className="h-4 w-4" />}
           label="Completion"
           value={`${stats.done}/${stats.total}`}
-          sub={stats.total === 0 ? "no tasks yet" : `${Math.round((stats.done / stats.total) * 100)}%`}
+          sub={
+            stats.total === 0
+              ? "no tasks yet"
+              : `${Math.round((stats.done / stats.total) * 100)}%`
+          }
           accent="violet"
         />
         <StatBlock
@@ -94,7 +139,7 @@ export default function TasksPage() {
           icon={<Zap className="h-4 w-4" />}
           label="Avg difficulty"
           value={stats.avgDifficulty}
-          sub="calibrating"
+          sub={stats.total === 0 ? "—" : "calibrating"}
           accent="amber"
         />
         <StatBlock
@@ -106,7 +151,6 @@ export default function TasksPage() {
         />
       </section>
 
-      {/* AI suggestion card */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -130,10 +174,10 @@ export default function TasksPage() {
               block. I'll learn your energy curve as you complete them.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm" variant="primary">
+              <Button size="sm" variant="primary" onClick={triggerAdd}>
                 <Plus className="h-3 w-3" /> Add first task
               </Button>
-              <Button size="sm" variant="secondary">
+              <Button size="sm" variant="secondary" onClick={triggerAdd}>
                 Suggest a template
               </Button>
             </div>
@@ -141,7 +185,6 @@ export default function TasksPage() {
         </div>
       </motion.div>
 
-      {/* Filter chips */}
       <div className="flex flex-wrap gap-2">
         {filters.map((f) => (
           <button
@@ -161,12 +204,10 @@ export default function TasksPage() {
         ))}
       </div>
 
-      {/* Tasks */}
       <div className="surface-card rounded-2xl p-6">
         <TodayTasks />
       </div>
 
-      {/* Energy / difficulty intelligence panel */}
       <section className="grid gap-4 lg:grid-cols-3">
         <div className="surface-card rounded-2xl p-5 lg:col-span-2">
           <h3 className="text-sm font-semibold text-white">

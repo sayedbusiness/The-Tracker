@@ -50,14 +50,16 @@ export async function GET(req: NextRequest) {
     state,
   });
 
-  const res = Response.redirect(
-    `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-  );
-  res.headers.append(
-    "set-cookie",
-    `gcal-state=${state}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`
-  );
-  return res;
+  // Build the redirect manually — Response.redirect() returns a response
+  // with immutable headers on the edge runtime, so we can't attach the
+  // state cookie to it. This works.
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
+      "set-cookie": `gcal-state=${state}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
+    },
+  });
 }
 
 function renderErrorPage({

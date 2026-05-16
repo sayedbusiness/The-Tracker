@@ -1,41 +1,342 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   GraduationCap,
   Play,
   CheckCircle2,
   Clock,
-  Trophy,
   Sparkles,
   BookOpen,
   Flame,
-  Plus,
+  ExternalLink,
+  Phone,
+  Briefcase,
+  Target,
+  Brain,
+  TrendingUp,
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { learningTracks } from "@/lib/mock-data";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import { cn } from "@/lib/utils";
 
-const coverGradients = {
-  violet: "from-blue-600 via-blue-600 to-blue-700",
-  cyan: "from-sky-500 via-blue-500 to-blue-700",
-  emerald: "from-emerald-500 via-teal-500 to-sky-600",
-  amber: "from-amber-500 via-orange-500 to-rose-500",
-  rose: "from-rose-500 via-pink-500 to-blue-700",
-  indigo: "from-blue-600 via-blue-600 to-blue-700",
+type Section = "all" | "sales" | "cold-calling" | "agency" | "mindset";
+
+interface LearnResource {
+  id: string;
+  title: string;
+  creator: string;
+  section: Exclude<Section, "all">;
+  url: string;
+  /** Short blurb */
+  why: string;
+  /** Pillar of focus */
+  pillar: "cold-call" | "closing" | "objections" | "ops" | "scaling" | "offers" | "mindset" | "ads";
+}
+
+// Real curated catalog. URLs point to creators' channels or YouTube search
+// results — stable destinations that don't rot when a specific video gets
+// deleted. Add specific video IDs over time as you binge them.
+const CATALOG: LearnResource[] = [
+  // ─── SALES — HIGH-TICKET CLOSING ────────────────────────
+  {
+    id: "alex-hormozi",
+    title: "Alex Hormozi — Offers, sales, scaling",
+    creator: "@AlexHormozi",
+    section: "sales",
+    url: "https://www.youtube.com/@AlexHormozi/videos",
+    why: "The bible for offer creation, value-stacking, and the mechanics of why people buy. Start with $100M Offers + $100M Leads.",
+    pillar: "offers",
+  },
+  {
+    id: "jeremy-miner",
+    title: "Jeremy Miner — NEPQ (Neuro-Emotional Persuasion Questioning)",
+    creator: "@JeremyMiner",
+    section: "sales",
+    url: "https://www.youtube.com/@JeremyMiner/videos",
+    why: "The skip-the-pitch approach. Ask questions that make the prospect convince themselves. Best for high-ticket B2C.",
+    pillar: "closing",
+  },
+  {
+    id: "matt-ryder",
+    title: "Matt Ryder — Agency sales + cold call scripts",
+    creator: "@MattRyderAgency",
+    section: "sales",
+    url: "https://www.youtube.com/results?search_query=matt+ryder+agency+sales",
+    why: "Specific to SMMA closing. Real call recordings, real script breakdowns. Mimic his tonality.",
+    pillar: "closing",
+  },
+  {
+    id: "andres-conteras",
+    title: "Andres Conteras — Logical certainty + frame stacking",
+    creator: "Andres Conteras Sales",
+    section: "sales",
+    url: "https://www.youtube.com/results?search_query=andres+conteras+sales",
+    why: "Best operator on dropping uncertainty. The 9-to-5 vs entrepreneur frame, beach/weather analogy, identity selling.",
+    pillar: "closing",
+  },
+  {
+    id: "cole-gordon",
+    title: "Cole Gordon — High-ticket closing",
+    creator: "@colegordon",
+    section: "sales",
+    url: "https://www.youtube.com/@colegordon/videos",
+    why: "Disciplined script + identity + objection frameworks. Strong on the $5K–$20K offers.",
+    pillar: "closing",
+  },
+  {
+    id: "andy-elliott",
+    title: "Andy Elliott — Tonality + intensity",
+    creator: "@andyelliottofficial",
+    section: "sales",
+    url: "https://www.youtube.com/@andyelliottofficial/videos",
+    why: "Loud, energetic, masculine sales energy. Use for fire-up sessions before sprints. Not for nuance.",
+    pillar: "closing",
+  },
+  {
+    id: "patrick-dang",
+    title: "Patrick Dang — B2B SaaS-style sales fundamentals",
+    creator: "@patrickdang",
+    section: "sales",
+    url: "https://www.youtube.com/@patrickdang/videos",
+    why: "Clean, structured. Good for discovery questions + early-career fundamentals.",
+    pillar: "closing",
+  },
+  {
+    id: "grant-cardone",
+    title: "Grant Cardone — Closing the deal",
+    creator: "@GrantCardone",
+    section: "sales",
+    url: "https://www.youtube.com/@GrantCardone/videos",
+    why: "Classic closing reps. Survive his intensity, take what works.",
+    pillar: "closing",
+  },
+
+  // ─── COLD CALLING / OUTBOUND ───────────────────────────
+  {
+    id: "matt-ryder-cold",
+    title: "Cold call openers that don't get hung up on",
+    creator: "Matt Ryder + Agency operators",
+    section: "cold-calling",
+    url: "https://www.youtube.com/results?search_query=cold+call+opener+agency",
+    why: "Pattern-interrupt openers. 'How are you?' is dead — what works in 2026.",
+    pillar: "cold-call",
+  },
+  {
+    id: "trent-dressel",
+    title: "Trent Dressel — SDR cold call walkthroughs",
+    creator: "@TrentDressel",
+    section: "cold-calling",
+    url: "https://www.youtube.com/@TrentDressel/videos",
+    why: "Real recordings from real reps. Hear the pacing. Steal the cadence.",
+    pillar: "cold-call",
+  },
+  {
+    id: "objection-handling-pack",
+    title: "Objection handling — every common 'no'",
+    creator: "Jeremy Miner / Andres",
+    section: "cold-calling",
+    url: "https://www.youtube.com/results?search_query=objection+handling+sales",
+    why: "Build a reframe library. One per top objection. Roleplay daily.",
+    pillar: "objections",
+  },
+  {
+    id: "kenan-rubin",
+    title: "Kenan Rubin — Cold call mastery",
+    creator: "Search: kenan rubin cold call",
+    section: "cold-calling",
+    url: "https://www.youtube.com/results?search_query=kenan+rubin+cold+call",
+    why: "Hard-edge cold call breakdowns. Fast tempo, owner-direct.",
+    pillar: "cold-call",
+  },
+  {
+    id: "nepq-deep",
+    title: "NEPQ in practice — 30-min deep dive",
+    creator: "Jeremy Miner / 7th Level",
+    section: "cold-calling",
+    url: "https://www.youtube.com/results?search_query=jeremy+miner+NEPQ+deep+dive",
+    why: "Long-form so the structure sinks in. Take notes by hand.",
+    pillar: "closing",
+  },
+
+  // ─── AGENCY OPS + SCALING ──────────────────────────────
+  {
+    id: "iman-gadzhi",
+    title: "Iman Gadzhi — SMMA from $0 to scale",
+    creator: "@ImanGadzhi",
+    section: "agency",
+    url: "https://www.youtube.com/@ImanGadzhi/videos",
+    why: "The OG agency content. Niche selection, outreach, fulfillment systems.",
+    pillar: "ops",
+  },
+  {
+    id: "charlie-morgan",
+    title: "Charlie Morgan — Easy Grow / agency scaling",
+    creator: "@CharlieMorganOfficial",
+    section: "agency",
+    url: "https://www.youtube.com/@CharlieMorganOfficial/videos",
+    why: "Outbound systems + lead gen at scale. SDR layer, appointment setting, retention.",
+    pillar: "scaling",
+  },
+  {
+    id: "jordan-platten",
+    title: "Jordan Platten — Affluent Academy operator content",
+    creator: "@JordanPlatten",
+    section: "agency",
+    url: "https://www.youtube.com/@JordanPlatten/videos",
+    why: "Practical SOPs for client management + delivering Meta/Google ads results.",
+    pillar: "ops",
+  },
+  {
+    id: "liam-james-kay",
+    title: "Liam James Kay — Paid traffic + agency arbitrage",
+    creator: "@LiamJamesKay",
+    section: "agency",
+    url: "https://www.youtube.com/@LiamJamesKay/videos",
+    why: "Ad-buying frameworks. Hooks, creatives, scaling decisions.",
+    pillar: "ads",
+  },
+  {
+    id: "jeremy-haynes",
+    title: "Jeremy Haynes — Agency to high-ticket coaching pivot",
+    creator: "@JeremyHaynes",
+    section: "agency",
+    url: "https://www.youtube.com/@JeremyHaynes/videos",
+    why: "Backend monetization, scaling beyond the agency model.",
+    pillar: "scaling",
+  },
+  {
+    id: "thomas-gonnet",
+    title: "Thomas Gonnet — agency systems + operations",
+    creator: "@ThomasGonnet",
+    section: "agency",
+    url: "https://www.youtube.com/results?search_query=agency+operations+systems",
+    why: "Process docs, hiring an ops team, removing yourself from delivery.",
+    pillar: "ops",
+  },
+  {
+    id: "ghl-mastery",
+    title: "GoHighLevel — setup walkthroughs",
+    creator: "GHL community",
+    section: "agency",
+    url: "https://www.youtube.com/results?search_query=gohighlevel+setup+walkthrough",
+    why: "Snapshot setup, white-label, automation pipelines. Pick one tutorial and execute end-to-end.",
+    pillar: "ops",
+  },
+
+  // ─── MINDSET / IDENTITY ────────────────────────────────
+  {
+    id: "naval",
+    title: "Naval Ravikant — Almanac",
+    creator: "@NavalReadingClub",
+    section: "mindset",
+    url: "https://www.youtube.com/results?search_query=naval+ravikant+how+to+get+rich",
+    why: "Long-term wealth thinking. Specific knowledge, leverage, judgment.",
+    pillar: "mindset",
+  },
+  {
+    id: "jocko",
+    title: "Jocko Willink — Discipline equals freedom",
+    creator: "@jocko",
+    section: "mindset",
+    url: "https://www.youtube.com/@jockopodcast/videos",
+    why: "The standard you need to hold when motivation is gone.",
+    pillar: "mindset",
+  },
+  {
+    id: "stoic",
+    title: "Ryan Holiday — Daily Stoic",
+    creator: "@DailyStoic",
+    section: "mindset",
+    url: "https://www.youtube.com/@DailyStoic/videos",
+    why: "Operating system for keeping ego, fear, and bad days in check.",
+    pillar: "mindset",
+  },
+];
+
+const sectionMeta: Record<
+  Exclude<Section, "all">,
+  { label: string; icon: typeof Phone; tone: string }
+> = {
+  sales: { label: "Sales", icon: Target, tone: "from-blue-600 to-blue-700" },
+  "cold-calling": {
+    label: "Cold calling",
+    icon: Phone,
+    tone: "from-sky-500 to-blue-600",
+  },
+  agency: {
+    label: "Agency ops & scaling",
+    icon: Briefcase,
+    tone: "from-emerald-500 to-teal-600",
+  },
+  mindset: {
+    label: "Mindset",
+    icon: Brain,
+    tone: "from-amber-500 to-orange-500",
+  },
 };
 
 export default function LearnPage() {
-  const inProgress = learningTracks.filter(
-    (t) => t.progress > 0 && t.progress < 1
+  const [section, setSection] = useState<Section>("all");
+
+  const [completedIds, setCompletedIds] = useSyncedState<Set<string>>(
+    "learn:completed",
+    new Set<string>(),
+    { serializer: "set" }
   );
-  const completed = learningTracks.filter((t) => t.progress === 1);
-  const totalHrs = learningTracks.reduce(
-    (sum, t) =>
-      sum + parseInt(t.duration.split("h")[0]) * t.progress,
-    0
+  const [today, setToday] = useState<string>("ssr");
+  useEffect(() => {
+    setToday(new Date().toISOString().slice(0, 10));
+  }, []);
+  const [touched, setTouched] = useSyncedState<Set<string>>(
+    `learn:touched:${today}`,
+    new Set<string>(),
+    { serializer: "set" }
   );
+
+  const filtered = useMemo(
+    () =>
+      section === "all"
+        ? CATALOG
+        : CATALOG.filter((r) => r.section === section),
+    [section]
+  );
+
+  const stats = useMemo(() => {
+    const completed = CATALOG.filter((r) => completedIds.has(r.id)).length;
+    return {
+      completed,
+      total: CATALOG.length,
+      sales: CATALOG.filter((r) => r.section === "sales").length,
+      coldCalling: CATALOG.filter((r) => r.section === "cold-calling").length,
+      agency: CATALOG.filter((r) => r.section === "agency").length,
+    };
+  }, [completedIds]);
+
+  const openLink = (r: LearnResource) => {
+    setTouched((prev) => new Set(prev).add(r.id));
+    window.open(r.url, "_blank", "noreferrer");
+  };
+
+  const toggleComplete = (id: string) => {
+    setCompletedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const sectionTabs: { id: Section; label: string }[] = [
+    { id: "all", label: `All (${CATALOG.length})` },
+    { id: "sales", label: `Sales (${stats.sales})` },
+    { id: "cold-calling", label: `Cold calling (${stats.coldCalling})` },
+    { id: "agency", label: `Agency (${stats.agency})` },
+    { id: "mindset", label: `Mindset` },
+  ];
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -43,204 +344,170 @@ export default function LearnPage() {
         eyebrow="Learning · Second brain"
         title={
           <>
-            Read. Watch. <span className="gradient-electric">Compound.</span>
+            Watch. Steal. <span className="gradient-electric">Compound.</span>
           </>
         }
-        subtitle="Curated content from the best operators and thinkers. The AI summarizes, quizzes, and surfaces what to study next based on your goals."
+        subtitle="Curated sales + agency content from the operators worth listening to. Open the link, watch the video, mark it complete. Streaks roll daily."
         icon={GraduationCap}
         accent="indigo"
         actions={
-          <>
-            <Button variant="secondary">
-              <Plus className="h-4 w-4" /> Add resource
-            </Button>
-            <Button>
-              <Sparkles className="h-4 w-4" /> AI study plan
-            </Button>
-          </>
+          <Button>
+            <Sparkles className="h-4 w-4" /> AI study plan
+          </Button>
         }
       />
 
-      {/* Stats */}
       <section className="grid gap-3 sm:grid-cols-4">
-        <LearnStat
-          icon={<BookOpen className="h-4 w-4" />}
-          label="In progress"
-          value={`${inProgress.length}`}
-          sub="tracks active"
-        />
         <LearnStat
           icon={<CheckCircle2 className="h-4 w-4" />}
           label="Completed"
-          value={`${completed.length}`}
-          sub="this year"
+          value={`${stats.completed} / ${stats.total}`}
+          sub={stats.completed === 0 ? "Start one today" : "marked complete"}
+        />
+        <LearnStat
+          icon={<BookOpen className="h-4 w-4" />}
+          label="Touched today"
+          value={`${touched.size}`}
+          sub="Any open click counts"
         />
         <LearnStat
           icon={<Clock className="h-4 w-4" />}
-          label="Time logged"
-          value={`${totalHrs.toFixed(1)}h`}
-          sub="lifetime"
+          label="Catalog size"
+          value={`${CATALOG.length}`}
+          sub={`${stats.sales} sales · ${stats.agency} agency`}
         />
         <LearnStat
           icon={<Flame className="h-4 w-4" />}
-          label="Learning streak"
-          value="0 days"
-          sub="start today"
+          label="Active goal"
+          value="200 dials/wk"
+          sub="Cold-calling channel first"
         />
       </section>
 
-      {/* Continue watching hero */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold text-white">
-          {inProgress.length > 0 ? "Pick up where you left off" : "Start your first track"}
-        </h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {(inProgress.length > 0 ? inProgress : learningTracks).slice(0, 2).map((track, i) => (
+      <div className="flex flex-wrap gap-2">
+        {sectionTabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setSection(t.id)}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-xs transition-all",
+              section === t.id
+                ? "border-blue-400/30 bg-blue-600/15 text-white"
+                : "border-white/[0.06] bg-white/[0.02] text-slate-400 hover:border-white/[0.12] hover:text-white"
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((r, i) => {
+          const meta = sectionMeta[r.section];
+          const Icon = meta.icon;
+          const completed = completedIds.has(r.id);
+          return (
             <motion.div
-              key={track.id}
-              initial={{ opacity: 0, y: 10 }}
+              key={r.id}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              whileHover={{ y: -3 }}
-              className="surface-elevated group relative overflow-hidden rounded-2xl"
+              transition={{ delay: i * 0.04 }}
+              whileHover={{ y: -2 }}
+              className={cn(
+                "surface-card group overflow-hidden rounded-2xl transition-all",
+                completed && "ring-1 ring-emerald-500/30"
+              )}
             >
               <div
-                className={`relative h-40 bg-gradient-to-br ${coverGradients[track.cover as keyof typeof coverGradients]} overflow-hidden`}
+                className={`relative h-24 overflow-hidden bg-gradient-to-br ${meta.tone}`}
               >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.2),transparent_50%)]" />
-                <div className="absolute inset-0 [background-image:linear-gradient(rgba(0,0,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.1)_1px,transparent_1px)] [background-size:32px_32px]" />
-                <div className="absolute bottom-3 left-3">
-                  <Badge variant="default" className="bg-black/40 text-white">
-                    {track.category}
-                  </Badge>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.18),transparent_60%)]" />
+                <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/30 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-sm">
+                  <Icon className="h-3 w-3" /> {meta.label}
                 </div>
-                <div className="absolute right-3 top-3 rounded-full bg-black/40 px-2 py-1 text-[10px] font-bold tabular text-white backdrop-blur-sm">
-                  {Math.round(track.progress * 100)}%
-                </div>
-                <button className="absolute inset-0 grid place-items-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <div className="grid h-14 w-14 place-items-center rounded-full bg-white/20 backdrop-blur-xl">
+                {completed && (
+                  <div className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-black/40 backdrop-blur-sm">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                  </div>
+                )}
+                <button
+                  onClick={() => openLink(r)}
+                  aria-label={`Open ${r.title}`}
+                  className="absolute inset-0 grid place-items-center opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                >
+                  <div className="grid h-12 w-12 place-items-center rounded-full bg-white/20 backdrop-blur-xl">
                     <Play className="h-5 w-5 fill-white text-white" />
                   </div>
                 </button>
               </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-white">{track.title}</h3>
-                <div className="mt-0.5 text-xs text-slate-400">
-                  {track.instructor}
-                </div>
-                <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
-                  <span>
-                    {track.completed} / {track.lessons} lessons
-                  </span>
-                  <span>{track.duration}</span>
-                </div>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${track.progress * 100}%` }}
-                    transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Library */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white">Your library</h2>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
-              All
-            </Button>
-            <Button variant="ghost" size="sm">
-              Mindset
-            </Button>
-            <Button variant="ghost" size="sm">
-              Business
-            </Button>
-            <Button variant="ghost" size="sm">
-              Health
-            </Button>
-          </div>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {learningTracks.map((track, i) => (
-            <motion.div
-              key={track.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              whileHover={{ y: -2 }}
-              className="surface-card group overflow-hidden rounded-2xl"
-            >
-              <div
-                className={`relative h-28 bg-gradient-to-br ${coverGradients[track.cover as keyof typeof coverGradients]} overflow-hidden`}
-              >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
-                {track.progress === 1 && (
-                  <div className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-black/40 backdrop-blur-sm">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
-                  </div>
-                )}
-                <div className="absolute bottom-2 left-2 text-[10px] font-bold uppercase tracking-wider text-white/80">
-                  {track.category}
-                </div>
-              </div>
-              <div className="p-3">
+              <div className="space-y-2 p-3">
                 <h3 className="line-clamp-2 text-sm font-semibold text-white">
-                  {track.title}
+                  {r.title}
                 </h3>
-                <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500">
-                  <span>{track.duration}</span>
-                  <span className="tabular">
-                    {Math.round(track.progress * 100)}%
-                  </span>
+                <div className="text-[10px] uppercase tracking-wider text-slate-500">
+                  {r.creator}
                 </div>
-                <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-white/[0.05]">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
-                    style={{ width: `${track.progress * 100}%` }}
-                  />
+                <p className="line-clamp-3 text-[11px] leading-relaxed text-slate-400">
+                  {r.why}
+                </p>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => openLink(r)}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-gradient-to-br from-blue-700 to-sky-500 px-2 py-1.5 text-[11px] font-medium text-white shadow-[0_2px_10px_rgba(30,58,138,0.3)] hover:shadow-[0_4px_15px_rgba(30,58,138,0.45)]"
+                  >
+                    <ExternalLink className="h-3 w-3" /> Open
+                  </button>
+                  <button
+                    onClick={() => toggleComplete(r.id)}
+                    aria-label={completed ? "Mark incomplete" : "Mark complete"}
+                    className={cn(
+                      "grid h-8 w-8 place-items-center rounded-lg border transition-all",
+                      completed
+                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
+                        : "border-white/[0.08] bg-white/[0.02] text-slate-400 hover:border-emerald-400/30 hover:text-emerald-300"
+                    )}
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </motion.div>
-          ))}
-        </div>
+          );
+        })}
       </section>
 
-      {/* AI summaries */}
       <section className="surface-card rounded-2xl p-5">
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-3 flex items-center gap-2">
           <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-400">
-            <Sparkles className="h-4 w-4 text-white" />
+            <TrendingUp className="h-4 w-4 text-white" />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-white">
-              AI summaries unlock with your first completed lesson
+              Suggested order for the next 7 days
             </h3>
             <p className="text-[10px] text-slate-500">
-              Watch, read, or listen to anything in the library, mark it complete, and the AI generates a structured recap + 5-question quiz.
+              Drink it in order. One per day. Take notes by hand.
             </p>
           </div>
         </div>
-        <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-4 text-sm leading-relaxed text-slate-400">
-          Recommended first track for you:{" "}
-          <b className="text-white">High-Performance Sleep & Recovery</b> — sleep
-          quality is the single highest-leverage variable for body composition
-          (your stated goal). 4h 12m, 12 lessons.
-        </div>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Button size="sm" variant="primary">
-            <Sparkles className="h-3 w-3" /> Start track
-          </Button>
-          <Button size="sm" variant="secondary">
-            Browse library
-          </Button>
-        </div>
+        <ol className="space-y-2 text-sm">
+          {[
+            "Jeremy Miner — NEPQ intro (20 min). Steal the question stack.",
+            "Andres Conteras — Logical certainty drill. Write 3 frames you can use.",
+            "Matt Ryder — Agency cold call breakdown. Mimic the tonality.",
+            "Alex Hormozi — One offer talk. Audit your own offer against it.",
+            "Charlie Morgan — Outbound systems. Pick one process to implement.",
+            "Iman Gadzhi — Niche selection. Confirm your ICP is still right.",
+            "Light review day — re-watch your favorite from this week.",
+          ].map((line, i) => (
+            <li key={i} className="flex items-start gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-blue-600/20 text-[11px] font-bold text-blue-200">
+                {i + 1}
+              </span>
+              <span className="text-slate-300">{line}</span>
+            </li>
+          ))}
+        </ol>
       </section>
     </div>
   );

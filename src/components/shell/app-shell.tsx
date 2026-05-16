@@ -5,6 +5,7 @@ import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 import { MobileNav } from "./mobile-nav";
 import { CommandPalette } from "./command-palette";
+import { AiHelperFab } from "./ai-helper-fab";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -25,6 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <MobileNav />
       <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
+      <AiHelperFab />
     </div>
   );
 }

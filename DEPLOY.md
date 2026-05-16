@@ -5,6 +5,35 @@ I've grouped by what costs nothing vs. what costs money so you can decide.
 
 ---
 
+## 🔄 Cross-device sync (5 min) — see your changes on phone + laptop
+
+Without this, every device keeps its own copy of your tasks, meals,
+challenges, etc. With it, any change on one device shows up on every
+other device within 20 seconds.
+
+**One-time setup in Vercel:**
+
+1. Open your project on **vercel.com** → **Storage** tab
+2. Click **Create Database** → **KV (Redis)** → name it `apex-state` → **Create**
+3. On the new KV's page, click **Connect Project** → pick your project → all environments → **Connect**
+4. Vercel automatically adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` env vars
+5. Go to **Deployments** → ⋯ on the latest → **Redeploy** (env vars only apply to new builds)
+
+That's it. Open the app on your iPhone, add a task. Refresh on your
+Mac — the task appears. Mark a meal logged on your laptop, check the
+phone — it shows up.
+
+**Cost:** Free tier covers 30k commands/day and 256 MB — your usage
+won't get near that as a single user. Paid only kicks in if you start
+sharing the app with a real team.
+
+**Until you set this up:** The app still works perfectly on each
+device individually. You just won't see cross-device updates. Every
+button, every form, every change still persists on the device where
+you made it.
+
+---
+
 ## 📅 Connecting Google Calendar (3 min)
 
 The `/calendar` page reads the next 24 hours of your Google Calendar.

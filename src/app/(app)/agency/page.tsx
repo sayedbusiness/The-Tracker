@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
   TrendingUp,
@@ -10,31 +11,63 @@ import {
   Target,
   Sparkles,
   Plus,
-  MoreHorizontal,
   ArrowUpRight,
+  X,
+  Trash2,
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  clients,
-  pipeline,
-  campaigns,
   agencyRevenue,
   sales,
   type PipelineStage,
+  type CampaignStatus,
 } from "@/lib/mock-data";
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { formatCurrency, formatCompact } from "@/lib/utils";
+import { useSyncedState } from "@/hooks/use-synced-state";
+
+type Deal = {
+  id: string;
+  company: string;
+  contact: string;
+  value: number;
+  stage: PipelineStage;
+  probability: number;
+  closeDate: string;
+  source: string;
+};
+
+type Client = {
+  id: string;
+  name: string;
+  logo: string;
+  mrr: number;
+  status: "active" | "onboarding";
+  health: number;
+  owner: string;
+  since: string;
+};
+
+type Campaign = {
+  id: string;
+  name: string;
+  client: string;
+  budget: number;
+  spent: number;
+  status: CampaignStatus;
+  channel: string;
+  performance: number;
+  endsAt: string;
+};
 
 const stageOrder: PipelineStage[] = [
   "lead",
@@ -70,10 +103,54 @@ const campaignStatusColors = {
 } as const;
 
 export default function AgencyPage() {
-  const totalMRR = clients.reduce((sum, c) => sum + c.mrr, 0);
+  const [pipeline, setPipeline] = useSyncedState<Deal[]>("agency:pipeline", []);
+  const [clients, setClients] = useSyncedState<Client[]>("agency:clients", []);
+  const [campaigns, setCampaigns] = useSyncedState<Campaign[]>(
+    "agency:campaigns",
+    []
+  );
+
+  const [composer, setComposer] = useState<null | "deal" | "client" | "campaign">(
+    null
+  );
+  const [draftStage, setDraftStage] = useState<PipelineStage>("lead");
+
+  const totalMRR = useMemo(
+    () => clients.reduce((sum, c) => sum + c.mrr, 0),
+    [clients]
+  );
+  const pipelineValue = useMemo(
+    () =>
+      pipeline
+        .filter((d) => d.stage !== "lost" && d.stage !== "won")
+        .reduce((s, d) => s + d.value, 0),
+    [pipeline]
+  );
+  const weightedPipeline = useMemo(
+    () =>
+      pipeline
+        .filter((d) => d.stage !== "lost" && d.stage !== "won")
+        .reduce((s, d) => s + (d.value * d.probability) / 100, 0),
+    [pipeline]
+  );
+  const callsBooked = sales.appointments;
+
   const prevMRR = agencyRevenue[agencyRevenue.length - 2]?.mrr ?? 0;
-  const currMRR = agencyRevenue[agencyRevenue.length - 1]?.mrr ?? 0;
-  const mrrGrowth = prevMRR === 0 ? 0 : ((currMRR - prevMRR) / prevMRR) * 100;
+  const currMRR = totalMRR;
+  const mrrGrowth =
+    prevMRR === 0 ? (currMRR > 0 ? 100 : 0) : ((currMRR - prevMRR) / prevMRR) * 100;
+
+  const advanceDeal = (id: string, stage: PipelineStage) =>
+    setPipeline((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, stage } : d))
+    );
+  const removeDeal = (id: string) =>
+    setPipeline((prev) => prev.filter((d) => d.id !== id));
+
+  const removeClient = (id: string) =>
+    setClients((prev) => prev.filter((c) => c.id !== id));
+  const removeCampaign = (id: string) =>
+    setCampaigns((prev) => prev.filter((c) => c.id !== id));
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
@@ -92,14 +169,18 @@ export default function AgencyPage() {
             <Button variant="secondary">
               <Sparkles className="h-4 w-4" /> AI advisor
             </Button>
-            <Button>
+            <Button
+              onClick={() => {
+                setDraftStage("lead");
+                setComposer("deal");
+              }}
+            >
               <Plus className="h-4 w-4" /> New deal
             </Button>
           </>
         }
       />
 
-      {/* KPI strip */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Kpi
           icon={DollarSign}
@@ -111,21 +192,20 @@ export default function AgencyPage() {
         <Kpi
           icon={TrendingUp}
           label="Pipeline value"
-          value={formatCurrency(sales.pipelineValue)}
-          delta={28}
+          value={formatCurrency(pipelineValue)}
           accent="violet"
         />
         <Kpi
           icon={Target}
           label="Weighted pipe"
-          value={formatCurrency(sales.weightedPipeline)}
+          value={formatCurrency(weightedPipeline)}
           sub="probability-adjusted"
           accent="cyan"
         />
         <Kpi
           icon={Calendar}
           label="Calls booked"
-          value={`${sales.appointments}`}
+          value={`${callsBooked}`}
           sub="this month"
           accent="amber"
         />
@@ -138,7 +218,6 @@ export default function AgencyPage() {
         />
       </section>
 
-      {/* Revenue chart + AI advisor */}
       <section className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
@@ -207,15 +286,19 @@ export default function AgencyPage() {
                   AI Business Advisor
                 </div>
                 <div className="text-[10px] text-slate-500">
-                  Updated 18 minutes ago
+                  Updates as you log deals
                 </div>
               </div>
             </div>
             <div className="mt-4 space-y-3">
               <Insight
                 tone="info"
-                title="Add your first client"
-                body="Once you log paying clients here, I can rank them by churn risk, expansion potential, and account health."
+                title={clients.length === 0 ? "Add your first client" : `${clients.length} client(s) live`}
+                body={
+                  clients.length === 0
+                    ? "Once you log paying clients here, I can rank them by churn risk, expansion potential, and account health."
+                    : "Tracking MRR + health for every client. Add campaigns to start performance correlation."
+                }
               />
               <Insight
                 tone="info"
@@ -224,24 +307,34 @@ export default function AgencyPage() {
               />
               <Insight
                 tone="warn"
-                title="Lead → revenue baseline"
-                body="I'll start tracking your close rate, cycle time, and average deal size from your first added deal."
+                title={pipeline.length === 0 ? "Lead → revenue baseline" : `${pipeline.length} deal(s) in pipe`}
+                body={
+                  pipeline.length === 0
+                    ? "I'll start tracking your close rate, cycle time, and average deal size from your first added deal."
+                    : `Weighted pipe ${formatCurrency(weightedPipeline)}. Keep advancing stages to push close probability.`
+                }
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pipeline Kanban */}
       <section>
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-white">Sales pipeline</h2>
             <p className="text-[10px] text-slate-500">
-              Drag deals between stages · AI scores probability automatically
+              Use the · menu on each deal to advance stages · AI scores probability
             </p>
           </div>
-          <Button variant="secondary" size="sm">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setDraftStage("lead");
+              setComposer("deal");
+            }}
+          >
             <Plus className="h-3 w-3" /> Add deal
           </Button>
         </div>
@@ -263,53 +356,90 @@ export default function AgencyPage() {
                       {deals.length} · {formatCurrency(total)}
                     </div>
                   </div>
-                  <button className="text-slate-500 hover:text-white">
+                  <button
+                    onClick={() => {
+                      setDraftStage(stage);
+                      setComposer("deal");
+                    }}
+                    className="text-slate-500 hover:text-white"
+                    aria-label={`Add deal to ${stage}`}
+                  >
                     <Plus className="h-3.5 w-3.5" />
                   </button>
                 </div>
                 <div className="space-y-2">
                   {deals.length === 0 && (
-                    <button className="flex w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/[0.06] py-6 text-[10px] text-slate-500 transition-colors hover:bg-white/[0.02] hover:text-slate-300">
+                    <button
+                      onClick={() => {
+                        setDraftStage(stage);
+                        setComposer("deal");
+                      }}
+                      className="flex w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/[0.06] py-6 text-[10px] text-slate-500 transition-colors hover:bg-white/[0.02] hover:text-slate-300"
+                    >
                       <Plus className="h-3 w-3" />
                       Add deal
                     </button>
                   )}
-                  {deals.map((d, i) => (
-                    <motion.div
-                      key={d.id}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      whileHover={{ y: -2 }}
-                      className="cursor-grab rounded-xl border border-white/[0.06] bg-black/40 p-3 backdrop-blur-sm active:cursor-grabbing"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="text-sm font-semibold text-white">
-                          {d.company}
+                  <AnimatePresence initial={false}>
+                    {deals.map((d, i) => (
+                      <motion.div
+                        key={d.id}
+                        layout
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.92 }}
+                        transition={{ delay: i * 0.04 }}
+                        whileHover={{ y: -2 }}
+                        className="group cursor-default rounded-xl border border-white/[0.06] bg-black/40 p-3 backdrop-blur-sm"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="text-sm font-semibold text-white">
+                            {d.company}
+                          </div>
+                          <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                            {stage !== "won" && (
+                              <button
+                                onClick={() => {
+                                  const next =
+                                    stageOrder[stageOrder.indexOf(stage) + 1] ??
+                                    "won";
+                                  advanceDeal(d.id, next);
+                                }}
+                                className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-white/[0.05] hover:text-emerald-300"
+                                title="Advance"
+                              >
+                                <ArrowUpRight className="h-3 w-3" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => removeDeal(d.id)}
+                              className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-rose-500/15 hover:text-rose-300"
+                              title="Remove"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
-                        <button className="text-slate-500 hover:text-white">
-                          <MoreHorizontal className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                      <div className="mt-0.5 text-[10px] text-slate-500">
-                        {d.contact}
-                      </div>
-                      <div className="mt-3 flex items-center justify-between">
-                        <span className="text-sm font-bold tabular gradient-text">
-                          {formatCurrency(d.value)}
-                        </span>
-                        <span className="rounded-md border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-[10px] tabular text-slate-300">
-                          {d.probability}%
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
-                        <div
-                          className="h-full bg-gradient-to-r from-blue-600 via-blue-600 to-sky-400"
-                          style={{ width: `${d.probability}%` }}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
+                        <div className="mt-0.5 text-[10px] text-slate-500">
+                          {d.contact}
+                        </div>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="text-sm font-bold tabular gradient-text">
+                            {formatCurrency(d.value)}
+                          </span>
+                          <span className="rounded-md border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-[10px] tabular text-slate-300">
+                            {d.probability}%
+                          </span>
+                        </div>
+                        <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
+                          <div
+                            className="h-full bg-gradient-to-r from-blue-600 via-blue-600 to-sky-400"
+                            style={{ width: `${d.probability}%` }}
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
               </div>
             );
@@ -317,15 +447,22 @@ export default function AgencyPage() {
         </div>
       </section>
 
-      {/* Clients + Campaigns */}
       <section className="grid gap-4 lg:grid-cols-2">
-        {/* Clients */}
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Active clients</h3>
-            <Badge variant={totalMRR > 0 ? "emerald" : "default"}>
-              {formatCurrency(totalMRR)} MRR
-            </Badge>
+            <div>
+              <h3 className="text-sm font-semibold text-white">Active clients</h3>
+              <p className="text-[10px] text-slate-500">
+                MRR tracker · health score 0–100
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setComposer("client")}
+            >
+              <Plus className="h-3 w-3" /> Add
+            </Button>
           </div>
           <div className="space-y-2">
             {clients.length === 0 && (
@@ -339,62 +476,78 @@ export default function AgencyPage() {
                 </div>
               </div>
             )}
-            {clients.map((c) => (
-              <motion.div
-                key={c.id}
-                whileHover={{ x: 2 }}
-                className="flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3"
-              >
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-500/30 to-teal-500/30 text-sm font-bold text-emerald-200">
-                  {c.logo}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">
-                      {c.name}
+            <AnimatePresence initial={false}>
+              {clients.map((c) => (
+                <motion.div
+                  key={c.id}
+                  layout
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  whileHover={{ x: 2 }}
+                  className="group flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3"
+                >
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-500/30 to-teal-500/30 text-sm font-bold text-emerald-200">
+                    {c.logo}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white">
+                        {c.name}
+                      </span>
+                      {c.status === "onboarding" && (
+                        <Badge variant="amber">onboarding</Badge>
+                      )}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-slate-500">
+                      {c.owner} · since {c.since}
+                    </div>
+                  </div>
+                  <div className="hidden items-center gap-2 sm:flex">
+                    <div className="h-1.5 w-14 overflow-hidden rounded-full bg-white/[0.05]">
+                      <div
+                        className={`h-full ${
+                          c.health > 85
+                            ? "bg-emerald-400"
+                            : c.health > 70
+                              ? "bg-amber-400"
+                              : "bg-rose-400"
+                        }`}
+                        style={{ width: `${c.health}%` }}
+                      />
+                    </div>
+                    <span className="w-7 text-right text-[10px] tabular text-slate-400">
+                      {c.health}
                     </span>
-                    {c.status === "onboarding" && (
-                      <Badge variant="amber">onboarding</Badge>
-                    )}
                   </div>
-                  <div className="mt-0.5 text-[10px] text-slate-500">
-                    {c.owner} · since {c.since}
+                  <div className="text-right">
+                    <div className="text-sm font-semibold tabular text-white">
+                      {formatCurrency(c.mrr)}
+                    </div>
+                    <div className="text-[9px] text-slate-500">/ mo</div>
                   </div>
-                </div>
-                <div className="hidden items-center gap-2 sm:flex">
-                  <div className="h-1.5 w-14 overflow-hidden rounded-full bg-white/[0.05]">
-                    <div
-                      className={`h-full ${
-                        c.health > 85
-                          ? "bg-emerald-400"
-                          : c.health > 70
-                            ? "bg-amber-400"
-                            : "bg-rose-400"
-                      }`}
-                      style={{ width: `${c.health}%` }}
-                    />
-                  </div>
-                  <span className="w-7 text-right text-[10px] tabular text-slate-400">
-                    {c.health}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-semibold tabular text-white">
-                    {formatCurrency(c.mrr)}
-                  </div>
-                  <div className="text-[9px] text-slate-500">/ mo</div>
-                </div>
-              </motion.div>
-            ))}
+                  <button
+                    onClick={() => removeClient(c.id)}
+                    className="grid h-7 w-7 place-items-center rounded-lg text-slate-500 opacity-0 transition-all hover:bg-rose-500/15 hover:text-rose-300 group-hover:opacity-100"
+                    aria-label="Remove client"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* Campaigns */}
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-white">Active campaigns</h3>
-            <Button variant="ghost" size="sm">
-              View all <ArrowUpRight className="h-3 w-3" />
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setComposer("campaign")}
+            >
+              <Plus className="h-3 w-3" /> Add
             </Button>
           </div>
           <div className="space-y-2">
@@ -409,62 +562,434 @@ export default function AgencyPage() {
                 </div>
               </div>
             )}
-            {campaigns.map((c) => (
-              <motion.div
-                key={c.id}
-                whileHover={{ x: 2 }}
-                className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-white">{c.name}</div>
-                    <div className="mt-0.5 text-[11px] text-slate-500">
-                      {c.client} · {c.channel}
+            <AnimatePresence initial={false}>
+              {campaigns.map((c) => (
+                <motion.div
+                  key={c.id}
+                  layout
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  whileHover={{ x: 2 }}
+                  className="group rounded-xl border border-white/[0.05] bg-white/[0.02] p-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-white">{c.name}</div>
+                      <div className="mt-0.5 text-[11px] text-slate-500">
+                        {c.client} · {c.channel}
+                      </div>
                     </div>
-                  </div>
-                  <Badge variant={campaignStatusColors[c.status]}>
-                    {c.status}
-                  </Badge>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-[10px]">
-                  <div>
-                    <div className="text-slate-500">Budget</div>
-                    <div className="font-semibold tabular text-white">
-                      {formatCurrency(c.budget)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-slate-500">Spent</div>
-                    <div className="font-semibold tabular text-white">
-                      {formatCurrency(c.spent)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-slate-500">Performance</div>
-                    <div
-                      className={`font-semibold tabular ${
-                        c.performance >= 120
-                          ? "text-emerald-300"
-                          : c.performance >= 90
-                            ? "text-amber-300"
-                            : "text-rose-300"
-                      }`}
+                    <Badge variant={campaignStatusColors[c.status]}>
+                      {c.status}
+                    </Badge>
+                    <button
+                      onClick={() => removeCampaign(c.id)}
+                      className="ml-1 grid h-6 w-6 place-items-center rounded text-slate-500 opacity-0 transition-all hover:bg-rose-500/15 hover:text-rose-300 group-hover:opacity-100"
+                      aria-label="Remove campaign"
                     >
-                      {c.performance > 0 ? `${c.performance}%` : "—"}
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-[10px]">
+                    <div>
+                      <div className="text-slate-500">Budget</div>
+                      <div className="font-semibold tabular text-white">
+                        {formatCurrency(c.budget)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500">Spent</div>
+                      <div className="font-semibold tabular text-white">
+                        {formatCurrency(c.spent)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500">Performance</div>
+                      <div
+                        className={`font-semibold tabular ${
+                          c.performance >= 120
+                            ? "text-emerald-300"
+                            : c.performance >= 90
+                              ? "text-amber-300"
+                              : "text-rose-300"
+                        }`}
+                      >
+                        {c.performance > 0 ? `${c.performance}%` : "—"}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
-                    style={{ width: `${(c.spent / c.budget) * 100}%` }}
-                  />
-                </div>
-              </motion.div>
-            ))}
+                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
+                      style={{
+                        width: `${
+                          c.budget === 0 ? 0 : (c.spent / c.budget) * 100
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {composer === "deal" && (
+          <DealComposer
+            initialStage={draftStage}
+            onClose={() => setComposer(null)}
+            onSave={(deal) => {
+              setPipeline((prev) => [deal, ...prev]);
+              setComposer(null);
+            }}
+          />
+        )}
+        {composer === "client" && (
+          <ClientComposer
+            onClose={() => setComposer(null)}
+            onSave={(c) => {
+              setClients((prev) => [c, ...prev]);
+              setComposer(null);
+            }}
+          />
+        )}
+        {composer === "campaign" && (
+          <CampaignComposer
+            clients={clients}
+            onClose={() => setComposer(null)}
+            onSave={(c) => {
+              setCampaigns((prev) => [c, ...prev]);
+              setComposer(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function DealComposer({
+  initialStage,
+  onClose,
+  onSave,
+}: {
+  initialStage: PipelineStage;
+  onClose: () => void;
+  onSave: (d: Deal) => void;
+}) {
+  const [company, setCompany] = useState("");
+  const [contact, setContact] = useState("");
+  const [value, setValue] = useState(2000);
+  const [probability, setProbability] = useState(30);
+  const [stage, setStage] = useState<PipelineStage>(initialStage);
+  const [source, setSource] = useState("cold-call");
+
+  const save = () => {
+    if (!company.trim()) return;
+    onSave({
+      id: `d-${Date.now()}`,
+      company: company.trim(),
+      contact: contact.trim() || "—",
+      value,
+      stage,
+      probability,
+      closeDate: new Date(Date.now() + 14 * 24 * 3600 * 1000)
+        .toISOString()
+        .slice(0, 10),
+      source,
+    });
+  };
+
+  return (
+    <Modal title="New deal" onClose={onClose}>
+      <Field label="Company"><Input value={company} onChange={setCompany} placeholder="Acme Roofing" autoFocus /></Field>
+      <Field label="Contact"><Input value={contact} onChange={setContact} placeholder="John, Owner" /></Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Value ($)">
+          <NumberInput value={value} onChange={setValue} />
+        </Field>
+        <Field label="Probability (%)">
+          <NumberInput value={probability} onChange={(n) => setProbability(Math.max(0, Math.min(100, n)))} />
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Stage">
+          <select
+            value={stage}
+            onChange={(e) => setStage(e.target.value as PipelineStage)}
+            className={inputCls}
+          >
+            {stageOrder.map((s) => (
+              <option key={s} value={s} className="bg-slate-900">
+                {stageLabels[s]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Source">
+          <select value={source} onChange={(e) => setSource(e.target.value)} className={inputCls}>
+            {["cold-call", "referral", "inbound", "email", "social"].map((s) => (
+              <option key={s} value={s} className="bg-slate-900">{s}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <Footer onCancel={onClose} onSave={save} disabled={!company.trim()} />
+    </Modal>
+  );
+}
+
+function ClientComposer({
+  onClose,
+  onSave,
+}: {
+  onClose: () => void;
+  onSave: (c: Client) => void;
+}) {
+  const [name, setName] = useState("");
+  const [mrr, setMrr] = useState(1500);
+  const [status, setStatus] = useState<"active" | "onboarding">("onboarding");
+  const [health, setHealth] = useState(80);
+  const [owner, setOwner] = useState("Sayed");
+
+  const save = () => {
+    if (!name.trim()) return;
+    onSave({
+      id: `c-${Date.now()}`,
+      name: name.trim(),
+      logo: name.trim().charAt(0).toUpperCase(),
+      mrr,
+      status,
+      health,
+      owner,
+      since: new Date().toISOString().slice(0, 10),
+    });
+  };
+
+  return (
+    <Modal title="New client" onClose={onClose}>
+      <Field label="Name"><Input value={name} onChange={setName} placeholder="Acme Inc" autoFocus /></Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="MRR ($)"><NumberInput value={mrr} onChange={setMrr} /></Field>
+        <Field label="Health (0-100)">
+          <NumberInput value={health} onChange={(n) => setHealth(Math.max(0, Math.min(100, n)))} />
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Status">
+          <select value={status} onChange={(e) => setStatus(e.target.value as "active" | "onboarding")} className={inputCls}>
+            <option value="active" className="bg-slate-900">Active</option>
+            <option value="onboarding" className="bg-slate-900">Onboarding</option>
+          </select>
+        </Field>
+        <Field label="Owner"><Input value={owner} onChange={setOwner} /></Field>
+      </div>
+      <Footer onCancel={onClose} onSave={save} disabled={!name.trim()} />
+    </Modal>
+  );
+}
+
+function CampaignComposer({
+  clients,
+  onClose,
+  onSave,
+}: {
+  clients: Client[];
+  onClose: () => void;
+  onSave: (c: Campaign) => void;
+}) {
+  const [name, setName] = useState("");
+  const [clientName, setClientName] = useState(clients[0]?.name ?? "");
+  const [budget, setBudget] = useState(2000);
+  const [spent, setSpent] = useState(0);
+  const [channel, setChannel] = useState("Meta Ads");
+  const [status, setStatus] = useState<CampaignStatus>("planning");
+
+  const save = () => {
+    if (!name.trim()) return;
+    onSave({
+      id: `cp-${Date.now()}`,
+      name: name.trim(),
+      client: clientName || "—",
+      budget,
+      spent,
+      channel,
+      status,
+      performance: 0,
+      endsAt: new Date(Date.now() + 30 * 24 * 3600 * 1000)
+        .toISOString()
+        .slice(0, 10),
+    });
+  };
+
+  return (
+    <Modal title="New campaign" onClose={onClose}>
+      <Field label="Name"><Input value={name} onChange={setName} placeholder="Spring promo · Meta" autoFocus /></Field>
+      <Field label="Client">
+        {clients.length === 0 ? (
+          <Input value={clientName} onChange={setClientName} placeholder="Type client name" />
+        ) : (
+          <select value={clientName} onChange={(e) => setClientName(e.target.value)} className={inputCls}>
+            {clients.map((c) => (
+              <option key={c.id} value={c.name} className="bg-slate-900">{c.name}</option>
+            ))}
+          </select>
+        )}
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Budget ($)"><NumberInput value={budget} onChange={setBudget} /></Field>
+        <Field label="Spent ($)"><NumberInput value={spent} onChange={setSpent} /></Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Channel">
+          <select value={channel} onChange={(e) => setChannel(e.target.value)} className={inputCls}>
+            {["Meta Ads", "Google Ads", "TikTok Ads", "LinkedIn", "Email", "Cold call"].map((c) => (
+              <option key={c} value={c} className="bg-slate-900">{c}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Status">
+          <select value={status} onChange={(e) => setStatus(e.target.value as CampaignStatus)} className={inputCls}>
+            {(["planning", "running", "review", "complete"] as const).map((s) => (
+              <option key={s} value={s} className="bg-slate-900">{s}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <Footer onCancel={onClose} onSave={save} disabled={!name.trim()} />
+    </Modal>
+  );
+}
+
+// ─── Tiny shared modal pieces ────────────────────────────
+
+function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md"
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={{ duration: 0.2 }}
+        className="glass-strong fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-md -translate-x-1/2 -translate-y-1/2 space-y-3 overflow-hidden rounded-3xl p-5"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white">{title}</h3>
+          <button
+            onClick={onClose}
+            className="grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-white/[0.05] hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        {children}
+      </motion.div>
+    </>
+  );
+}
+
+const inputCls =
+  "w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-400/40 focus:outline-none focus:ring-2 focus:ring-blue-400/20";
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <div className="mb-1 text-[10px] uppercase tracking-[0.15em] text-slate-500">
+        {label}
+      </div>
+      {children}
+    </label>
+  );
+}
+
+function Input({
+  value,
+  onChange,
+  placeholder,
+  autoFocus,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  autoFocus?: boolean;
+}) {
+  return (
+    <input
+      autoFocus={autoFocus}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={inputCls}
+    />
+  );
+}
+
+function NumberInput({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <input
+      type="number"
+      min={0}
+      value={value || ""}
+      onChange={(e) => onChange(Number(e.target.value) || 0)}
+      className={inputCls}
+    />
+  );
+}
+
+function Footer({
+  onCancel,
+  onSave,
+  disabled,
+}: {
+  onCancel: () => void;
+  onSave: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex justify-end gap-2 pt-2">
+      <button
+        onClick={onCancel}
+        className="rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-white"
+      >
+        Cancel
+      </button>
+      <button
+        onClick={onSave}
+        disabled={disabled}
+        className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 px-3 py-1.5 text-xs font-medium text-white shadow-[0_4px_12px_rgba(16,185,129,0.4)] disabled:opacity-40"
+      >
+        Save
+      </button>
     </div>
   );
 }
@@ -499,7 +1024,7 @@ function Kpi({
         >
           <Icon className="h-4 w-4 text-white" />
         </div>
-        {typeof delta === "number" && (
+        {typeof delta === "number" && delta !== 0 && (
           <div
             className={`flex items-center gap-0.5 text-[10px] font-bold ${
               delta >= 0 ? "text-emerald-300" : "text-rose-300"
@@ -547,3 +1072,4 @@ function Insight({
     </div>
   );
 }
+

@@ -23,7 +23,7 @@ export const user = {
   productivityScore: 0,
   focusScore: 0,
   agencyScore: 0,
-  joinedAt: "2026-05-11T00:00:00.000Z",
+  joinedAt: "2026-05-16T00:00:00.000Z",
 };
 
 export const disciplineQuotes = [

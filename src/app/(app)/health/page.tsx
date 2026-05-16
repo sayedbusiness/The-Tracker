@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
   Camera,
@@ -8,9 +9,8 @@ import {
   Droplet,
   Moon,
   Footprints,
-  Apple,
   Dumbbell,
-  TrendingUp,
+  Trash2,
 } from "lucide-react";
 import { WaterTracker } from "@/components/health/water-tracker";
 import { PageHeader } from "@/components/tasks/page-header";
@@ -18,7 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RingProgress } from "@/components/ui/progress";
 import { PhotoMealScanner } from "@/components/health/photo-meal-scanner";
-import { foodLog, todayMetrics } from "@/lib/mock-data";
+import { MealComposer, type LoggedMeal } from "@/components/health/meal-composer";
+import { todayMetrics } from "@/lib/mock-data";
+import { useSyncedState } from "@/hooks/use-synced-state";
 import {
   Area,
   AreaChart,
@@ -32,23 +34,12 @@ import {
 } from "recharts";
 
 const macroTargets = {
-  protein: 220,
-  carbs: 280,
-  fat: 75,
+  protein: 200,
+  carbs: 200,
+  fat: 65,
 };
 
-const totals = foodLog.reduce(
-  (acc, m) => ({
-    calories: acc.calories + m.calories,
-    protein: acc.protein + m.protein,
-    carbs: acc.carbs + m.carbs,
-    fat: acc.fat + m.fat,
-  }),
-  { calories: 0, protein: 0, carbs: 0, fat: 0 }
-);
-
-// Day 1 — single starting weight point at 167 lb. The graph fills in
-// as the user logs weight check-ins.
+// 30-day starting weight series — single point at 167 lb until logged.
 const weightData = Array.from({ length: 30 }, (_, i) => ({
   day: i + 1,
   weight: i === 29 ? 167 : null,
@@ -70,7 +61,76 @@ const workouts = [
   { day: "Sun", type: "—", duration: 0, intensity: 0 },
 ];
 
+const MEAL_EMOJI: Record<string, string> = {
+  Breakfast: "🍳",
+  Lunch: "🥗",
+  Dinner: "🍽️",
+  Snack: "🥜",
+  Drink: "🥤",
+};
+
 export default function HealthPage() {
+  const [today, setToday] = useState<string>("ssr");
+  useEffect(() => {
+    setToday(new Date().toISOString().slice(0, 10));
+  }, []);
+
+  const [foodLog, setFoodLog] = useSyncedState<LoggedMeal[]>(
+    `health:meals:${today}`,
+    []
+  );
+
+  const [composerOpen, setComposerOpen] = useState(false);
+
+  const totals = useMemo(
+    () =>
+      foodLog.reduce(
+        (acc, m) => ({
+          calories: acc.calories + m.calories,
+          protein: acc.protein + m.protein,
+          carbs: acc.carbs + m.carbs,
+          fat: acc.fat + m.fat,
+        }),
+        { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      ),
+    [foodLog]
+  );
+
+  const addMeal = (meal: LoggedMeal) => {
+    setFoodLog((prev) => [meal, ...prev]);
+  };
+
+  const removeMeal = (id: string) => {
+    setFoodLog((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  // Photo scanner returns a MealAnalysis — translate to LoggedMeal.
+  const onPhotoLogged = (m: {
+    name: string;
+    calories: number;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+    meal_type: "breakfast" | "lunch" | "dinner" | "snack" | "drink";
+  }) => {
+    const cap = (s: string) =>
+      (s.charAt(0).toUpperCase() + s.slice(1)) as LoggedMeal["meal"];
+    addMeal({
+      id: `m-${Date.now()}`,
+      meal: cap(m.meal_type),
+      name: m.name,
+      calories: m.calories,
+      protein: m.protein_g,
+      carbs: m.carbs_g,
+      fat: m.fat_g,
+      time: new Date().toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      loggedAt: Date.now(),
+    });
+  };
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
@@ -80,17 +140,23 @@ export default function HealthPage() {
             Your body is the <span className="gradient-electric">vehicle.</span>
           </>
         }
-        subtitle="Track meals with a photo, log workouts, monitor sleep and recovery. The AI cross-correlates everything against your productivity score."
+        subtitle="Track meals with a photo, scan a barcode, type ingredients with how much you ate, or log manually. The AI cross-correlates everything against your productivity score."
         icon={Heart}
         accent="rose"
         actions={
           <>
-            <Button variant="secondary">
+            <Button variant="secondary" onClick={() => setComposerOpen(true)}>
               <Plus className="h-4 w-4" /> Log meal
             </Button>
-            <PhotoMealScanner />
+            <PhotoMealScanner onLogged={onPhotoLogged} />
           </>
         }
+      />
+
+      <MealComposer
+        open={composerOpen}
+        onClose={() => setComposerOpen(false)}
+        onSave={addMeal}
       />
 
       {/* Macros + Calories hero */}
@@ -163,28 +229,30 @@ export default function HealthPage() {
               </div>
               <div>
                 <div className="text-sm font-semibold text-white">
-                  Photo meal scan
+                  Three ways to log
                 </div>
                 <div className="text-[10px] text-slate-500">
-                  Gemini 2.5 · multimodal vision
+                  Photo · barcode/ingredients · manual
                 </div>
               </div>
             </div>
             <p className="mt-4 text-xs leading-relaxed text-slate-400">
-              Snap a picture of your plate. The AI identifies ingredients,
-              estimates portion size, and logs macros in under 3 seconds.
+              <b>Photo:</b> snap your plate, Gemini estimates portions.<br />
+              <b>Barcode/ingredients:</b> paste the back of the package + how much you ate.<br />
+              <b>Manual:</b> type the macros directly when you know them.
             </p>
-            <div className="mt-auto pt-4">
-              <PhotoMealScanner />
+            <div className="mt-auto flex gap-2 pt-4">
+              <PhotoMealScanner onLogged={onPhotoLogged} />
+              <Button variant="secondary" onClick={() => setComposerOpen(true)}>
+                <Plus className="h-4 w-4" /> Type or scan
+              </Button>
             </div>
           </div>
         </motion.div>
       </section>
 
-      {/* Live water tracker — clickable */}
       <WaterTracker />
 
-      {/* Vitals grid */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <VitalCard
           icon={Droplet}
@@ -218,66 +286,79 @@ export default function HealthPage() {
         />
       </section>
 
-      {/* Meal log */}
       <section className="surface-card rounded-2xl p-5">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-white">Today's meals</h2>
             <p className="text-[10px] text-slate-500">{foodLog.length} logged</p>
           </div>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => setComposerOpen(true)}>
             <Plus className="h-3 w-3" /> Add
           </Button>
         </div>
-        {foodLog.length === 0 && (
+        {foodLog.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-white/[0.08] p-8 text-center">
             <div className="text-3xl">🍳</div>
             <div className="mt-2 text-sm font-medium text-white">
               Log your first meal
             </div>
             <div className="mt-1 text-xs text-slate-400">
-              Tap "Scan photo" above and the AI does the rest.
+              Tap "Scan photo" above, or use "Log meal" to type macros / paste a barcode.
             </div>
           </div>
+        ) : (
+          <div className="space-y-2">
+            <AnimatePresence initial={false}>
+              {foodLog.map((meal, i) => (
+                <motion.div
+                  key={meal.id}
+                  layout
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="group flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3"
+                >
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-rose-500/20 to-amber-500/20 text-base">
+                    {MEAL_EMOJI[meal.meal] ?? "🍽️"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="rose">{meal.meal}</Badge>
+                      <span className="text-[11px] tabular text-slate-500">
+                        {meal.time}
+                      </span>
+                    </div>
+                    <div className="mt-1 truncate text-sm text-white">
+                      {meal.name}
+                    </div>
+                  </div>
+                  <div className="hidden gap-3 text-[10px] sm:flex">
+                    <Stat label="P" value={meal.protein} color="text-emerald-300" />
+                    <Stat label="C" value={meal.carbs} color="text-amber-300" />
+                    <Stat label="F" value={meal.fat} color="text-blue-300" />
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-sm font-semibold tabular text-white">
+                      {meal.calories}
+                    </div>
+                    <div className="text-[10px] text-slate-500">kcal</div>
+                  </div>
+                  <button
+                    onClick={() => removeMeal(meal.id)}
+                    aria-label="Remove"
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-slate-500 opacity-0 transition-all hover:bg-rose-500/15 hover:text-rose-300 group-hover:opacity-100"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         )}
-        <div className="space-y-2">
-          {foodLog.map((meal, i) => (
-            <motion.div
-              key={meal.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.06 }}
-              className="flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3"
-            >
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-rose-500/20 to-amber-500/20 text-base">
-                {meal.meal === "Breakfast" ? "🍳" : meal.meal === "Lunch" ? "🥗" : "🥤"}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <Badge variant="rose">{meal.meal}</Badge>
-                  <span className="text-[11px] tabular text-slate-500">{meal.time}</span>
-                </div>
-                <div className="mt-1 truncate text-sm text-white">{meal.name}</div>
-              </div>
-              <div className="hidden gap-3 text-[10px] sm:flex">
-                <Stat label="P" value={meal.protein} color="text-emerald-300" />
-                <Stat label="C" value={meal.carbs} color="text-amber-300" />
-                <Stat label="F" value={meal.fat} color="text-blue-300" />
-              </div>
-              <div className="shrink-0 text-right">
-                <div className="text-sm font-semibold tabular text-white">
-                  {meal.calories}
-                </div>
-                <div className="text-[10px] text-slate-500">kcal</div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </section>
 
-      {/* Charts grid */}
       <section className="grid gap-4 lg:grid-cols-3">
-        {/* Weight trend */}
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -321,7 +402,6 @@ export default function HealthPage() {
           </div>
         </div>
 
-        {/* Sleep */}
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -357,7 +437,6 @@ export default function HealthPage() {
           </div>
         </div>
 
-        {/* Workouts */}
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -410,9 +489,9 @@ function MacroBar({
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.04]">
         <motion.div
-          initial={{ width: 0 }}
+          initial={false}
           animate={{ width: `${Math.min(100, (value / target) * 100)}%` }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className={`h-full bg-gradient-to-r ${color}`}
         />
       </div>
@@ -465,11 +544,21 @@ function VitalCard({
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+function Stat({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color: string;
+}) {
   return (
     <div className="flex flex-col items-center">
       <span className={`text-sm font-bold tabular ${color}`}>{value}g</span>
-      <span className="text-[9px] uppercase tracking-wider text-slate-500">{label}</span>
+      <span className="text-[9px] uppercase tracking-wider text-slate-500">
+        {label}
+      </span>
     </div>
   );
 }
