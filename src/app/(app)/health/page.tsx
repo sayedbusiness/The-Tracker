@@ -21,6 +21,7 @@ import { PhotoMealScanner } from "@/components/health/photo-meal-scanner";
 import { MealComposer, type LoggedMeal } from "@/components/health/meal-composer";
 import { todayMetrics } from "@/lib/mock-data";
 import { useSyncedState } from "@/hooks/use-synced-state";
+import { todayKey } from "@/lib/dates";
 import {
   Area,
   AreaChart,
@@ -39,10 +40,10 @@ const macroTargets = {
   fat: 65,
 };
 
-// 30-day starting weight series — single point at 167 lb until logged.
-const weightData = Array.from({ length: 30 }, (_, i) => ({
+// 60-day starting weight series — single point at 167 lb until logged.
+const weightData = Array.from({ length: 60 }, (_, i) => ({
   day: i + 1,
-  weight: i === 29 ? 167 : null,
+  weight: i === 59 ? 167 : null,
 }));
 
 const sleepData = Array.from({ length: 14 }, (_, i) => ({
@@ -66,13 +67,15 @@ const MEAL_EMOJI: Record<string, string> = {
   Lunch: "🥗",
   Dinner: "🍽️",
   Snack: "🥜",
+  Fruit: "🍎",
+  Vegetable: "🥦",
   Drink: "🥤",
 };
 
 export default function HealthPage() {
   const [today, setToday] = useState<string>("ssr");
   useEffect(() => {
-    setToday(new Date().toISOString().slice(0, 10));
+    setToday(todayKey());
   }, []);
 
   const [foodLog, setFoodLog] = useSyncedState<LoggedMeal[]>(
@@ -81,6 +84,30 @@ export default function HealthPage() {
   );
 
   const [composerOpen, setComposerOpen] = useState(false);
+
+  // Auto-open via command palette: ?log=1 → manual composer, ?photo=1 → photo scanner.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("log") === "1") {
+      setComposerOpen(true);
+    }
+    if (params.get("photo") === "1") {
+      // Click the hidden file input in PhotoMealScanner.
+      setTimeout(() => {
+        const trigger = document.querySelector<HTMLButtonElement>(
+          "[data-photo-meal-trigger]"
+        );
+        trigger?.click();
+      }, 100);
+    }
+    if (params.get("log") || params.get("photo")) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("log");
+      url.searchParams.delete("photo");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   const totals = useMemo(
     () =>
@@ -363,7 +390,7 @@ export default function HealthPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white">Body weight</h3>
-              <p className="text-[10px] text-slate-500">30-day trend</p>
+              <p className="text-[10px] text-slate-500">60-day trend</p>
             </div>
             <Badge variant="cyan">DAY 1</Badge>
           </div>

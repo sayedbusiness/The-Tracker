@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Flame,
@@ -103,6 +103,19 @@ export default function DisciplinePage() {
     reward: "+1000 XP",
   });
   const [newBreachOpen, setNewBreachOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("breach") === "1") setNewBreachOpen(true);
+    if (params.get("challenge") === "1") setNewChallengeOpen(true);
+    if (params.get("breach") || params.get("challenge")) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("breach");
+      url.searchParams.delete("challenge");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
   const [draftBreach, setDraftBreach] = useState<{
     label: string;
     severity: Severity;

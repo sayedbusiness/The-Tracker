@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   ListTodo,
+  ListChecks,
   Flame,
   Heart,
   Briefcase,
@@ -17,26 +18,106 @@ import {
   Plus,
   Timer,
   Search,
+  Camera,
+  Brain,
+  Droplet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const items = [
-  { group: "Navigate", icon: LayoutDashboard, label: "Open Today", action: "/" },
-  { group: "Navigate", icon: CalendarDays, label: "Open 30-Day Plan", action: "/plan" },
-  { group: "Navigate", icon: ListTodo, label: "Open Work list", action: "/work" },
-  { group: "Navigate", icon: CalendarDays, label: "Open Calendar", action: "/calendar" },
-  { group: "Navigate", icon: ListTodo, label: "Open Tasks", action: "/tasks" },
-  { group: "Navigate", icon: Flame, label: "Open Discipline Engine", action: "/discipline" },
-  { group: "Navigate", icon: Heart, label: "Open Health", action: "/health" },
-  { group: "Navigate", icon: Briefcase, label: "Open Apex Growth", action: "/agency" },
-  { group: "Navigate", icon: GraduationCap, label: "Open Learn", action: "/learn" },
-  { group: "Navigate", icon: Sparkles, label: "Open AI Coach", action: "/assistant" },
-  { group: "Navigate", icon: LineChart, label: "Open Insights", action: "/insights" },
-  { group: "Navigate", icon: Trophy, label: "Open Achievements", action: "/achievements" },
-  { group: "Quick action", icon: Plus, label: "Add task" },
-  { group: "Quick action", icon: Timer, label: "Start deep work block" },
-  { group: "Quick action", icon: Plus, label: "Log a meal (photo)" },
-  { group: "Quick action", icon: Plus, label: "Add a new pipeline deal" },
+type Item = {
+  group: "Navigate" | "Quick action";
+  icon: typeof LayoutDashboard;
+  label: string;
+  hint?: string;
+  /** Internal navigation target. */
+  href?: string;
+  /** Action to dispatch as a window event for pages to handle. */
+  event?: string;
+};
+
+const items: Item[] = [
+  { group: "Navigate", icon: LayoutDashboard, label: "Open Today", href: "/" },
+  { group: "Navigate", icon: CalendarDays, label: "Open 60-Day Plan", href: "/plan" },
+  { group: "Navigate", icon: ListChecks, label: "Open Work list", href: "/work" },
+  { group: "Navigate", icon: CalendarDays, label: "Open Calendar", href: "/calendar" },
+  { group: "Navigate", icon: ListTodo, label: "Open Tasks", href: "/tasks" },
+  { group: "Navigate", icon: Flame, label: "Open Discipline Engine", href: "/discipline" },
+  { group: "Navigate", icon: Heart, label: "Open Health", href: "/health" },
+  { group: "Navigate", icon: Briefcase, label: "Open Apex Growth", href: "/agency" },
+  { group: "Navigate", icon: GraduationCap, label: "Open Learn", href: "/learn" },
+  { group: "Navigate", icon: Sparkles, label: "Open AI Coach", href: "/assistant" },
+  { group: "Navigate", icon: LineChart, label: "Open Insights", href: "/insights" },
+  { group: "Navigate", icon: Trophy, label: "Open Achievements", href: "/achievements" },
+  {
+    group: "Quick action",
+    icon: Plus,
+    label: "Add task",
+    href: "/tasks?add=1",
+    hint: "Opens the task composer",
+  },
+  {
+    group: "Quick action",
+    icon: Timer,
+    label: "Start deep work block",
+    href: "/?deep=1",
+    hint: "Adds a 90-min deep work block to today",
+  },
+  {
+    group: "Quick action",
+    icon: Camera,
+    label: "Log a meal (photo)",
+    href: "/health?photo=1",
+    hint: "Opens Health and triggers the photo scanner",
+  },
+  {
+    group: "Quick action",
+    icon: Plus,
+    label: "Log a meal (manual)",
+    href: "/health?log=1",
+    hint: "Opens the manual meal composer",
+  },
+  {
+    group: "Quick action",
+    icon: Droplet,
+    label: "Add a cup of water",
+    event: "apex:water-cup",
+    hint: "+250 mL — saves to today",
+  },
+  {
+    group: "Quick action",
+    icon: Plus,
+    label: "Add a new pipeline deal",
+    href: "/agency?add=deal",
+    hint: "Opens Apex Growth and starts a new deal",
+  },
+  {
+    group: "Quick action",
+    icon: Plus,
+    label: "Add a new client",
+    href: "/agency?add=client",
+    hint: "Opens Apex Growth and starts a new client",
+  },
+  {
+    group: "Quick action",
+    icon: Plus,
+    label: "Add a new campaign",
+    href: "/agency?add=campaign",
+    hint: "Opens Apex Growth and starts a new campaign",
+  },
+  {
+    group: "Quick action",
+    icon: Brain,
+    label: "Ask the AI helper",
+    event: "apex:open-ai",
+    hint: "Opens the floating AI panel",
+  },
+  {
+    group: "Quick action",
+    icon: Flame,
+    label: "Log a breach",
+    href: "/discipline?breach=1",
+    hint: "Opens Discipline and starts a breach log",
+  },
 ];
 
 export function CommandPalette({
@@ -59,6 +140,16 @@ export function CommandPalette({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onOpenChange]);
 
+  const handle = (item: Item) => {
+    if (item.event) {
+      window.dispatchEvent(new CustomEvent(item.event));
+    }
+    if (item.href) {
+      router.push(item.href);
+    }
+    onOpenChange(false);
+  };
+
   if (!open) return null;
 
   return (
@@ -68,10 +159,7 @@ export function CommandPalette({
         className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md"
       />
       <div className="fixed left-1/2 top-[20%] z-50 w-[92vw] max-w-2xl -translate-x-1/2 animate-[scale-in_0.2s_ease-out]">
-        <Command
-          className="glass-strong overflow-hidden rounded-2xl"
-          loop
-        >
+        <Command className="glass-strong overflow-hidden rounded-2xl" loop>
           <div className="flex items-center gap-3 border-b border-white/[0.06] px-4">
             <Search className="h-4 w-4 text-slate-400" />
             <Command.Input
@@ -100,10 +188,8 @@ export function CommandPalette({
                     return (
                       <Command.Item
                         key={item.label}
-                        onSelect={() => {
-                          if (item.action) router.push(item.action);
-                          onOpenChange(false);
-                        }}
+                        value={`${item.label} ${item.hint ?? ""}`}
+                        onSelect={() => handle(item)}
                         className={cn(
                           "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300",
                           "data-[selected=true]:bg-gradient-to-r data-[selected=true]:from-blue-600/15 data-[selected=true]:to-transparent data-[selected=true]:text-white"
@@ -111,6 +197,11 @@ export function CommandPalette({
                       >
                         <Icon className="h-4 w-4 text-slate-500" />
                         <span className="flex-1">{item.label}</span>
+                        {item.hint && (
+                          <span className="hidden text-[10px] text-slate-500 sm:inline">
+                            {item.hint}
+                          </span>
+                        )}
                       </Command.Item>
                     );
                   })}

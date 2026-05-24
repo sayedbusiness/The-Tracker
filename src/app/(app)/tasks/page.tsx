@@ -18,6 +18,7 @@ import { PageHeader } from "@/components/tasks/page-header";
 import { TodayTasks } from "@/components/dashboard/today-tasks";
 import type { Task } from "@/lib/mock-data";
 import { useSyncedState } from "@/hooks/use-synced-state";
+import { todayKey } from "@/lib/dates";
 
 type SavedTask = Omit<Task, "completed">;
 
@@ -27,7 +28,7 @@ type FilterKey = (typeof FILTER_KEYS)[number];
 export default function TasksPage() {
   const [today, setToday] = useState<string>("ssr");
   useEffect(() => {
-    setToday(new Date().toISOString().slice(0, 10));
+    setToday(todayKey());
   }, []);
 
   // Subscribes to the same key as <TodayTasks /> so both stay in sync.
@@ -90,6 +91,20 @@ export default function TasksPage() {
     el?.click();
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
+
+  // Auto-open composer when arriving via command palette (?add=1).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("add") === "1") {
+      // Defer one tick so the TodayTasks component is mounted.
+      setTimeout(triggerAdd, 50);
+      // Strip the query so refresh doesn't re-trigger.
+      const url = new URL(window.location.href);
+      url.searchParams.delete("add");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">

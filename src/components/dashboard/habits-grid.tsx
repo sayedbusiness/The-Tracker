@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { habits } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import { todayKey, dateKey, APP_TZ } from "@/lib/dates";
 
 const colorMap = {
   emerald: "from-emerald-500/20 to-emerald-500/0 border-emerald-500/30 text-emerald-300",
@@ -16,33 +17,34 @@ const colorMap = {
   amber: "from-amber-500/20 to-amber-500/0 border-amber-500/30 text-amber-300",
 };
 
-/** ISO week key — habits roll on Mondays. */
-function getWeekKey(d: Date = new Date()): string {
-  const monday = new Date(d);
-  const day = monday.getDay() === 0 ? 7 : monday.getDay();
-  monday.setDate(monday.getDate() - day + 1);
-  return monday.toISOString().slice(0, 10);
-}
-
-/** ISO date key — for "did you do this habit today?" */
-function getDayKey(d: Date = new Date()): string {
+/** Monday-anchored week key in Pacific time so habits roll on Monday morning PT. */
+function getWeekKey(): string {
+  // Get Pacific-local year-month-day, build a date at noon UTC (avoids DST edges).
+  const today = dateKey(new Date());
+  const d = new Date(today + "T12:00:00Z");
+  const jsDay = Number(
+    d.toLocaleString("en-US", { timeZone: APP_TZ, weekday: "short" }) ===
+      undefined
+      ? d.getUTCDay()
+      : d.getUTCDay()
+  );
+  // 0=Sun → 6 days back to Mon; 1=Mon → 0 back; ...
+  const offset = jsDay === 0 ? 6 : jsDay - 1;
+  d.setUTCDate(d.getUTCDate() - offset);
   return d.toISOString().slice(0, 10);
 }
 
 export function HabitsGrid() {
-  // Defer date keys until after mount so SSR (UTC) and client (local time)
-  // produce the same render. Pre-mount we use placeholder keys that no
-  // localStorage entry will ever match.
   const [keys, setKeys] = useState<{ weekKey: string; today: string }>({
     weekKey: "ssr-week",
     today: "ssr-day",
   });
   useEffect(() => {
-    setKeys({ weekKey: getWeekKey(), today: getDayKey() });
+    setKeys({ weekKey: getWeekKey(), today: todayKey() });
   }, []);
 
-  const [done, setDone] = useLocalStorage<Set<string>>(
-    `apex:habits:${keys.weekKey}`,
+  const [done, setDone] = useSyncedState<Set<string>>(
+    `habits:${keys.weekKey}`,
     new Set<string>(),
     { serializer: "set" }
   );

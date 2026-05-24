@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Trophy,
@@ -7,73 +8,328 @@ import {
   Star,
   Zap,
   Crown,
-  Shield,
   Lock,
   Sparkles,
+  Check,
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Badge } from "@/components/ui/badge";
 import { user } from "@/lib/mock-data";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import { todayKey } from "@/lib/dates";
+import type { LoggedMeal } from "@/components/health/meal-composer";
 
-const achievements: Array<{
+type SavedTask = {
+  id: string;
+  estimated: number;
+  difficulty: number;
+  category: "agency" | "health" | "learning" | "personal" | "deep-work";
+};
+
+interface Challenge {
+  id: string;
+  active: boolean;
+  progress: number;
+  total: number;
+}
+
+interface Client {
+  mrr: number;
+}
+
+interface Deal {
+  value: number;
+}
+
+type Rarity = "common" | "rare" | "epic" | "legendary" | "mythic";
+
+interface AchievementDef {
   id: string;
   name: string;
   desc: string;
   icon: string;
-  unlocked: boolean;
-  rarity: "common" | "rare" | "epic" | "legendary" | "mythic";
-  date?: string;
-  progress?: number;
-}> = [
-  { id: "a1", name: "First Light", desc: "Complete your first day", icon: "🌅", unlocked: false, rarity: "common", progress: 0 },
-  { id: "a2", name: "Streak Hunter", desc: "30-day discipline streak", icon: "🔥", unlocked: false, rarity: "rare", progress: 0 },
-  { id: "a3", name: "Operator", desc: "100 days of disciplined execution", icon: "⚡", unlocked: false, rarity: "epic", progress: 0 },
-  { id: "a4", name: "Iron Mind", desc: "75 Hard completion", icon: "🛡️", unlocked: false, rarity: "epic", progress: 0 },
-  { id: "a5", name: "Six Figures", desc: "$100k+ MRR achieved", icon: "💎", unlocked: false, rarity: "legendary", progress: 0 },
-  { id: "a6", name: "Hardened", desc: "Complete 75 Hard — Apex Edition", icon: "⚔️", unlocked: false, rarity: "legendary", progress: 0 },
-  { id: "a7", name: "The Scholar", desc: "Read 24 books in a year", icon: "📚", unlocked: false, rarity: "rare", progress: 0 },
-  { id: "a8", name: "Monk Mode", desc: "60 hrs of deep work in a month", icon: "🧘", unlocked: false, rarity: "epic", progress: 0 },
-  { id: "a9", name: "Centurion", desc: "100-day workout streak", icon: "💪", unlocked: false, rarity: "epic", progress: 0 },
-  { id: "a10", name: "Apex Predator", desc: "Reach Tier V Discipline rating", icon: "👑", unlocked: false, rarity: "legendary", progress: 0 },
-  { id: "a11", name: "Untouchable", desc: "365-day streak", icon: "♾️", unlocked: false, rarity: "legendary", progress: 0 },
-  { id: "a12", name: "Architect", desc: "Build a $1M ARR agency", icon: "🏛️", unlocked: false, rarity: "mythic", progress: 0 },
+  rarity: Rarity;
+  /** 0..1 progress; >= 1 means unlocked. */
+  compute: (ctx: Ctx) => number;
+  /** A hint about what to do next. */
+  next?: string;
+}
+
+interface Ctx {
+  activeDays: number;
+  tasksCompletedToday: number;
+  mealsToday: number;
+  waterCups: number;
+  deepWorkMinsToday: number;
+  learnCompleted: number;
+  mrr: number;
+  pipeValue: number;
+  challenges: Challenge[];
+  breaches: number;
+  streak: number;
+  longestStreak: number;
+}
+
+const ACHIEVEMENTS: AchievementDef[] = [
+  {
+    id: "first-light",
+    name: "First Light",
+    desc: "Log your first thing today (task, meal, or cup of water).",
+    icon: "🌅",
+    rarity: "common",
+    compute: (c) =>
+      c.tasksCompletedToday + c.mealsToday + c.waterCups > 0 ? 1 : 0,
+    next: "Tap a habit on the dashboard or log a meal in Health.",
+  },
+  {
+    id: "active-week",
+    name: "Week One",
+    desc: "Use APEX OS on 7 different days.",
+    icon: "📅",
+    rarity: "common",
+    compute: (c) => Math.min(1, c.activeDays / 7),
+    next: "Open the app and log at least one thing every day this week.",
+  },
+  {
+    id: "streak-hunter",
+    name: "Streak Hunter",
+    desc: "30-day active streak.",
+    icon: "🔥",
+    rarity: "rare",
+    compute: (c) => Math.min(1, c.streak / 30),
+    next: "Don't break the chain — touch at least one thing each day.",
+  },
+  {
+    id: "operator",
+    name: "Operator",
+    desc: "100 days of execution.",
+    icon: "⚡",
+    rarity: "epic",
+    compute: (c) => Math.min(1, c.activeDays / 100),
+  },
+  {
+    id: "monk-mode",
+    name: "Monk Mode",
+    desc: "60 hours of deep work tasks completed.",
+    icon: "🧘",
+    rarity: "epic",
+    compute: (c) => Math.min(1, c.deepWorkMinsToday / (60 * 60)),
+    next: "Mark deep-work tasks complete on the Tasks page.",
+  },
+  {
+    id: "iron-mind",
+    name: "Iron Mind",
+    desc: "Complete the 75 Hard challenge.",
+    icon: "🛡️",
+    rarity: "legendary",
+    compute: (c) => {
+      const ch = c.challenges.find(
+        (x) => x.active && x.total >= 75
+      );
+      return ch ? Math.min(1, ch.progress / ch.total) : 0;
+    },
+    next: "Activate the 75 Hard challenge on Discipline.",
+  },
+  {
+    id: "scholar",
+    name: "The Scholar",
+    desc: "Complete 24 learning tracks.",
+    icon: "📚",
+    rarity: "rare",
+    compute: (c) => Math.min(1, c.learnCompleted / 24),
+    next: "Open a video on the Learn page and mark it complete.",
+  },
+  {
+    id: "centurion",
+    name: "Centurion",
+    desc: "100 active days in a row.",
+    icon: "💪",
+    rarity: "epic",
+    compute: (c) => Math.min(1, c.longestStreak / 100),
+  },
+  {
+    id: "architect",
+    name: "Architect",
+    desc: "Build to $1M ARR ($83k MRR).",
+    icon: "🏛️",
+    rarity: "mythic",
+    compute: (c) => Math.min(1, c.mrr / 83333),
+    next: "Add paying clients on Apex Growth.",
+  },
+  {
+    id: "six-figures",
+    name: "Six Figures",
+    desc: "Reach $100k+ MRR.",
+    icon: "💎",
+    rarity: "legendary",
+    compute: (c) => Math.min(1, c.mrr / 100000),
+  },
+  {
+    id: "pipe-fat",
+    name: "Stacked Pipe",
+    desc: "Build a pipeline worth $50k+.",
+    icon: "📈",
+    rarity: "rare",
+    compute: (c) => Math.min(1, c.pipeValue / 50000),
+    next: "Add deals on the Apex Growth pipeline.",
+  },
+  {
+    id: "untouchable",
+    name: "Untouchable",
+    desc: "365-day active streak.",
+    icon: "♾️",
+    rarity: "legendary",
+    compute: (c) => Math.min(1, c.longestStreak / 365),
+  },
 ];
 
-const rarityStyles = {
-  common: {
-    border: "border-slate-500/30",
-    bg: "from-slate-500/10",
-    text: "text-slate-300",
-    glow: "",
-  },
-  rare: {
-    border: "border-sky-500/30",
-    bg: "from-sky-500/10",
-    text: "text-sky-300",
-    glow: "shadow-[0_0_20px_rgba(59,130,246,0.2)]",
-  },
-  epic: {
-    border: "border-blue-600/30",
-    bg: "from-blue-600/10",
-    text: "text-blue-300",
-    glow: "shadow-[0_0_25px_rgba(30,58,138,0.25)]",
-  },
-  legendary: {
-    border: "border-amber-500/30",
-    bg: "from-amber-500/10",
-    text: "text-amber-300",
-    glow: "shadow-[0_0_30px_rgba(245,158,11,0.3)]",
-  },
-  mythic: {
-    border: "border-rose-500/30",
-    bg: "from-rose-500/10",
-    text: "text-rose-300",
-    glow: "shadow-[0_0_35px_rgba(244,63,94,0.35)]",
-  },
+const rarityStyles: Record<Rarity, {
+  border: string;
+  bg: string;
+  text: string;
+  glow: string;
+}> = {
+  common: { border: "border-slate-500/30", bg: "from-slate-500/10", text: "text-slate-300", glow: "" },
+  rare: { border: "border-sky-500/30", bg: "from-sky-500/10", text: "text-sky-300", glow: "shadow-[0_0_20px_rgba(59,130,246,0.2)]" },
+  epic: { border: "border-blue-600/30", bg: "from-blue-600/10", text: "text-blue-300", glow: "shadow-[0_0_25px_rgba(30,58,138,0.25)]" },
+  legendary: { border: "border-amber-500/30", bg: "from-amber-500/10", text: "text-amber-300", glow: "shadow-[0_0_30px_rgba(245,158,11,0.3)]" },
+  mythic: { border: "border-rose-500/30", bg: "from-rose-500/10", text: "text-rose-300", glow: "shadow-[0_0_35px_rgba(244,63,94,0.35)]" },
 };
 
 export default function AchievementsPage() {
-  const unlocked = achievements.filter((a) => a.unlocked).length;
+  const [today, setToday] = useState<string>("ssr");
+  useEffect(() => {
+    setToday(todayKey());
+  }, []);
+
+  // Live read of every relevant synced state.
+  const [tasksList] = useSyncedState<SavedTask[]>(`tasks:list:${today}`, []);
+  const [completedIds] = useSyncedState<Set<string>>(
+    `tasks:completed:${today}`,
+    new Set<string>(),
+    { serializer: "set" }
+  );
+  const [meals] = useSyncedState<LoggedMeal[]>(`health:meals:${today}`, []);
+  const [waterCups] = useSyncedState<number>(`water:${today}`, 0);
+  const [challenges] = useSyncedState<Challenge[]>(
+    "discipline:challenges",
+    []
+  );
+  const [breaches] = useSyncedState<{ id: string }[]>(
+    "discipline:breaches",
+    []
+  );
+  const [clients] = useSyncedState<Client[]>("agency:clients", []);
+  const [pipeline] = useSyncedState<Deal[]>("agency:pipeline", []);
+  const [learnComplete] = useSyncedState<Set<string>>(
+    "learn:completed",
+    new Set<string>(),
+    { serializer: "set" }
+  );
+  // Day-by-day activity log — every page touch on a fresh day appends today.
+  const [activeDays, setActiveDays] = useSyncedState<Set<string>>(
+    "active-days",
+    new Set<string>(),
+    { serializer: "set" }
+  );
+
+  // Add today to activeDays as soon as the user has done anything.
+  useEffect(() => {
+    if (today === "ssr") return;
+    const didSomething =
+      completedIds.size > 0 ||
+      meals.length > 0 ||
+      waterCups > 0 ||
+      tasksList.length > 0;
+    if (didSomething && !activeDays.has(today)) {
+      setActiveDays((prev) => new Set(prev).add(today));
+    }
+  }, [today, completedIds, meals, waterCups, tasksList, activeDays, setActiveDays]);
+
+  // Compute streak from activeDays — the longest tail of consecutive days
+  // ending today (or yesterday if today is still empty).
+  const { streak, longestStreak } = useMemo(() => {
+    const days = Array.from(activeDays).sort();
+    if (days.length === 0) return { streak: 0, longestStreak: 0 };
+
+    const dayMs = 24 * 3600 * 1000;
+    const asDate = (s: string) => new Date(`${s}T12:00:00Z`).getTime();
+
+    // Longest streak — scan all gaps.
+    let longest = 1;
+    let run = 1;
+    for (let i = 1; i < days.length; i++) {
+      if (asDate(days[i]) - asDate(days[i - 1]) === dayMs) {
+        run++;
+        if (run > longest) longest = run;
+      } else {
+        run = 1;
+      }
+    }
+
+    // Current streak — count back from the last active day if it's today
+    // or yesterday in PT.
+    const last = days[days.length - 1];
+    const todayMs = asDate(today);
+    const lastMs = asDate(last);
+    const gap = (todayMs - lastMs) / dayMs;
+    if (gap > 1) return { streak: 0, longestStreak: longest };
+    let cur = 1;
+    for (let i = days.length - 2; i >= 0; i--) {
+      if (asDate(days[i + 1]) - asDate(days[i]) === dayMs) {
+        cur++;
+      } else break;
+    }
+    return { streak: cur, longestStreak: longest };
+  }, [activeDays, today]);
+
+  const ctx: Ctx = useMemo(() => {
+    const deepWorkMinsToday = tasksList
+      .filter((t) => t.category === "deep-work" && completedIds.has(t.id))
+      .reduce((s, t) => s + t.estimated, 0);
+    return {
+      activeDays: activeDays.size,
+      tasksCompletedToday: completedIds.size,
+      mealsToday: meals.length,
+      waterCups,
+      deepWorkMinsToday,
+      learnCompleted: learnComplete.size,
+      mrr: clients.reduce((s, c) => s + c.mrr, 0),
+      pipeValue: pipeline.reduce((s, d) => s + d.value, 0),
+      challenges,
+      breaches: breaches.length,
+      streak,
+      longestStreak,
+    };
+  }, [
+    activeDays,
+    completedIds,
+    meals,
+    waterCups,
+    tasksList,
+    learnComplete,
+    clients,
+    pipeline,
+    challenges,
+    breaches,
+    streak,
+    longestStreak,
+  ]);
+
+  const computed = ACHIEVEMENTS.map((a) => {
+    const progress = a.compute(ctx);
+    return { ...a, progress, unlocked: progress >= 1 };
+  });
+
+  const unlocked = computed.filter((a) => a.unlocked).length;
+  const xp = computed.reduce((s, a) => s + Math.round(a.progress * 100), 0);
+  const xpToNext = 1000;
+  const level =
+    xp < 100 ? 1 : xp < 300 ? 2 : xp < 700 ? 3 : xp < 1500 ? 4 : 5;
+  const tierName = ["Initiate", "Operator", "Hardened", "Apex", "Mythic"][
+    level - 1
+  ];
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
@@ -83,76 +339,73 @@ export default function AchievementsPage() {
             Earn it. <span className="gradient-gold">Keep it.</span>
           </>
         }
-        subtitle="Every badge here represents a real shift you've made. Nothing handed. Nothing inflated. Earn the next one."
+        subtitle="Every badge here represents a real shift you've made. Progress updates live as you log anything anywhere in the app."
         icon={Trophy}
         accent="amber"
       />
 
-      {/* Level + XP hero */}
       <section className="surface-elevated relative overflow-hidden rounded-3xl p-6">
         <div className="pointer-events-none absolute -top-20 -right-20 h-60 w-60 rounded-full bg-amber-500/15 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-rose-500/10 blur-3xl" />
         <div className="relative grid items-center gap-6 sm:grid-cols-[auto_1fr_auto]">
           <div className="relative">
             <div className="grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-3xl font-black text-white shadow-[0_0_40px_rgba(245,158,11,0.5)]">
-              {user.level}
+              {level}
             </div>
             <Crown className="absolute -right-2 -top-2 h-6 w-6 fill-amber-400 text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[10px] uppercase tracking-[0.2em] text-amber-300">
-              Level {user.level} · Initiate
+              Level {level} · {tierName}
             </div>
             <div className="mt-1 text-3xl font-bold text-white">
-              {user.xp.toLocaleString()}{" "}
+              {xp.toLocaleString()}{" "}
               <span className="text-base font-normal text-slate-500">
-                / {user.xpToNext.toLocaleString()} XP
+                / {xpToNext.toLocaleString()} XP
               </span>
             </div>
             <div className="mt-2 text-xs text-slate-400">
-              {(user.xpToNext - user.xp).toLocaleString()} XP to Level{" "}
-              {user.level + 1} — <span className="text-amber-300">Operator</span>
+              {Math.max(0, xpToNext - xp).toLocaleString()} XP to the next tier — every percentage of progress on any badge counts.
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.04]">
               <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(user.xp / user.xpToNext) * 100}%` }}
-                transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                initial={false}
+                animate={{ width: `${Math.min(100, (xp / xpToNext) * 100)}%` }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-[0_0_12px_rgba(245,158,11,0.6)]"
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <StatChip icon={Trophy} label="Earned" value={`${unlocked}/${achievements.length}`} />
-            <StatChip icon={Flame} label="Streak" value={`${user.streak}d`} />
-            <StatChip icon={Star} label="Tier" value="I" />
-            <StatChip icon={Zap} label="Rank" value="—" />
+            <StatChip icon={Trophy} label="Earned" value={`${unlocked}/${ACHIEVEMENTS.length}`} />
+            <StatChip icon={Flame} label="Streak" value={`${streak}d`} />
+            <StatChip icon={Star} label="Active" value={`${ctx.activeDays}d`} />
+            <StatChip icon={Zap} label="Longest" value={`${longestStreak}d`} />
           </div>
         </div>
       </section>
 
-      {/* Recent unlocks banner */}
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-transparent to-sky-500/10 p-4"
-      >
-        <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 shadow-[0_0_20px_rgba(16,185,129,0.5)]">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <div className="flex-1">
-            <div className="text-sm font-semibold text-white">
-              First badge is <b className="text-amber-300">First Light</b>
+      {!computed[0].unlocked && (
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-transparent to-sky-500/10 p-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 shadow-[0_0_20px_rgba(16,185,129,0.5)]">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
-            <div className="text-xs text-slate-400">
-              Complete every habit you commit to today and unlock it.
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-white">
+                Next badge:{" "}
+                <b className="text-amber-300">{computed[0].name}</b>
+              </div>
+              <div className="text-xs text-slate-400">{computed[0].next}</div>
             </div>
           </div>
-        </div>
-      </motion.section>
+        </motion.section>
+      )}
 
-      {/* Achievement grid */}
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-white">Badges</h2>
@@ -178,8 +431,8 @@ export default function AchievementsPage() {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {achievements.map((a, i) => {
-            const r = rarityStyles[a.rarity as keyof typeof rarityStyles];
+          {computed.map((a, i) => {
+            const r = rarityStyles[a.rarity];
             return (
               <motion.div
                 key={a.id}
@@ -189,28 +442,39 @@ export default function AchievementsPage() {
                 whileHover={{ y: -3 }}
                 className={`relative overflow-hidden rounded-2xl border bg-gradient-to-b ${r.border} ${r.bg} to-transparent p-4 ${a.unlocked ? r.glow : ""}`}
               >
-                {!a.unlocked && (
-                  <div className="absolute right-2 top-2">
+                <div className="absolute right-2 top-2">
+                  {a.unlocked ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-300" />
+                  ) : (
                     <Lock className="h-3 w-3 text-slate-500" />
-                  </div>
-                )}
-                <div className={`mb-3 text-3xl ${!a.unlocked && "grayscale opacity-40"}`}>
+                  )}
+                </div>
+                <div
+                  className={`mb-3 text-3xl ${!a.unlocked && "grayscale opacity-40"}`}
+                >
                   {a.icon}
                 </div>
-                <h3 className={`text-sm font-semibold ${a.unlocked ? "text-white" : "text-slate-400"}`}>
+                <h3
+                  className={`text-sm font-semibold ${a.unlocked ? "text-white" : "text-slate-400"}`}
+                >
                   {a.name}
                 </h3>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">
                   {a.desc}
                 </p>
                 {a.unlocked ? (
-                  <div className={`mt-3 text-[10px] uppercase tracking-wider ${r.text}`}>
-                    ✓ {a.date}
+                  <div
+                    className={`mt-3 text-[10px] uppercase tracking-wider ${r.text}`}
+                  >
+                    ✓ Unlocked
                   </div>
                 ) : (
                   <>
                     <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.05]">
-                      <div
+                      <motion.div
+                        initial={false}
+                        animate={{ width: `${a.progress * 100}%` }}
+                        transition={{ duration: 0.6 }}
                         className={`h-full bg-gradient-to-r ${
                           a.rarity === "mythic"
                             ? "from-rose-400 to-pink-400"
@@ -220,69 +484,19 @@ export default function AchievementsPage() {
                                 ? "from-blue-400 to-blue-400"
                                 : "from-sky-400 to-blue-400"
                         }`}
-                        style={{ width: `${(a.progress ?? 0) * 100}%` }}
                       />
                     </div>
                     <div className="mt-1 text-[10px] tabular text-slate-500">
-                      {Math.round((a.progress ?? 0) * 100)}%
+                      {Math.round(a.progress * 100)}%
+                      {a.next && a.progress < 0.05 && (
+                        <span className="ml-1 text-slate-400">· {a.next}</span>
+                      )}
                     </div>
                   </>
                 )}
               </motion.div>
             );
           })}
-        </div>
-      </section>
-
-      {/* Leaderboard preview */}
-      <section className="surface-card rounded-2xl p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-white">
-            Operator leaderboard · this week
-          </h3>
-          <Badge variant="default">UNRANKED</Badge>
-        </div>
-        <div className="mb-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3 text-xs text-slate-400">
-          You'll appear on the leaderboard after 7 days of consistent
-          logging. Top 3 shown so you know what elite looks like.
-        </div>
-        <div className="space-y-1">
-          {[
-            { rank: 1, name: "M. Wahab", score: 9842, change: 0, you: false },
-            { rank: 2, name: "L. Petrov", score: 9620, change: 1, you: false },
-            { rank: 3, name: "K. Tanaka", score: 9510, change: -1, you: false },
-            { rank: 0, name: "You · Sayed", score: 0, change: 0, you: true },
-          ].map((row) => (
-            <div
-              key={row.rank}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2 ${
-                row.you
-                  ? "border border-amber-500/30 bg-amber-500/[0.06]"
-                  : "border border-transparent hover:bg-white/[0.02]"
-              }`}
-            >
-              <span className="w-10 text-[11px] font-bold tabular text-slate-500">
-                {row.rank === 0 ? "—" : `#${row.rank}`}
-              </span>
-              <span className={`flex-1 text-sm ${row.you ? "font-semibold text-amber-200" : "text-slate-300"}`}>
-                {row.name}
-              </span>
-              <span
-                className={`text-[11px] tabular ${
-                  row.change > 0
-                    ? "text-emerald-400"
-                    : row.change < 0
-                      ? "text-rose-400"
-                      : "text-slate-500"
-                }`}
-              >
-                {row.change > 0 ? "▲" : row.change < 0 ? "▼" : "—"} {Math.abs(row.change)}
-              </span>
-              <span className="w-16 text-right text-sm font-semibold tabular text-white">
-                {row.score.toLocaleString()}
-              </span>
-            </div>
-          ))}
         </div>
       </section>
     </div>
@@ -310,3 +524,5 @@ function StatChip({
     </div>
   );
 }
+
+void user;

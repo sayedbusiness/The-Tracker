@@ -24,7 +24,7 @@ import { user } from "@/lib/mock-data";
 
 const nav = [
   { href: "/", label: "Today", icon: LayoutDashboard, hint: "G D" },
-  { href: "/plan", label: "30-Day Plan", icon: CalendarDays, hint: "G P" },
+  { href: "/plan", label: "60-Day Plan", icon: CalendarDays, hint: "G P" },
   { href: "/work", label: "Work list", icon: ListChecks, hint: "G W" },
   { href: "/calendar", label: "Calendar", icon: Calendar, hint: "G K" },
   { href: "/tasks", label: "Tasks", icon: ListTodo, hint: "G T" },

@@ -38,7 +38,7 @@ export default function DayDetailPage({
   const isToday = todayPlan?.dayNumber === n;
   const isPast = todayPlan ? todayPlan.dayNumber > n : false;
   const prev = n > 1 ? n - 1 : null;
-  const next = n < 30 ? n + 1 : null;
+  const next = n < 60 ? n + 1 : null;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -49,7 +49,7 @@ export default function DayDetailPage({
           className="flex items-center gap-1.5 transition-colors hover:text-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          30-Day Plan
+          60-Day Plan
         </Link>
         <div className="flex items-center gap-2">
           {prev !== null && (
@@ -84,7 +84,7 @@ export default function DayDetailPage({
         <div className="relative">
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-blue-300/80">
             <CalendarDays className="h-3 w-3" />
-            Day {plan.dayNumber} of 30 · Week {plan.weekNumber}
+            Day {plan.dayNumber} of 60 · Week {plan.weekNumber}
             {plan.isJummah && <Badge variant="amber">Jummah</Badge>}
             {plan.isWeeklyReview && <Badge variant="violet">Weekly review</Badge>}
             {plan.isLightDay && !plan.isWeeklyReview && (

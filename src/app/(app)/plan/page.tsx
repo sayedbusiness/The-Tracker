@@ -33,20 +33,23 @@ export default function PlanPage() {
   }, []);
   const todayNumber = today?.dayNumber ?? 0;
 
-  // Group by week
-  const weeks: Array<typeof thirtyDayPlan> = [[], [], [], [], []];
+  // Group by week — 60 days = 9 weeks (last has 2 days)
+  const weeks: Array<typeof thirtyDayPlan> = Array.from(
+    { length: 9 },
+    () => []
+  );
   for (const d of thirtyDayPlan) weeks[d.weekNumber - 1].push(d);
 
   const completedDays = todayNumber > 0 ? todayNumber - 1 : 0;
-  const completionPct = Math.round((completedDays / 30) * 100);
+  const completionPct = Math.round((completedDays / 60) * 100);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
       <PageHeader
-        eyebrow="30-Day Operating System · Cycle 1"
+        eyebrow="60-Day Operating System · Cycle 1"
         title={
           <>
-            <span className="gradient-electric">May 12 → June 10.</span> No
+            <span className="gradient-electric">May 16 → July 14.</span> No
             shortcuts.
           </>
         }
@@ -65,11 +68,11 @@ export default function PlanPage() {
           <div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-blue-300">
               {todayNumber > 0
-                ? `Day ${todayNumber} of 30 · ${today?.fullDate}`
+                ? `Day ${todayNumber} of 60 · ${today?.fullDate}`
                 : "Outside the cycle window"}
             </div>
             <div className="mt-1 text-2xl font-semibold text-white">
-              {completedDays} of 30 days banked
+              {completedDays} of 60 days banked
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.04]">
               <motion.div
@@ -104,6 +107,10 @@ export default function PlanPage() {
                   {idx === 2 && "· Intensity"}
                   {idx === 3 && "· Compound"}
                   {idx === 4 && "· Crescendo"}
+                  {idx === 5 && "· Push"}
+                  {idx === 6 && "· Mastery"}
+                  {idx === 7 && "· Close"}
+                  {idx === 8 && "· Final"}
                 </span>
               </h2>
               <span className="text-[10px] tabular text-slate-500">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   Apple,
@@ -21,53 +21,87 @@ import { DisciplineQuote } from "@/components/dashboard/discipline-quote";
 import { WaterTracker } from "@/components/health/water-tracker";
 import { todayMetrics } from "@/lib/mock-data";
 import { getTodayPlan } from "@/lib/thirty-day-plan";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import { todayKey } from "@/lib/dates";
+import type { LoggedMeal } from "@/components/health/meal-composer";
+
+type SavedTask = { id: string; estimated: number; category: string };
 
 export default function DashboardPage() {
+  const [today, setToday] = useState<string>("ssr");
+  useEffect(() => {
+    setToday(todayKey());
+  }, []);
+
+  // Pull live data from synced state so every tile reflects what
+  // you've actually logged today.
+  const [tasksList] = useSyncedState<SavedTask[]>(`tasks:list:${today}`, []);
+  const [completedIds] = useSyncedState<Set<string>>(
+    `tasks:completed:${today}`,
+    new Set<string>(),
+    { serializer: "set" }
+  );
+  const [foodLog] = useSyncedState<LoggedMeal[]>(`health:meals:${today}`, []);
+  const [waterCups] = useSyncedState<number>(`water:${today}`, 0);
+
+  const tiles = useMemo(() => {
+    const focusMinutes = tasksList
+      .filter((t) => t.category === "deep-work" && completedIds.has(t.id))
+      .reduce((s, t) => s + t.estimated, 0);
+    const totals = foodLog.reduce(
+      (a, m) => ({
+        calories: a.calories + m.calories,
+      }),
+      { calories: 0 }
+    );
+    const waterL = waterCups * 0.25;
+    return {
+      focusMinutes,
+      calories: totals.calories,
+      waterL,
+    };
+  }, [tasksList, completedIds, foodLog, waterCups]);
+
   const m = todayMetrics;
-  // Defer getTodayPlan to the client; server-side it'd run in UTC and
-  // could pick a different calendar day than the user's local time,
-  // causing a hydration mismatch that prevents links from attaching.
   const [todayPlan, setTodayPlan] = useState<ReturnType<typeof getTodayPlan>>(null);
   useEffect(() => {
     setTodayPlan(getTodayPlan());
   }, []);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <HeroStats />
 
-      {/* Metric strip */}
+      {/* Live metric strip */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
         <MetricTile
           icon={Timer}
           label="Focus"
-          value={`${m.focusMinutes}`}
+          value={`${tiles.focusMinutes}`}
           unit="min"
-          delta={12}
-          progress={(m.focusMinutes / m.focusTarget) * 100}
+          progress={(tiles.focusMinutes / m.focusTarget) * 100}
           accent="violet"
         />
         <MetricTile
           icon={Apple}
           label="Calories"
-          value={m.calories.toLocaleString()}
+          value={tiles.calories.toLocaleString()}
           unit={`/${m.caloriesTarget}`}
-          delta={-3}
-          progress={(m.calories / m.caloriesTarget) * 100}
+          progress={(tiles.calories / m.caloriesTarget) * 100}
           accent="rose"
         />
         <MetricTile
           icon={Droplet}
           label="Water"
-          value={m.water.toFixed(1)}
+          value={tiles.waterL.toFixed(1)}
           unit="L"
-          progress={(m.water / m.waterTarget) * 100}
+          progress={(tiles.waterL / m.waterTarget) * 100}
           accent="cyan"
         />
         <MetricTile
           icon={Footprints}
           label="Steps"
           value={m.steps.toLocaleString()}
-          delta={8}
           progress={(m.steps / m.stepsTarget) * 100}
           accent="emerald"
         />
@@ -76,7 +110,6 @@ export default function DashboardPage() {
           label="Sleep"
           value={m.sleep}
           unit="hrs"
-          delta={-5}
           progress={(m.sleep / m.sleepTarget) * 100}
           accent="indigo"
         />
@@ -85,14 +118,12 @@ export default function DashboardPage() {
           label="Weight"
           value={m.weight}
           unit="lb"
-          delta={-1}
           accent="amber"
         />
         <MetricTile
           icon={Smile}
           label="Mood"
           value={`${m.mood}/10`}
-          delta={14}
           progress={m.mood * 10}
           accent="violet"
         />
@@ -100,7 +131,6 @@ export default function DashboardPage() {
           icon={Brain}
           label="Energy"
           value={`${m.energy}/10`}
-          delta={20}
           progress={m.energy * 10}
           accent="cyan"
         />
@@ -109,7 +139,6 @@ export default function DashboardPage() {
       {/* Main grid */}
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          {/* Productivity chart */}
           <div className="surface-card rounded-2xl p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
@@ -128,16 +157,13 @@ export default function DashboardPage() {
             <ProductivityChart />
           </div>
 
-          {/* Today's hour-by-hour timeline */}
           <div className="surface-card rounded-2xl p-6">
             <TodayTimeline plan={todayPlan} />
           </div>
 
-          {/* Quote */}
           <DisciplineQuote />
         </div>
 
-        {/* Right rail */}
         <div className="space-y-6">
           <WaterTracker />
 

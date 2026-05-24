@@ -46,19 +46,5 @@ export function timeAgo(date: Date | string) {
   return d.toLocaleDateString();
 }
 
-export function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 5) return "Burning the midnight oil";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 21) return "Good evening";
-  return "Late night grind";
-}
-
-export function getDayLabel() {
-  return new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-}
+// Re-exports for back-compat. New code should import from "@/lib/dates".
+export { getGreeting, getDayLabel } from "./dates";

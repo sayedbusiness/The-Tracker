@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
@@ -114,6 +114,21 @@ export default function AgencyPage() {
     null
   );
   const [draftStage, setDraftStage] = useState<PipelineStage>("lead");
+
+  // Auto-open composer via command palette: ?add=deal|client|campaign.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const add = params.get("add");
+    if (add === "deal" || add === "client" || add === "campaign") {
+      setComposer(add);
+    }
+    if (add) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("add");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   const totalMRR = useMemo(
     () => clients.reduce((sum, c) => sum + c.mrr, 0),

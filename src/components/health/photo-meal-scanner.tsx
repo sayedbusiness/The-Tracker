@@ -45,8 +45,20 @@ export function PhotoMealScanner({
     setStatus("uploading");
     setPreview(URL.createObjectURL(file));
 
+    let toSend: Blob = file;
+    // Auto-downscale large photos so iPhone HEIC/Live photos don't fail
+    // the 8 MB cap on the API route.
+    if (file.size > 1.5 * 1024 * 1024) {
+      try {
+        toSend = await downscaleImage(file, 1600, 0.85);
+      } catch {
+        // Couldn't decode (e.g. HEIC on a non-Safari browser) — try
+        // sending the original and let the server tell us.
+      }
+    }
+
     const fd = new FormData();
-    fd.append("photo", file);
+    fd.append("photo", toSend, "meal.jpg");
 
     try {
       const res = await fetch("/api/vision/meal", { method: "POST", body: fd });
@@ -58,10 +70,11 @@ export function PhotoMealScanner({
       setResult(data);
       setStatus("done");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Vision failed";
+      const message =
+        err instanceof Error ? err.message : "Vision failed — try typing instead";
       setError(message);
       setStatus("idle");
-      toast.error(message);
+      toast.error(message.slice(0, 120));
     }
   };
 
@@ -88,6 +101,7 @@ export function PhotoMealScanner({
 
       <Button
         size="md"
+        data-photo-meal-trigger
         onClick={() => inputRef.current?.click()}
         disabled={status === "uploading"}
       >
@@ -225,6 +239,40 @@ export function PhotoMealScanner({
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/**
+ * Decode a File to a canvas, resize to fit within `maxDim` px on the
+ * longer edge, and re-encode as JPEG at the requested quality. Falls
+ * back to throwing if the browser can't decode the input (e.g. HEIC
+ * outside Safari).
+ */
+async function downscaleImage(
+  file: File,
+  maxDim: number,
+  quality: number
+): Promise<Blob> {
+  const bitmap = await createImageBitmap(file).catch(() => {
+    // Fallback for browsers without createImageBitmap on this codec
+    throw new Error("decode-fail");
+  });
+  const longer = Math.max(bitmap.width, bitmap.height);
+  const scale = longer > maxDim ? maxDim / longer : 1;
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("no-canvas");
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("encode-fail"))),
+      "image/jpeg",
+      quality
+    )
   );
 }
 

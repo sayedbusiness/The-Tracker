@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Droplet, Plus, Minus } from "lucide-react";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import { todayKey } from "@/lib/dates";
 
 /** Track water in 250mL cups; 12 cups = 3L target for cutting. */
 const CUP_ML = 250;
@@ -13,10 +14,18 @@ const TARGET_CUPS = (TARGET_L * 1000) / CUP_ML;
 export function WaterTracker({ compact = false }: { compact?: boolean }) {
   const [today, setToday] = useState<string>("ssr");
   useEffect(() => {
-    setToday(new Date().toISOString().slice(0, 10));
+    setToday(todayKey());
   }, []);
 
-  const [cups, setCups] = useLocalStorage<number>(`apex:water:${today}`, 0);
+  const [cups, setCups] = useSyncedState<number>(`water:${today}`, 0);
+
+  // Quick-action support: the command palette dispatches apex:water-cup
+  // to add one cup from anywhere in the app.
+  useEffect(() => {
+    const onCup = () => setCups((c) => c + 1);
+    window.addEventListener("apex:water-cup", onCup);
+    return () => window.removeEventListener("apex:water-cup", onCup);
+  }, [setCups]);
 
   const liters = (cups * CUP_ML) / 1000;
   const pct = Math.min(100, (cups / TARGET_CUPS) * 100);

@@ -14,9 +14,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
+export type MealType =
+  | "Breakfast"
+  | "Lunch"
+  | "Dinner"
+  | "Snack"
+  | "Fruit"
+  | "Vegetable"
+  | "Drink";
+
 export interface LoggedMeal {
   id: string;
-  meal: "Breakfast" | "Lunch" | "Dinner" | "Snack" | "Drink";
+  meal: MealType;
   name: string;
   calories: number;
   protein: number;
@@ -26,11 +35,13 @@ export interface LoggedMeal {
   loggedAt: number;
 }
 
-const MEAL_TYPES: LoggedMeal["meal"][] = [
+const MEAL_TYPES: MealType[] = [
   "Breakfast",
   "Lunch",
   "Dinner",
   "Snack",
+  "Fruit",
+  "Vegetable",
   "Drink",
 ];
 
@@ -47,7 +58,7 @@ export function MealComposer({ open, onClose, onSave }: Props) {
 
   // Manual fields
   const [name, setName] = useState("");
-  const [mealType, setMealType] = useState<LoggedMeal["meal"]>("Snack");
+  const [mealType, setMealType] = useState<MealType>("Snack");
   const [calories, setCalories] = useState<number>(0);
   const [protein, setProtein] = useState<number>(0);
   const [carbs, setCarbs] = useState<number>(0);
@@ -102,13 +113,17 @@ export function MealComposer({ open, onClose, onSave }: Props) {
       toast.error("Paste ingredients, a product name, or a barcode");
       return;
     }
+    // Cap the text length so super-long ingredient lists don't blow
+    // up the Gemini request — keep the first ~4000 chars (more than
+    // enough for any normal package).
+    const trimmedText = text.length > 4000 ? text.slice(0, 4000) + " …" : text;
     setAnalyzing(true);
     try {
       const res = await fetch("/api/vision/text-meal", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          text,
+          text: trimmedText,
           amount: smartAmount.trim() || "1 serving",
         }),
       });
@@ -124,21 +139,21 @@ export function MealComposer({ open, onClose, onSave }: Props) {
         fat_g: number;
         meal_type: "breakfast" | "lunch" | "dinner" | "snack" | "drink";
       };
-      // Prefill the manual fields with the AI estimate so the user can
-      // adjust before saving.
       setName(data.name);
       setCalories(data.calories);
       setProtein(data.protein_g);
       setCarbs(data.carbs_g);
       setFat(data.fat_g);
-      setMealType(
-        (data.meal_type.charAt(0).toUpperCase() + data.meal_type.slice(1)) as LoggedMeal["meal"]
-      );
+      const cap =
+        data.meal_type.charAt(0).toUpperCase() + data.meal_type.slice(1);
+      setMealType(MEAL_TYPES.includes(cap as MealType) ? (cap as MealType) : "Snack");
       setMode("manual");
-      toast.success("Estimated — review and tap Save");
+      toast.success("Estimated — pick a category if you want, then Save.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed";
-      toast.error(msg);
+      toast.error(`Couldn't estimate: ${msg.slice(0, 80)} — type macros manually.`);
+      // Switch to manual mode so the user isn't stuck.
+      setMode("manual");
     } finally {
       setAnalyzing(false);
     }

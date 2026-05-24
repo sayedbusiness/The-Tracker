@@ -17,6 +17,21 @@ import {
 import { PageHeader } from "@/components/tasks/page-header";
 import { chatHistory, user } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import type { CoachPersonality } from "@/lib/ai/types";
+import { todayKey } from "@/lib/dates";
+import type { LoggedMeal } from "@/components/health/meal-composer";
+
+const COACH_MODES: Array<{
+  id: CoachPersonality;
+  label: string;
+  hint: string;
+}> = [
+  { id: "strategist", label: "Strategist", hint: "Cold, structured, calculated" },
+  { id: "drill", label: "Drill sergeant", hint: "Push hard, no softness" },
+  { id: "mentor", label: "Mentor", hint: "Patient, asks questions" },
+  { id: "stoic", label: "Stoic", hint: "Calm, principle-driven" },
+];
 
 const suggestedPrompts = [
   { icon: Target, label: "What's my highest leverage today?" },
@@ -41,6 +56,26 @@ export default function AssistantPage() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [coachMode, setCoachMode] = useSyncedState<CoachPersonality>(
+    "coach:mode",
+    "strategist"
+  );
+
+  const [today, setToday] = useState<string>("ssr");
+  useEffect(() => {
+    setToday(todayKey());
+  }, []);
+  const [tasksList] = useSyncedState<Array<{ id: string; title: string }>>(
+    `tasks:list:${today}`,
+    []
+  );
+  const [completedIds] = useSyncedState<Set<string>>(
+    `tasks:completed:${today}`,
+    new Set<string>(),
+    { serializer: "set" }
+  );
+  const [meals] = useSyncedState<LoggedMeal[]>(`health:meals:${today}`, []);
+  const [waterCups] = useSyncedState<number>(`water:${today}`, 0);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -73,16 +108,25 @@ export default function AssistantPage() {
     setInput("");
     setTyping(true);
 
+    const totalCal = meals.reduce((s, m) => s + m.calories, 0);
+    const totalProtein = meals.reduce((s, m) => s + m.protein, 0);
+    const snapshot = `[Live context from APEX OS — today ${today}]
+- Tasks: ${completedIds.size}/${tasksList.length} complete
+- Meals logged: ${meals.length} (${totalCal} kcal, ${totalProtein}g protein)
+- Water: ${waterCups} cups (${(waterCups * 0.25).toFixed(2)} L)`;
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages, userMsg].map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          personality: "strategist",
+          messages: [
+            { role: "user", content: snapshot },
+            { role: "assistant", content: "Got it — I'll factor that in." },
+            ...messages,
+            userMsg,
+          ].map((m) => ({ role: m.role, content: m.content })),
+          personality: coachMode,
         }),
       });
       if (!res.body) throw new Error("No response stream");
@@ -274,29 +318,34 @@ export default function AssistantPage() {
           </div>
 
           <div className="surface-card rounded-2xl p-4">
-            <h3 className="mb-3 text-sm font-semibold text-white">Coach mode</h3>
+            <h3 className="mb-1 text-sm font-semibold text-white">Coach mode</h3>
+            <p className="mb-3 text-[10px] text-slate-500">
+              Changes how the AI talks to you. Saved across devices.
+            </p>
             <div className="space-y-2">
-              {[
-                { id: "strategist", label: "Strategist", active: true },
-                { id: "drill", label: "Drill sergeant", active: false },
-                { id: "mentor", label: "Mentor" },
-                { id: "stoic", label: "Stoic" },
-              ].map((m) => (
-                <button
-                  key={m.id}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-xs transition-colors",
-                    m.active
-                      ? "border-blue-400/30 bg-blue-600/10 text-white"
-                      : "border-white/[0.05] bg-white/[0.02] text-slate-400 hover:bg-white/[0.04]"
-                  )}
-                >
-                  <span>{m.label}</span>
-                  {m.active && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.8)]" />
-                  )}
-                </button>
-              ))}
+              {COACH_MODES.map((m) => {
+                const active = coachMode === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setCoachMode(m.id)}
+                    className={cn(
+                      "flex w-full flex-col gap-0.5 rounded-lg border px-3 py-2 text-left text-xs transition-colors",
+                      active
+                        ? "border-blue-400/30 bg-blue-600/15 text-white shadow-[0_0_15px_rgba(30,58,138,0.3)]"
+                        : "border-white/[0.05] bg-white/[0.02] text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{m.label}</span>
+                      {active && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.8)]" />
+                      )}
+                    </div>
+                    <div className="text-[10px] text-slate-500">{m.hint}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </aside>

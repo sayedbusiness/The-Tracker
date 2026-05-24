@@ -25,6 +25,7 @@ import { monthlyTrend, todayMetrics } from "@/lib/mock-data";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import type { Task } from "@/lib/mock-data";
 import type { LoggedMeal } from "@/components/health/meal-composer";
+import { todayKey } from "@/lib/dates";
 
 type SavedTask = Omit<Task, "completed">;
 
@@ -61,7 +62,7 @@ interface Client {
 export default function InsightsPage() {
   const [today, setToday] = useState<string>("ssr");
   useEffect(() => {
-    setToday(new Date().toISOString().slice(0, 10));
+    setToday(todayKey());
   }, []);
 
   // Pull live state from all the places the user has been working.
@@ -72,7 +73,7 @@ export default function InsightsPage() {
     { serializer: "set" }
   );
   const [foodLog] = useSyncedState<LoggedMeal[]>(`health:meals:${today}`, []);
-  const [waterCups] = useSyncedState<number>(`apex:water:${today}`, 0);
+  const [waterCups] = useSyncedState<number>(`water:${today}`, 0);
   const [challenges] = useSyncedState<Challenge[]>(
     "discipline:challenges",
     []

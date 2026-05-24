@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles, X, Loader2, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import { todayKey } from "@/lib/dates";
+import type { LoggedMeal } from "@/components/health/meal-composer";
+import type { CoachPersonality } from "@/lib/ai/types";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string };
 
@@ -28,6 +32,34 @@ export function AiHelperFab() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [coachMode] = useSyncedState<CoachPersonality>(
+    "coach:mode",
+    "strategist"
+  );
+
+  // Pull synced state so the AI knows what's actually going on today.
+  const [today, setToday] = useState<string>("ssr");
+  useEffect(() => {
+    setToday(todayKey());
+  }, []);
+  const [tasksList] = useSyncedState<Array<{ title: string; priority: string; category: string }>>(
+    `tasks:list:${today}`,
+    []
+  );
+  const [completedIds] = useSyncedState<Set<string>>(
+    `tasks:completed:${today}`,
+    new Set<string>(),
+    { serializer: "set" }
+  );
+  const [meals] = useSyncedState<LoggedMeal[]>(`health:meals:${today}`, []);
+  const [waterCups] = useSyncedState<number>(`water:${today}`, 0);
+
+  // Listen for command-palette "open AI" event.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("apex:open-ai", onOpen);
+    return () => window.removeEventListener("apex:open-ai", onOpen);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -49,16 +81,29 @@ export function AiHelperFab() {
     ]);
     setInput("");
     setBusy(true);
+
+    // Inject a compact live-state snapshot into the conversation so the
+    // AI's first reply already knows what the user has logged today.
+    const totalCal = meals.reduce((s, m) => s + m.calories, 0);
+    const totalProtein = meals.reduce((s, m) => s + m.protein, 0);
+    const snapshot = `[Live context from APEX OS — today ${today}]
+- Tasks: ${completedIds.size}/${tasksList.length} complete
+- Meals logged: ${meals.length} (${totalCal} kcal, ${totalProtein}g protein)
+- Water: ${waterCups} cups (${(waterCups * 0.25).toFixed(2)} L)
+Coach mode: ${coachMode}`;
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages, userMsg].map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          personality: "strategist",
+          messages: [
+            { role: "user", content: snapshot },
+            { role: "assistant", content: "Got it — I'll factor that in." },
+            ...messages,
+            userMsg,
+          ].map((m) => ({ role: m.role, content: m.content })),
+          personality: coachMode,
         }),
       });
       if (!res.body) throw new Error("No response stream");

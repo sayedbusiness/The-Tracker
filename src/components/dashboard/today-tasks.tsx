@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Clock, Flame, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { Check, Clock, Flame, Plus, Sparkles, Trash2 } from "lucide-react";
 import type { Task } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { useSyncedState } from "@/hooks/use-synced-state";
+import { todayKey } from "@/lib/dates";
 
 const categoryColors = {
   agency: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
@@ -36,7 +37,7 @@ const PRIORITIES: Task["priority"][] = ["p0", "p1", "p2", "p3"];
 export function TodayTasks({ compact = false }: { compact?: boolean }) {
   const [today, setToday] = useState<string>("ssr");
   useEffect(() => {
-    setToday(new Date().toISOString().slice(0, 10));
+    setToday(todayKey());
   }, []);
 
   const [tasksList, setTasksList] = useSyncedState<SavedTask[]>(
