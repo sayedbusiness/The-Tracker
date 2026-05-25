@@ -49,7 +49,7 @@ export default function PlanPage() {
         eyebrow="60-Day Operating System · Cycle 1"
         title={
           <>
-            <span className="gradient-electric">May 16 → July 14.</span> No
+            <span className="gradient-electric">May 25 → July 23.</span> No
             shortcuts.
           </>
         }

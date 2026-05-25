@@ -6,6 +6,7 @@ import { ArrowUpRight, Flame, Sparkles, Target, Zap } from "lucide-react";
 import { RingProgress } from "@/components/ui/progress";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey } from "@/lib/dates";
+import { getTodayPlan, CYCLE_LENGTH } from "@/lib/thirty-day-plan";
 import type { LoggedMeal } from "@/components/health/meal-composer";
 
 type SavedTask = {
@@ -38,8 +39,10 @@ interface Deal {
  */
 export function HeroStats() {
   const [today, setToday] = useState<string>("ssr");
+  const [dayNumber, setDayNumber] = useState<number>(0);
   useEffect(() => {
     setToday(todayKey());
+    setDayNumber(getTodayPlan()?.dayNumber ?? 0);
   }, []);
 
   const [tasksList] = useSyncedState<SavedTask[]>(`tasks:list:${today}`, []);
@@ -57,11 +60,28 @@ export function HeroStats() {
   const [breaches] = useSyncedState<Breach[]>("discipline:breaches", []);
   const [clients] = useSyncedState<Client[]>("agency:clients", []);
   const [pipeline] = useSyncedState<Deal[]>("agency:pipeline", []);
-  const [activeDays] = useSyncedState<Set<string>>(
+  const [activeDays, setActiveDays] = useSyncedState<Set<string>>(
     "active-days",
     new Set<string>(),
     { serializer: "set" }
   );
+
+  // Auto-record today as "active" the moment the user does anything.
+  useEffect(() => {
+    if (today === "ssr") return;
+    const hasActivity =
+      tasksList.length > 0 ||
+      completedIds.size > 0 ||
+      foodLog.length > 0 ||
+      waterCups > 0;
+    if (!hasActivity) return;
+    if (activeDays.has(today)) return;
+    setActiveDays((prev) => {
+      const next = new Set(prev);
+      next.add(today);
+      return next;
+    });
+  }, [today, tasksList, completedIds, foodLog, waterCups, activeDays, setActiveDays]);
 
   const stats = useMemo(() => {
     const tasksDone = completedIds.size;
@@ -156,9 +176,11 @@ export function HeroStats() {
       <div className="relative grid gap-8 lg:grid-cols-[1fr_auto]">
         <div>
           <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-blue-300/80">
-            {stats.streak === 0
-              ? "Day 1 · everything starts now"
-              : `Day ${stats.streak} of the streak · keep it alive`}
+            {dayNumber === 0
+              ? "Outside the 60-day cycle window"
+              : `Day ${dayNumber} of ${CYCLE_LENGTH}${
+                  stats.streak > 1 ? ` · ${stats.streak}-day streak` : ""
+                }`}
           </div>
           <h1 className="text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
             <span className="gradient-text">Become</span> the version of you

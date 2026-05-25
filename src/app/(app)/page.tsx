@@ -4,11 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   Apple,
-  Brain,
+  CheckCircle2,
   Droplet,
   Footprints,
   Moon,
-  Smile,
   Timer,
 } from "lucide-react";
 import { HeroStats } from "@/components/dashboard/hero-stats";
@@ -19,13 +18,14 @@ import { TodayTimeline } from "@/components/dashboard/today-timeline";
 import { HabitsGrid } from "@/components/dashboard/habits-grid";
 import { DisciplineQuote } from "@/components/dashboard/discipline-quote";
 import { WaterTracker } from "@/components/health/water-tracker";
-import { todayMetrics } from "@/lib/mock-data";
+import { todayMetrics, habits } from "@/lib/mock-data";
 import { getTodayPlan } from "@/lib/thirty-day-plan";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey } from "@/lib/dates";
 import type { LoggedMeal } from "@/components/health/meal-composer";
 
 type SavedTask = { id: string; estimated: number; category: string };
+interface WeightEntry { date: string; weight: number; }
 
 export default function DashboardPage() {
   const [today, setToday] = useState<string>("ssr");
@@ -43,6 +43,12 @@ export default function DashboardPage() {
   );
   const [foodLog] = useSyncedState<LoggedMeal[]>(`health:meals:${today}`, []);
   const [waterCups] = useSyncedState<number>(`water:${today}`, 0);
+  const [steps] = useSyncedState<number>(`health:steps:${today}`, 0);
+  const [sleepHrs] = useSyncedState<number>(`health:sleep:${today}`, 0);
+  const [weightHistory] = useSyncedState<WeightEntry[]>(
+    "health:weight:history",
+    []
+  );
 
   const tiles = useMemo(() => {
     const focusMinutes = tasksList
@@ -55,12 +61,20 @@ export default function DashboardPage() {
       { calories: 0 }
     );
     const waterL = waterCups * 0.25;
+    const latestWeight =
+      weightHistory.length > 0
+        ? weightHistory[weightHistory.length - 1].weight
+        : todayMetrics.weight;
+    const tasksDone = completedIds.size;
     return {
       focusMinutes,
       calories: totals.calories,
       waterL,
+      latestWeight,
+      tasksDone,
+      tasksTotal: tasksList.length,
     };
-  }, [tasksList, completedIds, foodLog, waterCups]);
+  }, [tasksList, completedIds, foodLog, waterCups, weightHistory]);
 
   const m = todayMetrics;
   const [todayPlan, setTodayPlan] = useState<ReturnType<typeof getTodayPlan>>(null);
@@ -72,8 +86,18 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       <HeroStats />
 
-      {/* Live metric strip */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+      {/* Live metric strip — only what we can actually measure. */}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+        <MetricTile
+          icon={CheckCircle2}
+          label="Tasks"
+          value={`${tiles.tasksDone}`}
+          unit={`/${tiles.tasksTotal || "-"}`}
+          progress={
+            tiles.tasksTotal === 0 ? 0 : (tiles.tasksDone / tiles.tasksTotal) * 100
+          }
+          accent="emerald"
+        />
         <MetricTile
           icon={Timer}
           label="Focus"
@@ -101,38 +125,24 @@ export default function DashboardPage() {
         <MetricTile
           icon={Footprints}
           label="Steps"
-          value={m.steps.toLocaleString()}
-          progress={(m.steps / m.stepsTarget) * 100}
+          value={steps.toLocaleString()}
+          progress={(steps / m.stepsTarget) * 100}
           accent="emerald"
         />
         <MetricTile
           icon={Moon}
           label="Sleep"
-          value={m.sleep}
+          value={sleepHrs}
           unit="hrs"
-          progress={(m.sleep / m.sleepTarget) * 100}
+          progress={(sleepHrs / m.sleepTarget) * 100}
           accent="indigo"
         />
         <MetricTile
           icon={Activity}
           label="Weight"
-          value={m.weight}
+          value={tiles.latestWeight}
           unit="lb"
           accent="amber"
-        />
-        <MetricTile
-          icon={Smile}
-          label="Mood"
-          value={`${m.mood}/10`}
-          progress={m.mood * 10}
-          accent="violet"
-        />
-        <MetricTile
-          icon={Brain}
-          label="Energy"
-          value={`${m.energy}/10`}
-          progress={m.energy * 10}
-          accent="cyan"
         />
       </section>
 
@@ -175,7 +185,7 @@ export default function DashboardPage() {
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-white">Habits · This week</h2>
               <span className="text-[10px] uppercase tracking-[0.15em] text-slate-500">
-                6 active
+                {habits.length} active
               </span>
             </div>
             <HabitsGrid />

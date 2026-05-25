@@ -23,8 +23,6 @@ export interface UserContext {
   sleepHours: number;
   calories: number;
   caloriesTarget: number;
-  mood: number;
-  energy: number;
   goals: string[];
   patterns: string[];
 }

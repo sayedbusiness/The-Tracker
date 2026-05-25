@@ -1,8 +1,8 @@
 /**
  * APEX OS — Sayed's 60-Day Operating System (Cycle 1)
  *
- *   Day 1 = Saturday May 16, 2026
- *   Day 60 = Tuesday July 14, 2026
+ *   Day 1 = Monday May 25, 2026
+ *   Day 60 = Thursday July 23, 2026
  *
  * The file name says "thirty" for compat with all the existing imports.
  * It now generates a 60-day cycle. Old import path still works.
@@ -81,7 +81,7 @@ export interface DayPlan {
   dayNumber: number; // 1..60
   date: string; // "2026-05-16"
   weekday: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
-  fullDate: string; // "Saturday, May 16"
+  fullDate: string; // "Monday, May 25"
   weekNumber: number; // 1..9
   isWeeklyReview: boolean;
   isJummah: boolean;
@@ -542,7 +542,7 @@ export function applyOverrides(
 }
 
 // ─────────────────────────────────────────────────────────────
-// 60-DAY OVERRIDES — Day 1 = Sat May 16 → Day 60 = Tue Jul 14
+// 60-DAY OVERRIDES — Day 1 = Mon May 25 → Day 60 = Thu Jul 23
 // ─────────────────────────────────────────────────────────────
 
 const WEEKDAYS: Array<"Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"> =
@@ -658,14 +658,24 @@ function packForDay(dayNumber: number): DayPack {
   return week[dayInWeek] ?? {};
 }
 
-const START = new Date(2026, 4, 16); // May = 4 (zero-indexed)
+/**
+ * Day 1 of the cycle, in Pacific time. Anchored to noon UTC so DST + the
+ * server's UTC clock never bump the calendar over by one day.
+ */
+const START_KEY = "2026-05-25";
+const DAY_MS = 24 * 3600 * 1000;
+const START_TS = new Date(`${START_KEY}T12:00:00Z`).getTime();
 
 function makeDay(dayNumber: number): DayPlan {
-  const d = new Date(START);
-  d.setDate(d.getDate() + (dayNumber - 1));
-  const weekday = jsDayToShort(d.getDay());
+  const d = new Date(START_TS + (dayNumber - 1) * DAY_MS);
+  const weekday = jsDayToShort(
+    new Date(
+      d.toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
+    ).getDay()
+  );
   const dateStr = dateKey(d);
   const fullDate = d.toLocaleDateString("en-US", {
+    timeZone: "America/Los_Angeles",
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -704,7 +714,7 @@ export function getDayByNumber(n: number): DayPlan | null {
 }
 
 export const CYCLE_LENGTH = 60;
-export const CYCLE_RANGE = "May 16 → July 14";
+export const CYCLE_RANGE = "May 25 → July 23";
 
 export const NON_NEGOTIABLES = [
   "You don't skip Fajr. That's the floor.",

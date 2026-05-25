@@ -44,11 +44,11 @@ const suggestedPrompts = [
 
 const memoryFacts = [
   { label: "Peak window", value: "Learning…" },
-  { label: "Sleep target", value: "Set it" },
+  { label: "Sleep target", value: "8h" },
   { label: "Streak", value: `${user.streak}d` },
-  { label: "Body weight", value: "167 lb" },
+  { label: "Body weight", value: "172 lb" },
   { label: "Goal", value: "Lean & muscular" },
-  { label: "Books this year", value: "0" },
+  { label: "Speechify min", value: "0" },
 ];
 
 export default function AssistantPage() {

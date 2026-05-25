@@ -22,7 +22,7 @@ export function dateKey(d: Date): string {
   return d.toLocaleDateString("en-CA", { timeZone: APP_TZ });
 }
 
-/** "Saturday, May 16" style label in the user's timezone. */
+/** "Monday, May 25" style label in the user's timezone. */
 export function dayLabel(d: Date = new Date()): string {
   return d.toLocaleDateString("en-US", {
     timeZone: APP_TZ,
@@ -71,5 +71,5 @@ export function getGreeting(d: Date = new Date()): string {
   return "Late night grind";
 }
 
-/** "Saturday, May 16" — alias for top-bar use. */
+/** "Monday, May 25" — alias for top-bar use. */
 export const getDayLabel = dayLabel;

@@ -339,7 +339,7 @@ export default function InsightsPage() {
     const items: { time: string; text: string }[] = [
       {
         time: "Day 1",
-        text: "Sayed started APEX OS. Goal: lean and muscular. Starting weight: 167 lb. Cycle: May 16 → June 14.",
+        text: "Sayed started APEX OS. Goal: lean and muscular. Starting weight: 172 lb. Cycle: May 25 → July 23.",
       },
     ];
     if (tasksList.length > 0) {

@@ -24,8 +24,8 @@ const sections = [
     items: [
       { label: "Display name", value: user.name },
       { label: "Email", value: user.email },
-      { label: "Time zone", value: "America/Toronto" },
-      { label: "Member since", value: "Jan 15, 2024" },
+      { label: "Time zone", value: "America/Los_Angeles" },
+      { label: "Member since", value: "May 25, 2026" },
     ],
   },
   {
@@ -52,21 +52,18 @@ const sections = [
     title: "Integrations",
     icon: Database,
     items: [
-      { label: "Apple HealthKit", value: "Connected", badge: "on" },
-      { label: "Google Calendar", value: "Connected", badge: "on" },
+      { label: "Google Calendar", value: "Connect from Calendar tab" },
+      { label: "Apple HealthKit", value: "Not connected" },
       { label: "Whoop / Oura", value: "Not connected" },
-      { label: "Slack (agency)", value: "Connected", badge: "on" },
-      { label: "Notion (knowledge)", value: "Connected", badge: "on" },
+      { label: "Notion (knowledge)", value: "Not connected" },
     ],
   },
   {
     title: "Devices",
     icon: Smartphone,
     items: [
-      { label: "iPhone 16 Pro", value: "Last synced 2m ago", badge: "on" },
-      { label: "MacBook Pro M4", value: "Active now", badge: "active" },
-      { label: "iPad Pro", value: "Last synced 4h ago" },
-      { label: "Apple Watch Ultra 2", value: "Active · streaming" },
+      { label: "Cross-device sync", value: "Via Supabase", badge: "on" },
+      { label: "Local cache", value: "localStorage", badge: "on" },
     ],
   },
   {

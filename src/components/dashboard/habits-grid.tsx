@@ -19,15 +19,17 @@ const colorMap = {
 
 /** Monday-anchored week key in Pacific time so habits roll on Monday morning PT. */
 function getWeekKey(): string {
-  // Get Pacific-local year-month-day, build a date at noon UTC (avoids DST edges).
   const today = dateKey(new Date());
   const d = new Date(today + "T12:00:00Z");
-  const jsDay = Number(
-    d.toLocaleString("en-US", { timeZone: APP_TZ, weekday: "short" }) ===
-      undefined
-      ? d.getUTCDay()
-      : d.getUTCDay()
-  );
+  const weekdayShort = d.toLocaleString("en-US", {
+    timeZone: APP_TZ,
+    weekday: "short",
+  });
+  // Mon=1, Tue=2, ..., Sun=0
+  const map: Record<string, number> = {
+    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+  };
+  const jsDay = map[weekdayShort] ?? 1;
   // 0=Sun → 6 days back to Mon; 1=Mon → 0 back; ...
   const offset = jsDay === 0 ? 6 : jsDay - 1;
   d.setUTCDate(d.getUTCDate() - offset);
@@ -49,6 +51,14 @@ export function HabitsGrid() {
     { serializer: "set" }
   );
 
+  // When a habit is toggled today, also mark today as "active" so the
+  // streak / achievements pages reflect it.
+  const [activeDays, setActiveDays] = useSyncedState<Set<string>>(
+    "active-days",
+    new Set<string>(),
+    { serializer: "set" }
+  );
+
   const toggleToday = (habitId: string) => {
     const key = `${habitId}@${keys.today}`;
     setDone((prev) => {
@@ -57,6 +67,13 @@ export function HabitsGrid() {
       else next.add(key);
       return next;
     });
+    if (keys.today !== "ssr-day" && !activeDays.has(keys.today)) {
+      setActiveDays((prev) => {
+        const next = new Set(prev);
+        next.add(keys.today);
+        return next;
+      });
+    }
   };
 
   const countDoneThisWeek = (habitId: string) => {

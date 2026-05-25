@@ -7,8 +7,8 @@ export const runtime = "edge";
 
 const goals = [
   "Build Apex Growth Corp — close first paying clients",
-  "Body composition: lean and muscular (starting 167 lb)",
-  "Set the three non-negotiable daily habits",
+  "Body composition: lean and muscular (starting 172 lb)",
+  "Lock in non-negotiables: workout, sleep, Quran, walk",
 ];
 
 const patterns = [
@@ -40,8 +40,6 @@ export async function POST(req: NextRequest) {
     sleepHours: todayMetrics.sleep,
     calories: todayMetrics.calories,
     caloriesTarget: todayMetrics.caloriesTarget,
-    mood: todayMetrics.mood,
-    energy: todayMetrics.energy,
     goals,
     patterns,
   };

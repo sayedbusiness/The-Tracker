@@ -63,7 +63,6 @@ You are APEX OS — the personal operating system of ${user.name}.
 - Focus time today: ${user.focusMinutes}m / ${user.focusTarget}m target
 - Sleep last night: ${user.sleepHours}h
 - Calories: ${user.calories}/${user.caloriesTarget}
-- Mood: ${user.mood}/10 · Energy: ${user.energy}/10
 
 # Active goals
 ${user.goals.map((g) => `- ${g}`).join("\n")}

@@ -298,7 +298,7 @@ export function TodayTimeline({ plan }: { plan: DayPlan | null }) {
         </div>
         <p className="mx-auto mt-1 max-w-md text-xs text-slate-400">
           Your 60-day operating system runs{" "}
-          <b className="text-white">May 16 → July 14</b>. Today's date isn't in
+          <b className="text-white">May 25 → July 23</b>. Today's date isn't in
           that range — but you can still open any day.
         </p>
         <a

@@ -1,9 +1,8 @@
 /**
  * Day 1 starting state.
  *
- * Everything is reset. The user has just opened APEX OS for the first
- * time. Zero streaks, zero clients, zero deals, no breaches, no XP.
- * Body weight: 167 lb. Goal: lean and muscular.
+ * Cycle restart on Monday May 25, 2026. Zero streaks, zero clients, zero
+ * deals, no breaches, no XP. Body weight: 172 lb. Goal: lean and muscular.
  *
  * Charts render flat because the data points are zero — they fill in
  * as the user logs real activity.
@@ -23,7 +22,7 @@ export const user = {
   productivityScore: 0,
   focusScore: 0,
   agencyScore: 0,
-  joinedAt: "2026-05-16T00:00:00.000Z",
+  joinedAt: "2026-05-25T00:00:00.000Z",
 };
 
 export const disciplineQuotes = [
@@ -67,11 +66,11 @@ export const tasks: Task[] = [];
 
 export const habits = [
   { id: "h1", name: "Workout", icon: "💪", streak: 0, target: 6, done: 0, color: "emerald" },
-  { id: "h2", name: "Read", icon: "📚", streak: 0, target: 7, done: 0, color: "indigo" },
   { id: "h3", name: "Meditate", icon: "🧘", streak: 0, target: 7, done: 0, color: "violet" },
-  { id: "h4", name: "Cold plunge", icon: "❄️", streak: 0, target: 5, done: 0, color: "cyan" },
-  { id: "h5", name: "No alcohol", icon: "🚫", streak: 0, target: 7, done: 0, color: "rose" },
   { id: "h6", name: "Sleep 7+ hrs", icon: "😴", streak: 0, target: 7, done: 0, color: "amber" },
+  { id: "h7", name: "Speechify (30m)", icon: "🎧", streak: 0, target: 7, done: 0, color: "indigo" },
+  { id: "h8", name: "Quran", icon: "📖", streak: 0, target: 7, done: 0, color: "emerald" },
+  { id: "h9", name: "Walk (20m)", icon: "🚶", streak: 0, target: 7, done: 0, color: "cyan" },
 ];
 
 export const todayMetrics = {
@@ -80,7 +79,7 @@ export const todayMetrics = {
   focusMinutes: 0,
   focusTarget: 240,
   calories: 0,
-  caloriesTarget: 1900, // cutting target at 167 lb
+  caloriesTarget: 1950, // cutting target at 172 lb
   protein: 0,
   proteinTarget: 200, // ~1.2g/lb body weight, preserves muscle in deficit
   water: 0, // tracked in 250mL increments
@@ -89,9 +88,7 @@ export const todayMetrics = {
   stepsTarget: 10000,
   sleep: 0,
   sleepTarget: 8,
-  weight: 167,
-  mood: 0,
-  energy: 0,
+  weight: 172,
 };
 
 // Empty week — fills in as days are logged
@@ -131,7 +128,7 @@ export const aiInsights = [
     id: "i3",
     type: "win",
     title: "Body composition target — lean and muscular",
-    body: "Starting weight: 167 lb. Plan: maintain weight, drop body fat, build muscle. Macro target seeded at 180g protein, 2600 kcal. Adjust in Settings as you calibrate.",
+    body: "Starting weight: 172 lb. Plan: cut body fat, hold muscle. Macro target seeded at 200g protein, 1950 kcal. Adjust on the Health page as you calibrate.",
     confidence: 0.9,
     icon: "💪",
   },

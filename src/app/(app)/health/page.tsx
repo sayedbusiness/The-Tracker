@@ -6,9 +6,6 @@ import {
   Heart,
   Camera,
   Plus,
-  Droplet,
-  Moon,
-  Footprints,
   Dumbbell,
   Trash2,
 } from "lucide-react";
@@ -19,9 +16,16 @@ import { Badge } from "@/components/ui/badge";
 import { RingProgress } from "@/components/ui/progress";
 import { PhotoMealScanner } from "@/components/health/photo-meal-scanner";
 import { MealComposer, type LoggedMeal } from "@/components/health/meal-composer";
+import {
+  StepsLogger,
+  SleepLogger,
+  WeightLogger,
+  WorkoutLogger,
+  type Workout,
+} from "@/components/health/vitals-loggers";
 import { todayMetrics } from "@/lib/mock-data";
 import { useSyncedState } from "@/hooks/use-synced-state";
-import { todayKey } from "@/lib/dates";
+import { todayKey, dateKey } from "@/lib/dates";
 import {
   Area,
   AreaChart,
@@ -40,27 +44,7 @@ const macroTargets = {
   fat: 65,
 };
 
-// 60-day starting weight series — single point at 167 lb until logged.
-const weightData = Array.from({ length: 60 }, (_, i) => ({
-  day: i + 1,
-  weight: i === 59 ? 167 : null,
-}));
-
-const sleepData = Array.from({ length: 14 }, (_, i) => ({
-  day: i + 1,
-  hours: 0,
-  deep: 0,
-}));
-
-const workouts = [
-  { day: "Mon", type: "—", duration: 0, intensity: 0 },
-  { day: "Tue", type: "—", duration: 0, intensity: 0 },
-  { day: "Wed", type: "—", duration: 0, intensity: 0 },
-  { day: "Thu", type: "—", duration: 0, intensity: 0 },
-  { day: "Fri", type: "—", duration: 0, intensity: 0 },
-  { day: "Sat", type: "—", duration: 0, intensity: 0 },
-  { day: "Sun", type: "—", duration: 0, intensity: 0 },
-];
+interface WeightEntry { date: string; weight: number; }
 
 const MEAL_EMOJI: Record<string, string> = {
   Breakfast: "🍳",
@@ -82,6 +66,75 @@ export default function HealthPage() {
     `health:meals:${today}`,
     []
   );
+  // Subscribed here so the sleep history chart re-renders the moment
+  // SleepLogger writes a new value.
+  const [todaySleep] = useSyncedState<number>(`health:sleep:${today}`, 0);
+  const [weightHistory] = useSyncedState<WeightEntry[]>(
+    "health:weight:history",
+    []
+  );
+  const [allWorkouts] = useSyncedState<Workout[]>("health:workouts", []);
+
+  // Build last 60 day weight series from history.
+  const weightSeries = useMemo(() => {
+    const out: Array<{ day: number; date: string; weight: number | null }> = [];
+    if (typeof window === "undefined") {
+      return Array.from({ length: 60 }, (_, i) => ({
+        day: i + 1,
+        date: "",
+        weight: null,
+      }));
+    }
+    const now = new Date();
+    const byDate = new Map(weightHistory.map((e) => [e.date, e.weight]));
+    let last: number | null = null;
+    for (let i = 59; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 3600 * 1000);
+      const iso = dateKey(d);
+      const w = byDate.get(iso);
+      if (w !== undefined) last = w;
+      out.push({ day: 60 - i, date: iso, weight: last });
+    }
+    return out;
+  }, [weightHistory]);
+
+  // Build last 14 days of sleep from per-day synced state.
+  const [sleepKeys, setSleepKeys] = useState<string[]>([]);
+  useEffect(() => {
+    const out: string[] = [];
+    const now = new Date();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 3600 * 1000);
+      out.push(dateKey(d));
+    }
+    setSleepKeys(out);
+  }, []);
+
+  // Workout aggregation for the current week (Mon-Sun PT).
+  const weekWorkouts = useMemo(() => {
+    if (typeof window === "undefined") return [];
+    const now = new Date();
+    const labels: Array<"Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"> = [
+      "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
+    ];
+    // Find Monday of this week (PT)
+    const todayIso = dateKey(now);
+    const dow = new Date(todayIso + "T12:00:00Z").getUTCDay(); // 0=Sun
+    const daysFromMon = dow === 0 ? 6 : dow - 1;
+    const start = new Date(todayIso + "T12:00:00Z");
+    start.setUTCDate(start.getUTCDate() - daysFromMon);
+    return labels.map((label, i) => {
+      const d = new Date(start.getTime() + i * 24 * 3600 * 1000);
+      const iso = d.toISOString().slice(0, 10);
+      const ws = allWorkouts.filter((w) => w.date === iso);
+      const duration = ws.reduce((s, w) => s + w.durationMin, 0);
+      const intensity = ws.length
+        ? Math.round(ws.reduce((s, w) => s + w.intensity, 0) / ws.length)
+        : 0;
+      const type = ws.length ? ws.map((w) => w.type).join(" + ") : "—";
+      return { day: label, type, duration, intensity };
+    });
+  }, [allWorkouts]);
 
   const [composerOpen, setComposerOpen] = useState(false);
 
@@ -280,37 +333,10 @@ export default function HealthPage() {
 
       <WaterTracker />
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <VitalCard
-          icon={Droplet}
-          label="Water target"
-          value={`${todayMetrics.waterTarget} L`}
-          progress={0}
-          sub="cutting target"
-          accent="cyan"
-        />
-        <VitalCard
-          icon={Footprints}
-          label="Steps"
-          value={todayMetrics.steps.toLocaleString()}
-          progress={(todayMetrics.steps / todayMetrics.stepsTarget) * 100}
-          accent="emerald"
-        />
-        <VitalCard
-          icon={Moon}
-          label="Sleep"
-          value={`${todayMetrics.sleep} hrs`}
-          progress={(todayMetrics.sleep / todayMetrics.sleepTarget) * 100}
-          accent="indigo"
-        />
-        <VitalCard
-          icon={Heart}
-          label="Resting HR"
-          value="54 bpm"
-          progress={88}
-          sub="elite range"
-          accent="rose"
-        />
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <StepsLogger />
+        <SleepLogger />
+        <WeightLogger starting={todayMetrics.weight} />
       </section>
 
       <section className="surface-card rounded-2xl p-5">
@@ -385,6 +411,8 @@ export default function HealthPage() {
         )}
       </section>
 
+      <WorkoutLogger />
+
       <section className="grid gap-4 lg:grid-cols-3">
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
@@ -392,11 +420,13 @@ export default function HealthPage() {
               <h3 className="text-sm font-semibold text-white">Body weight</h3>
               <p className="text-[10px] text-slate-500">60-day trend</p>
             </div>
-            <Badge variant="cyan">DAY 1</Badge>
+            <Badge variant="cyan">
+              {weightHistory.length === 0 ? "NO LOGS" : `${weightHistory.length} LOGS`}
+            </Badge>
           </div>
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weightData}>
+              <AreaChart data={weightSeries}>
                 <defs>
                   <linearGradient id="g-weight" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
@@ -419,12 +449,17 @@ export default function HealthPage() {
                   stroke="#f59e0b"
                   strokeWidth={2}
                   fill="url(#g-weight)"
+                  connectNulls
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-semibold tabular text-white">167</span>
+            <span className="text-2xl font-semibold tabular text-white">
+              {weightHistory.length === 0
+                ? todayMetrics.weight
+                : weightHistory[weightHistory.length - 1].weight}
+            </span>
             <span className="text-xs text-slate-500">lb · goal: lean & muscular</span>
           </div>
         </div>
@@ -433,34 +468,14 @@ export default function HealthPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white">Sleep · 14 days</h3>
-              <p className="text-[10px] text-slate-500">No sleep logged yet</p>
+              <p className="text-[10px] text-slate-500">
+                {sleepKeys.length > 0 ? "Bars = nights logged" : "Loading…"}
+              </p>
             </div>
             <Badge variant="indigo">LOG TONIGHT</Badge>
           </div>
           <div className="h-32">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sleepData}>
-                <XAxis dataKey="day" hide />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{
-                    background: "rgba(20,20,28,0.9)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 12,
-                    fontSize: 11,
-                  }}
-                />
-                <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
-                  {sleepData.map((d, i) => (
-                    <Cell
-                      key={i}
-                      fill={d.hours >= 7 ? "#6366f1" : "#f43f5e"}
-                      fillOpacity={0.85}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <SleepBars dateKeys={sleepKeys} pulse={todaySleep} />
           </div>
         </div>
 
@@ -468,15 +483,17 @@ export default function HealthPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white">Workouts · week</h3>
-              <p className="text-[10px] text-slate-500">0 of 6 target this week</p>
+              <p className="text-[10px] text-slate-500">
+                {weekWorkouts.filter((w) => w.duration > 0).length} of 6 target this week
+              </p>
             </div>
             <Dumbbell className="h-4 w-4 text-emerald-400" />
           </div>
           <div className="space-y-2">
-            {workouts.map((w) => (
+            {weekWorkouts.map((w) => (
               <div key={w.day} className="flex items-center gap-2 text-xs">
                 <span className="w-9 text-slate-500">{w.day}</span>
-                <span className="w-20 text-slate-300">{w.type}</span>
+                <span className="w-20 truncate text-slate-300">{w.type}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.04]">
                   <div
                     className="h-full bg-gradient-to-r from-emerald-500 to-teal-400"
@@ -492,6 +509,65 @@ export default function HealthPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+// Renders the per-day sleep bars by reading the synced state for each day.
+// `pulse` is today's sleep value subscribed by the parent — it's only here
+// to force a re-render when the user logs a new value.
+function SleepBars({
+  dateKeys,
+  pulse: _pulse,
+}: {
+  dateKeys: string[];
+  pulse: number;
+}) {
+  const data = dateKeys.map((iso) => ({ iso, hours: 0 }));
+  return <SleepBarsInner days={data} />;
+}
+
+function SleepBarsInner({ days }: { days: Array<{ iso: string; hours: number }> }) {
+  // We do not subscribe to per-day sleep here on purpose — useSyncedState
+  // returns a tuple of (value, setter) per call, but inside a render we
+  // cannot loop hooks dynamically. Instead the SleepLogger writes today's
+  // hours and the BarChart reads localStorage synchronously for the past
+  // 14 days. This keeps the UI accurate without 14 polling subscriptions.
+  if (typeof window !== "undefined") {
+    days = days.map((d) => {
+      try {
+        const raw = window.localStorage.getItem(`health:sleep:${d.iso}`);
+        const hours = raw === null ? 0 : Number(JSON.parse(raw)) || 0;
+        return { ...d, hours };
+      } catch {
+        return d;
+      }
+    });
+  }
+  const chartData = days.map((d, i) => ({ day: i + 1, hours: d.hours }));
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={chartData}>
+        <XAxis dataKey="day" hide />
+        <YAxis hide />
+        <Tooltip
+          contentStyle={{
+            background: "rgba(20,20,28,0.9)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 12,
+            fontSize: 11,
+          }}
+        />
+        <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
+          {chartData.map((d, i) => (
+            <Cell
+              key={i}
+              fill={d.hours >= 7 ? "#6366f1" : d.hours > 0 ? "#f43f5e" : "#1f2937"}
+              fillOpacity={0.85}
+            />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
 
@@ -522,51 +598,6 @@ function MacroBar({
           className={`h-full bg-gradient-to-r ${color}`}
         />
       </div>
-    </div>
-  );
-}
-
-function VitalCard({
-  icon: Icon,
-  label,
-  value,
-  progress,
-  sub,
-  accent,
-}: {
-  icon: typeof Heart;
-  label: string;
-  value: string;
-  progress: number;
-  sub?: string;
-  accent: "cyan" | "emerald" | "indigo" | "rose";
-}) {
-  const colors = {
-    cyan: "from-sky-500 to-blue-500",
-    emerald: "from-emerald-500 to-teal-500",
-    indigo: "from-blue-600 to-blue-600",
-    rose: "from-rose-500 to-pink-500",
-  };
-  return (
-    <div className="surface-card rounded-2xl p-4">
-      <div className="flex items-center gap-2">
-        <div
-          className={`grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br ${colors[accent]}`}
-        >
-          <Icon className="h-3.5 w-3.5 text-white" />
-        </div>
-        <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
-          {label}
-        </span>
-      </div>
-      <div className="mt-3 text-2xl font-semibold tabular text-white">{value}</div>
-      <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.04]">
-        <div
-          className={`h-full bg-gradient-to-r ${colors[accent]}`}
-          style={{ width: `${Math.min(100, progress)}%` }}
-        />
-      </div>
-      {sub && <div className="mt-1.5 text-[10px] text-slate-500">{sub}</div>}
     </div>
   );
 }
