@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useSyncedState } from "@/hooks/use-synced-state";
 import { cn } from "@/lib/utils";
 
 type Category =
@@ -62,8 +62,8 @@ const SEED: Omit<WorkItem, "createdAt">[] = [
 ];
 
 export default function WorkListPage() {
-  const [items, setItems] = useLocalStorage<WorkItem[]>(
-    "apex:work-list",
+  const [items, setItems] = useSyncedState<WorkItem[]>(
+    "work:list",
     SEED.map((s) => ({ ...s, createdAt: Date.now() }))
   );
   const [newTitle, setNewTitle] = useState("");

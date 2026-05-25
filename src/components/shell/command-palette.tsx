@@ -21,6 +21,7 @@ import {
   Camera,
   Brain,
   Droplet,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -89,6 +90,13 @@ const items: Item[] = [
     label: "Add a new pipeline deal",
     href: "/agency?add=deal",
     hint: "Opens Apex Growth and starts a new deal",
+  },
+  {
+    group: "Quick action",
+    icon: Upload,
+    label: "Import leads from CSV",
+    href: "/agency?import=1",
+    hint: "HubSpot / Apollo / Sheets — drop the file",
   },
   {
     group: "Quick action",

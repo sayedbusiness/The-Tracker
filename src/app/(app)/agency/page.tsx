@@ -19,6 +19,10 @@ import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  LeadImporter,
+  type ImportedLead,
+} from "@/components/agency/lead-importer";
+import {
   agencyRevenue,
   sales,
   type PipelineStage,
@@ -114,8 +118,9 @@ export default function AgencyPage() {
     null
   );
   const [draftStage, setDraftStage] = useState<PipelineStage>("lead");
+  const [importerOpen, setImporterOpen] = useState(false);
 
-  // Auto-open composer via command palette: ?add=deal|client|campaign.
+  // Auto-open composer via command palette: ?add=deal|client|campaign or ?import=1.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -123,9 +128,13 @@ export default function AgencyPage() {
     if (add === "deal" || add === "client" || add === "campaign") {
       setComposer(add);
     }
-    if (add) {
+    if (params.get("import") === "1") {
+      setImporterOpen(true);
+    }
+    if (add || params.get("import")) {
       const url = new URL(window.location.href);
       url.searchParams.delete("add");
+      url.searchParams.delete("import");
       window.history.replaceState({}, "", url.toString());
     }
   }, []);
@@ -167,6 +176,21 @@ export default function AgencyPage() {
   const removeCampaign = (id: string) =>
     setCampaigns((prev) => prev.filter((c) => c.id !== id));
 
+  const onImportLeads = (leads: ImportedLead[]) => {
+    if (leads.length === 0) return;
+    const toDeals: Deal[] = leads.map((l) => ({
+      id: l.id,
+      company: l.company || l.contact || "Untitled lead",
+      contact: l.contact || "—",
+      value: l.value,
+      stage: l.stage,
+      probability: l.probability,
+      closeDate: l.closeDate,
+      source: l.source,
+    }));
+    setPipeline((prev) => [...toDeals, ...prev]);
+  };
+
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
       <PageHeader
@@ -181,9 +205,11 @@ export default function AgencyPage() {
         accent="emerald"
         actions={
           <>
-            <Button variant="secondary">
-              <Sparkles className="h-4 w-4" /> AI advisor
-            </Button>
+            <LeadImporter
+              onImport={onImportLeads}
+              openExternal={importerOpen}
+              onOpenChange={setImporterOpen}
+            />
             <Button
               onClick={() => {
                 setDraftStage("lead");

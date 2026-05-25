@@ -101,7 +101,7 @@ export interface DayPlan {
 const morningBlocks: Block[] = [
   {
     id: "wake",
-    time: "04:43",
+    time: "04:40",
     durationMin: 5,
     label: "Wake up",
     detail: "Phone face-down. No scrolling. Hands → bathroom → brush teeth.",
@@ -109,17 +109,17 @@ const morningBlocks: Block[] = [
   },
   {
     id: "wudu-fajr",
-    time: "04:48",
+    time: "04:45",
     durationMin: 25,
     label: "Wudu + Pray Fajr",
-    detail: "Sunnah → fard → tasbih 5 min. Iqamah 5:15am.",
+    detail: "Sunnah → fard → tasbih 5 min. Iqamah 5:00am.",
     kind: "spiritual",
     prayer: "fajr",
   },
   {
     id: "quran-am",
-    time: "05:13",
-    durationMin: 12,
+    time: "05:10",
+    durationMin: 15,
     label: "Quran — 2 pages",
     detail: "Slow, intentional. Reflect on what you read.",
     kind: "spiritual",
@@ -313,7 +313,7 @@ const eveningBlocks: Block[] = [
     time: "19:00",
     durationMin: 60,
     label: "Gym session",
-    detail: "Lift hard. Compound first. Track your top set.",
+    detail: "Bro split: Mon chest · Tue back · Wed legs · Thu shoulders · Fri arms. Track top set + protein post-lift.",
     kind: "gym",
   },
   {
@@ -507,7 +507,42 @@ export function buildDayBlocks(
   }
 
   blocks.push(...eveningBlocks);
-  return blocks.map((b) => ({ ...b, source: b.source ?? "base" })).sort((a, b) => a.time.localeCompare(b.time));
+  // Bro split — Mon Chest, Tue Back, Wed Legs, Thu Shoulders, Fri Arms.
+  const broSplit: Record<string, { label: string; detail: string }> = {
+    Mon: {
+      label: "Chest day · push",
+      detail: "Flat press top set → incline → fly. 8-12 reps, 3 working sets per move.",
+    },
+    Tue: {
+      label: "Back day · pull",
+      detail: "Deadlift or row top set → lat pulldown → row variation → face pulls.",
+    },
+    Wed: {
+      label: "Leg day",
+      detail: "Squat or hack squat top set → RDL → leg press → calf raises.",
+    },
+    Thu: {
+      label: "Shoulders",
+      detail: "OHP top set → lateral raises (high volume) → rear delts → trap shrugs.",
+    },
+    Fri: {
+      label: "Arms",
+      detail: "Biceps + triceps superset. Cable curls + pushdowns. Finish with hammer + skull crushers.",
+    },
+  };
+  const blocksWithSplit = blocks.map((b) => {
+    if (b.id !== "gym") return b;
+    const split = broSplit[weekday];
+    if (!split) return b; // Sat/Sun rest
+    return {
+      ...b,
+      label: `${split.label} · ${b.durationMin} min`,
+      detail: split.detail,
+    };
+  });
+  return blocksWithSplit
+    .map((b) => ({ ...b, source: b.source ?? "base" }))
+    .sort((a, b) => a.time.localeCompare(b.time));
 }
 
 /**

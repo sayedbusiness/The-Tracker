@@ -79,9 +79,9 @@ export const todayMetrics = {
   focusMinutes: 0,
   focusTarget: 240,
   calories: 0,
-  caloriesTarget: 1950, // cutting target at 172 lb
+  caloriesTarget: 1800, // moderate cut at 172 lb (~10.5 kcal/lb)
   protein: 0,
-  proteinTarget: 200, // ~1.2g/lb body weight, preserves muscle in deficit
+  proteinTarget: 200, // 1.16g/lb body weight, preserves muscle in deficit
   water: 0, // tracked in 250mL increments
   waterTarget: 3, // L per day
   steps: 0,
@@ -127,8 +127,8 @@ export const aiInsights = [
   {
     id: "i3",
     type: "win",
-    title: "Body composition target — lean and muscular",
-    body: "Starting weight: 172 lb. Plan: cut body fat, hold muscle. Macro target seeded at 200g protein, 1950 kcal. Adjust on the Health page as you calibrate.",
+    title: "Cut protocol — 172 → leaner",
+    body: "Moderate cut at 1,800 kcal / 200g protein. Bro split (Mon chest, Tue back, Wed legs, Thu shoulders, Fri arms). Recalibrate at the end of week 2 if scale doesn't move.",
     confidence: 0.9,
     icon: "💪",
   },
