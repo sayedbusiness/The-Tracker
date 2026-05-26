@@ -11,6 +11,9 @@ import {
   Timer,
 } from "lucide-react";
 import { HeroStats } from "@/components/dashboard/hero-stats";
+import { DailyQuests } from "@/components/dopamine/daily-quests";
+import { SummerGoals } from "@/components/dashboard/summer-goals";
+import { CallSprintCounter } from "@/components/dashboard/call-sprint-counter";
 import { MetricTile } from "@/components/dashboard/metric-tile";
 import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { AiInsights } from "@/components/dashboard/ai-insights";
@@ -85,6 +88,11 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <HeroStats />
+
+      <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+        <CallSprintCounter />
+        <SummerGoals />
+      </div>
 
       {/* Live metric strip — only what we can actually measure. */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
@@ -175,6 +183,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-6">
+          <DailyQuests />
+
           <WaterTracker />
 
           <div className="surface-card rounded-2xl p-5">

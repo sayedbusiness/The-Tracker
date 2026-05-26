@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Droplet, Plus, Minus } from "lucide-react";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey } from "@/lib/dates";
+import { useDopamine } from "@/components/dopamine/dopamine-provider";
 
 /** Track water in 250mL cups; 12 cups = 3L target for cutting. */
 const CUP_ML = 250;
@@ -18,14 +19,25 @@ export function WaterTracker({ compact = false }: { compact?: boolean }) {
   }, []);
 
   const [cups, setCups] = useSyncedState<number>(`water:${today}`, 0);
+  const { hit } = useDopamine();
+
+  const addCup = (ev?: { clientX: number; clientY: number }) => {
+    setCups((c) => c + 1);
+    hit("water", {
+      label: "+250 mL",
+      x: ev?.clientX,
+      y: ev?.clientY,
+    });
+  };
 
   // Quick-action support: the command palette dispatches apex:water-cup
   // to add one cup from anywhere in the app.
   useEffect(() => {
-    const onCup = () => setCups((c) => c + 1);
+    const onCup = () => addCup();
     window.addEventListener("apex:water-cup", onCup);
     return () => window.removeEventListener("apex:water-cup", onCup);
-  }, [setCups]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const liters = (cups * CUP_ML) / 1000;
   const pct = Math.min(100, (cups / TARGET_CUPS) * 100);
@@ -65,7 +77,14 @@ export function WaterTracker({ compact = false }: { compact?: boolean }) {
         {Array.from({ length: TARGET_CUPS }).map((_, i) => (
           <button
             key={i}
-            onClick={() => setCups(i < cups ? i : i + 1)}
+            onClick={(e) => {
+              if (i < cups) {
+                setCups(i);
+              } else {
+                setCups(i + 1);
+                hit("water", { label: "+250 mL", x: e.clientX, y: e.clientY });
+              }
+            }}
             aria-label={`Toggle cup ${i + 1}`}
             className={`aspect-square rounded-md border transition-all ${
               i < cups
@@ -85,7 +104,7 @@ export function WaterTracker({ compact = false }: { compact?: boolean }) {
           <Minus className="h-3 w-3" /> Undo
         </button>
         <button
-          onClick={() => setCups(cups + 1)}
+          onClick={(e) => addCup({ clientX: e.clientX, clientY: e.clientY })}
           className="flex flex-[2] items-center justify-center gap-1 rounded-lg bg-gradient-to-br from-sky-500 to-blue-500 py-1.5 text-xs font-medium text-white shadow-[0_4px_12px_rgba(59,130,246,0.35)] transition-all hover:shadow-[0_6px_18px_rgba(59,130,246,0.55)]"
         >
           <Plus className="h-3 w-3" /> +250 mL

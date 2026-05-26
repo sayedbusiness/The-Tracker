@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey } from "@/lib/dates";
+import { useDopamine } from "@/components/dopamine/dopamine-provider";
 
 /**
  * Manual input loggers for steps (today), sleep (last night), and
@@ -31,11 +32,24 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
 
   const pct = Math.min(100, (steps / STEP_TARGET) * 100);
 
-  const commit = () => {
+  const { hit } = useDopamine();
+
+  const commit = (ev?: React.MouseEvent) => {
     const n = Math.max(0, Math.floor(Number(draft) || 0));
     if (!Number.isFinite(n)) return;
+    const previous = steps;
     setSteps(n);
     setDraft("");
+    if (n > previous) {
+      const rect = ev?.currentTarget instanceof HTMLElement
+        ? ev.currentTarget.getBoundingClientRect()
+        : null;
+      hit("steps", {
+        label: `${n.toLocaleString()} steps`,
+        x: rect ? rect.left + rect.width / 2 : undefined,
+        y: rect ? rect.top + rect.height / 2 : undefined,
+      });
+    }
   };
 
   return (
@@ -80,7 +94,7 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
           className="flex-1 rounded-lg border border-white/[0.06] bg-black/30 px-3 py-1.5 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none"
         />
         <button
-          onClick={commit}
+          onClick={(e) => commit(e)}
           disabled={!draft}
           className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white disabled:opacity-40"
           aria-label="Save steps"
@@ -132,11 +146,21 @@ export function SleepLogger({ compact = false }: { compact?: boolean }) {
             ? "Locked in"
             : "Heavy night";
 
-  const commit = () => {
+  const { hit: hitSleep } = useDopamine();
+
+  const commit = (ev?: React.MouseEvent) => {
     const n = Math.max(0, Math.min(14, Number(draft)));
     if (!Number.isFinite(n)) return;
     setHours(Math.round(n * 10) / 10);
     setDraft("");
+    const rect = ev?.currentTarget instanceof HTMLElement
+      ? ev.currentTarget.getBoundingClientRect()
+      : null;
+    hitSleep("sleep", {
+      label: `${n}h logged`,
+      x: rect ? rect.left + rect.width / 2 : undefined,
+      y: rect ? rect.top + rect.height / 2 : undefined,
+    });
   };
 
   return (
@@ -181,7 +205,7 @@ export function SleepLogger({ compact = false }: { compact?: boolean }) {
           className="flex-1 rounded-lg border border-white/[0.06] bg-black/30 px-3 py-1.5 text-sm text-white placeholder:text-slate-500 focus:border-blue-400/40 focus:outline-none"
         />
         <button
-          onClick={commit}
+          onClick={(e) => commit(e)}
           disabled={!draft}
           className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white disabled:opacity-40"
           aria-label="Save sleep"
@@ -231,7 +255,9 @@ export function WeightLogger({
     history.length > 1 ? history[history.length - 2].weight : latest;
   const delta = latest - previous;
 
-  const commit = () => {
+  const { hit: hitWeight } = useDopamine();
+
+  const commit = (ev?: React.MouseEvent) => {
     const n = Math.max(0, Math.min(500, Number(draft)));
     if (!Number.isFinite(n) || n === 0) return;
     const rounded = Math.round(n * 10) / 10;
@@ -242,6 +268,14 @@ export function WeightLogger({
       );
     });
     setDraft("");
+    const rect = ev?.currentTarget instanceof HTMLElement
+      ? ev.currentTarget.getBoundingClientRect()
+      : null;
+    hitWeight("weight", {
+      label: `${rounded} lb logged`,
+      x: rect ? rect.left + rect.width / 2 : undefined,
+      y: rect ? rect.top + rect.height / 2 : undefined,
+    });
   };
 
   return (
@@ -312,7 +346,7 @@ export function WeightLogger({
           <Plus className="h-4 w-4" />
         </button>
         <button
-          onClick={commit}
+          onClick={(e) => commit(e)}
           disabled={!draft}
           className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white disabled:opacity-40"
           aria-label="Save weight"
@@ -351,18 +385,31 @@ export function WorkoutLogger() {
 
   const todayWorkouts = workouts.filter((w) => w.date === today);
 
-  const log = () => {
+  const { hit } = useDopamine();
+
+  const log = (ev?: React.MouseEvent) => {
     const type = draft.type.trim();
     if (!type) return;
+    const intensity = Math.min(100, Math.max(0, draft.intensity));
     const w: Workout = {
       id: `w-${Date.now()}`,
       date: today,
       type,
       durationMin: Math.max(1, draft.durationMin),
-      intensity: Math.min(100, Math.max(0, draft.intensity)),
+      intensity,
     };
     setWorkouts((prev) => [...prev, w]);
     setDraft({ type: "", durationMin: 45, intensity: 70 });
+    const rect = ev?.currentTarget instanceof HTMLElement
+      ? ev.currentTarget.getBoundingClientRect()
+      : null;
+    // Intensity scales XP — 50% intensity = base, 100% = 2x.
+    hit("workout", {
+      amount: Math.round(30 * (0.5 + intensity / 100)),
+      label: `${type} · ${w.durationMin}m`,
+      x: rect ? rect.left + rect.width / 2 : undefined,
+      y: rect ? rect.top + rect.height / 2 : undefined,
+    });
   };
 
   const remove = (id: string) =>
@@ -409,7 +456,7 @@ export function WorkoutLogger() {
           className="w-24 rounded-lg border border-white/[0.06] bg-black/30 px-2 py-1.5 text-center text-sm text-white"
         />
         <button
-          onClick={log}
+          onClick={(e) => log(e)}
           disabled={!draft.type.trim()}
           className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-40"
         >

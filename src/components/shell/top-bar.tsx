@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { user } from "@/lib/mock-data";
 import { getGreeting, getDayLabel, todayKey } from "@/lib/dates";
 import { useSyncedState } from "@/hooks/use-synced-state";
+import { XPRail } from "@/components/dopamine/xp-rail";
 
 interface Challenge {
   active: boolean;
@@ -100,6 +101,9 @@ export function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
         </button>
 
         <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <XPRail />
+          </div>
           <div className="hidden items-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 md:flex">
             <Flame className="h-3.5 w-3.5 text-amber-400" />
             <span className="text-xs font-semibold tabular text-amber-200">

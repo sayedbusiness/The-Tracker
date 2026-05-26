@@ -7,6 +7,7 @@ import { habits } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey, dateKey, APP_TZ } from "@/lib/dates";
+import { useDopamine } from "@/components/dopamine/dopamine-provider";
 
 const colorMap = {
   emerald: "from-emerald-500/20 to-emerald-500/0 border-emerald-500/30 text-emerald-300",
@@ -59,8 +60,11 @@ export function HabitsGrid() {
     { serializer: "set" }
   );
 
-  const toggleToday = (habitId: string) => {
+  const { hit } = useDopamine();
+
+  const toggleToday = (habitId: string, ev?: React.MouseEvent) => {
     const key = `${habitId}@${keys.today}`;
+    const wasDone = done.has(key);
     setDone((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
@@ -72,6 +76,16 @@ export function HabitsGrid() {
         const next = new Set(prev);
         next.add(keys.today);
         return next;
+      });
+    }
+    // XP only fires on completion, not un-completion. No regret tax.
+    if (!wasDone && ev) {
+      const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+      const habit = habits.find((h) => h.id === habitId);
+      hit("habit", {
+        label: habit?.name ?? "Habit",
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
       });
     }
   };
@@ -98,7 +112,7 @@ export function HabitsGrid() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.05 }}
             whileHover={{ y: -2 }}
-            onClick={() => toggleToday(habit.id)}
+            onClick={(e) => toggleToday(habit.id, e)}
             className={cn(
               "group relative overflow-hidden rounded-2xl border bg-gradient-to-br p-3 text-left transition-all",
               colorMap[habit.color as keyof typeof colorMap],

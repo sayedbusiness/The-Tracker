@@ -7,6 +7,7 @@ import type { Task } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey } from "@/lib/dates";
+import { useDopamine } from "@/components/dopamine/dopamine-provider";
 
 const categoryColors = {
   agency: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
@@ -67,13 +68,32 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
     [tasksList, completedIds]
   );
 
-  const toggleTask = (id: string) => {
+  const { hit } = useDopamine();
+
+  const toggleTask = (id: string, ev?: React.MouseEvent) => {
+    const wasCompleted = completedIds.has(id);
     setCompletedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+    if (!wasCompleted) {
+      const task = tasksList.find((t) => t.id === id);
+      // Difficulty + priority both scale the XP — p0 tough task gives a fat hit.
+      const diffMultiplier = (task?.difficulty ?? 3) / 3;
+      const priorityBonus = task?.priority === "p0" ? 1.5 : task?.priority === "p1" ? 1.2 : 1;
+      const xp = Math.round(12 * diffMultiplier * priorityBonus);
+      const rect = ev?.currentTarget instanceof HTMLElement
+        ? ev.currentTarget.getBoundingClientRect()
+        : null;
+      hit("task", {
+        amount: xp,
+        label: task?.title ?? "Task",
+        x: rect ? rect.left + rect.width / 2 : undefined,
+        y: rect ? rect.top + rect.height / 2 : undefined,
+      });
+    }
   };
 
   const removeTask = (id: string) => {
@@ -269,7 +289,7 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
             )}
           >
             <button
-              onClick={() => toggleTask(task.id)}
+              onClick={(e) => toggleTask(task.id, e)}
               className={cn(
                 "grid h-6 w-6 shrink-0 place-items-center rounded-lg border transition-all",
                 task.completed

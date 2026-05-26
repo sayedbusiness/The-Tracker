@@ -101,7 +101,7 @@ export interface DayPlan {
 const morningBlocks: Block[] = [
   {
     id: "wake",
-    time: "04:40",
+    time: "04:00",
     durationMin: 5,
     label: "Wake up",
     detail: "Phone face-down. No scrolling. Hands → bathroom → brush teeth.",
@@ -109,128 +109,144 @@ const morningBlocks: Block[] = [
   },
   {
     id: "wudu-fajr",
-    time: "04:45",
-    durationMin: 25,
+    time: "04:05",
+    durationMin: 35,
     label: "Wudu + Pray Fajr",
-    detail: "Sunnah → fard → tasbih 5 min. Iqamah 5:00am.",
+    detail: "Wudu by 4:18 (Fajr adhan). Sunnah → fard → tasbih 5 min. Iqamah ~4:35am.",
     kind: "spiritual",
     prayer: "fajr",
   },
   {
     id: "quran-am",
-    time: "05:10",
+    time: "04:40",
     durationMin: 15,
     label: "Quran — 2 pages",
-    detail: "Slow, intentional. Reflect on what you read.",
+    detail: "Slow, intentional. Reflect on what you read. Best brain state of the day — don't waste it.",
     kind: "spiritual",
   },
   {
     id: "win-journal",
-    time: "05:25",
+    time: "04:55",
     durationMin: 5,
     label: "Write the ONE thing that makes today a win",
-    detail: "One sentence. Pen to paper. Make it specific.",
+    detail: "One sentence. Pen to paper. Make it specific. Read it before each call sprint.",
     kind: "reflection",
   },
   {
     id: "skincare-am",
-    time: "05:30",
-    durationMin: 30,
+    time: "05:00",
+    durationMin: 15,
     label: "AM skincare routine",
     detail: "CeraVe SA cleanser → niacinamide/azelaic → BASED moisturizer → SPF.",
     kind: "skincare",
   },
   {
     id: "script-write",
-    time: "06:00",
-    durationMin: 20,
-    label: "Script write — 10× pen + paper",
-    detail: "Impact Formula generic script, written by hand. Daily reps.",
+    time: "05:15",
+    durationMin: 15,
+    label: "Script reps — 10× pen + paper",
+    detail: "Impact Formula generic script, written by hand. Daily reps. Read aloud the last 2 reps.",
     kind: "study",
   },
   {
-    id: "dress-pack",
-    time: "06:20",
-    durationMin: 15,
-    label: "Get dressed + pack bag",
-    detail: "Laptop, charger, headphones, notebook, pen, water bottle.",
-    kind: "personal",
+    id: "calls-prep",
+    time: "05:30",
+    durationMin: 10,
+    label: "Cold call prep",
+    detail: "Open dialer. Pull list. Headphones in. Niyyah. Light the lamp.",
+    kind: "agency",
+  },
+  {
+    id: "calls-sprint-1",
+    time: "05:40",
+    durationMin: 105,
+    label: "☎️ Cold call sprint 1 — East Coast prime",
+    detail: "5:40-7:25 PT = 8:40-10:25 ET. Owners answer in this window. Track every dial.",
+    kind: "agency",
   },
   {
     id: "breakfast",
-    time: "06:35",
+    time: "07:25",
     durationMin: 25,
-    label: "Breakfast",
-    detail: "Protein-heavy. Lift toward 200g daily protein target.",
+    label: "Breakfast + protein",
+    detail: "Protein-heavy. 40g minimum. Lift toward 200g daily target. Hydrate.",
     kind: "meal",
   },
 ];
 
 const schoolBlocks: Block[] = [
+  // Summer mode — school is done. This array intentionally kept named "schoolBlocks"
+  // for backwards compatibility but is now the summer weekday work block sequence.
   {
-    id: "school-commute",
-    time: "07:30",
-    durationMin: 30,
-    label: "Commute to school",
-    detail: "Voice notes or NEPQ podcast. Niyyah for the day.",
-    kind: "commute",
-    schoolDayOnly: true,
+    id: "outreach-am",
+    time: "07:50",
+    durationMin: 40,
+    label: "Outreach + follow-ups",
+    detail:
+      "DMs, warm-prospect follow-ups, calendar confirms for today's closes, LinkedIn touches.",
+    kind: "agency",
   },
   {
-    id: "school",
-    time: "08:00",
-    durationMin: 6 * 60 + 50,
-    label: "School",
-    detail: "8:00 AM – 2:50 PM. Stay engaged. Use breaks for Quran review or script reps.",
-    kind: "school",
-    schoolDayOnly: true,
+    id: "calls-sprint-2",
+    time: "08:30",
+    durationMin: 90,
+    label: "☎️ Cold call sprint 2 — central time owners",
+    detail: "8:30-10:00 PT = 11:30-1:00 ET. Texas + Chicago owners are pre-lunch. Push for sets.",
+    kind: "agency",
   },
   {
-    id: "school-lunch",
+    id: "mid-am-reset",
+    time: "10:00",
+    durationMin: 10,
+    label: "Reset — coffee + protein",
+    detail: "No phone. Don't scroll. Stretch. Re-read your win statement.",
+    kind: "personal",
+  },
+  {
+    id: "build-block",
+    time: "10:10",
+    durationMin: 80,
+    label: "Build block — AI agents · automations · GHL",
+    detail:
+      "Make.com / Zapier flows, Claude API helpers, GHL pipelines, n8n. Build the machine that calls/closes/follows-up for you.",
+    kind: "study",
+  },
+  {
+    id: "calls-sprint-3",
     time: "11:30",
-    durationMin: 30,
-    label: "Lunch at school",
-    detail: "Photo log via the Health tab. Hit at least 40g protein.",
-    kind: "meal",
-    schoolDayOnly: true,
-  },
-  {
-    id: "walk-home",
-    time: "14:50",
-    durationMin: 20,
-    label: "Walk home",
-    detail: "Decompress. No headphones — let the brain breathe.",
-    kind: "commute",
-    schoolDayOnly: true,
+    durationMin: 90,
+    label: "☎️ Cold call sprint 3 — west coast wake-up",
+    detail: "11:30-1:00 PT = SoCal/SF owners back at desks. Sacramento contractors. Local accent advantage.",
+    kind: "agency",
   },
 ];
 
 const starbucksBlocks: Block[] = [
   {
     id: "walk-starbucks",
-    time: "07:30",
-    durationMin: 30,
+    time: "07:50",
+    durationMin: 25,
     label: "Walk to Starbucks",
-    detail: "30-min walk. NEPQ podcast or silence.",
+    detail: "25-min walk. NEPQ podcast or silence. Niyyah for the day.",
     kind: "commute",
     starbucksOnly: true,
   },
   {
     id: "starbucks-block",
-    time: "08:00",
-    durationMin: 6 * 60 + 30,
-    label: "Starbucks deep-work block",
+    time: "08:15",
+    durationMin: 5 * 60,
+    label: "Starbucks lock-in block",
     detail:
-      "8:00 AM – 2:30 PM. Order drink, settle, open today's checklist. Script reps, study, cold call prep, content scripting.",
+      "8:15 AM – 1:15 PM. Cold call sprints + build block executed here. Order drink, hide phone, headphones in. Owner hours and outreach.",
     kind: "starbucks",
     starbucksOnly: true,
   },
   {
     id: "walk-from-starbucks",
-    time: "14:30",
-    durationMin: 30,
+    time: "13:15",
+    durationMin: 25,
     label: "Walk home from Starbucks",
-    detail: "Decompress. Voice notes for content ideas.",
+    detail: "Decompress. Voice notes for content ideas. Hydrate.",
     kind: "commute",
     starbucksOnly: true,
   },
@@ -238,71 +254,79 @@ const starbucksBlocks: Block[] = [
 
 const afternoonBlocks: Block[] = [
   {
-    id: "snack-reset",
-    time: "15:10",
-    durationMin: 15,
-    label: "Snack + reset",
-    detail: "Protein snack. Stretch. Get ready for the call sprint.",
+    id: "lunch",
+    time: "13:12",
+    durationMin: 25,
+    label: "Lunch + Dhuhr prep",
+    detail: "Protein + carbs. Photo log via Health tab. Don't eat at the desk — full reset.",
     kind: "meal",
   },
   {
-    id: "cold-calls",
-    time: "15:25",
-    durationMin: 75,
-    label: "Cold call sprint",
+    id: "closing-calls",
+    time: "13:37",
+    durationMin: 90,
+    label: "💼 Closing calls / Zoom",
     detail:
-      "Sacramento contractors — auto detailing, ceramic coating, roofers. Track every call: pickup yes/no · response · set yes/no.",
+      "Booked appointments + warm follow-ups. Camera on. Logical certainty frame. No discount until close.",
     kind: "agency",
-  },
-  {
-    id: "calls-notes",
-    time: "16:40",
-    durationMin: 12,
-    label: "Pipeline notes + tracker update",
-    detail: "Write down what worked. Update the CRM.",
-    kind: "agency",
-  },
-  {
-    id: "asr",
-    time: "16:52",
-    durationMin: 10,
-    label: "Pray Asr",
-    detail: "Iqamah 5:15pm.",
-    kind: "spiritual",
-    prayer: "asr",
   },
   {
     id: "content-idea",
-    time: "17:02",
+    time: "15:10",
     durationMin: 15,
     label: "Today's content idea — agency + main account",
     detail:
-      "Agency: value/results/teach. Main: motivational/entrepreneur. Outline before filming.",
+      "Agency: value/results/teach. Main: motivational/entrepreneur/AI build-in-public. Outline before filming.",
     kind: "content",
   },
   {
     id: "film-content",
-    time: "17:17",
+    time: "15:25",
     durationMin: 60,
     label: "Film: 1 agency video + 2–5 main account videos",
-    detail: "Batch session. Same outfit, multiple takes, different angles.",
+    detail: "Batch session. Same outfit, multiple takes, different angles, vertical 9:16.",
     kind: "content",
   },
   {
     id: "edit-agency",
-    time: "18:17",
+    time: "16:25",
     durationMin: 30,
     label: "Edit + post agency video",
     detail:
-      "Captions, hook in first 0.5 sec, on-beat. Post to TikTok, Instagram, Facebook, LinkedIn.",
+      "CapCut. Captions, hook in first 0.5 sec, on-beat. Post to TikTok, Instagram, Facebook, LinkedIn.",
     kind: "content",
   },
   {
-    id: "gym-prep",
-    time: "18:47",
+    id: "asr",
+    time: "16:55",
+    durationMin: 12,
+    label: "Pray Asr",
+    detail: "Summer iqama ~5:00 PM. Don't delay — it kills the afternoon sprint.",
+    kind: "spiritual",
+    prayer: "asr",
+  },
+  {
+    id: "calls-sprint-4",
+    time: "17:10",
+    durationMin: 90,
+    label: "☎️ Cold call sprint 4 — final push",
+    detail: "5:10-6:40 PT. Last-call discipline. East Coast is done but West/Central are still at desks. Close the day with reps.",
+    kind: "agency",
+  },
+  {
+    id: "calls-notes",
+    time: "18:40",
     durationMin: 13,
+    label: "Pipeline notes + CRM update",
+    detail: "Write down what worked. Update GHL. Tomorrow's hot list — pre-load 30 numbers.",
+    kind: "agency",
+  },
+  {
+    id: "gym-prep",
+    time: "18:53",
+    durationMin: 7,
     label: "Get ready for gym",
-    detail: "Shaker + pre-workout. Confirm with gym bro.",
+    detail: "Shaker + pre-workout. Confirm with gym bro. Phone on Do Not Disturb.",
     kind: "personal",
   },
 ];
@@ -311,75 +335,75 @@ const eveningBlocks: Block[] = [
   {
     id: "gym",
     time: "19:00",
-    durationMin: 60,
+    durationMin: 55,
     label: "Gym session",
     detail: "Bro split: Mon chest · Tue back · Wed legs · Thu shoulders · Fri arms. Track top set + protein post-lift.",
     kind: "gym",
   },
   {
     id: "maghrib-gym",
-    time: "20:01",
-    durationMin: 7,
+    time: "19:58",
+    durationMin: 10,
     label: "Pray Maghrib (at gym)",
-    detail: "Do not delay — narrow window. Pray before leaving the gym.",
+    detail: "Summer Maghrib ~8:00 PM. Narrow window — pray before leaving the gym.",
     kind: "spiritual",
     prayer: "maghrib",
   },
   {
     id: "walk-from-gym",
     time: "20:08",
-    durationMin: 17,
+    durationMin: 12,
     label: "Walk home from gym",
-    detail: "Cool down walk.",
+    detail: "Cool down walk. Phone face-down.",
     kind: "commute",
   },
   {
     id: "shower-pm-skin",
-    time: "20:25",
-    durationMin: 25,
+    time: "20:20",
+    durationMin: 20,
     label: "Shower + PM skincare",
     detail: "Cleanser → Differin or niacinamide → moisturizer.",
     kind: "skincare",
   },
   {
     id: "dinner",
-    time: "20:50",
+    time: "20:40",
     durationMin: 25,
     label: "Dinner",
-    detail: "Hit remaining protein for the day. Aim for 200g total.",
+    detail: "Hit remaining protein. Aim for 200g total. Stop at 1,800 kcal.",
     kind: "meal",
   },
   {
     id: "quran-pm",
-    time: "21:15",
-    durationMin: 8,
+    time: "21:05",
+    durationMin: 10,
     label: "Quran — 2 pages",
     detail: "Evening reading. Quiet, no distractions.",
     kind: "spiritual",
   },
   {
     id: "isha",
-    time: "21:23",
-    durationMin: 12,
+    time: "21:15",
+    durationMin: 15,
     label: "Pray Isha",
-    detail: "Sunnah + fard + witr. Iqamah 9:45pm.",
+    detail: "Summer iqama ~9:30 PM. Sunnah + fard + witr.",
     kind: "spiritual",
     prayer: "isha",
   },
   {
     id: "edit-main",
-    time: "21:35",
+    time: "21:30",
     durationMin: 20,
     label: "Edit + post main account videos",
-    detail: "Quick cuts. Caption. Post to TikTok + Instagram.",
+    detail: "Quick cuts. Caption. Post to TikTok + Instagram. Then phone in another room.",
     kind: "content",
   },
   {
     id: "tracker-reflect",
-    time: "21:55",
-    durationMin: 5,
-    label: "Update tracker + 5-min reflection",
-    detail: "Calls · sets · content posted · money collected. What worked? What sucked?",
+    time: "21:50",
+    durationMin: 8,
+    label: "Update tracker + reflection",
+    detail: "Calls · sets · closes · content posted · money collected. What worked? What sucked? What gets fixed tomorrow?",
     kind: "reflection",
   },
   {
@@ -387,7 +411,7 @@ const eveningBlocks: Block[] = [
     time: "22:00",
     durationMin: 0,
     label: "Lay out clothes + Fajr alarm + bed",
-    detail: "Phone face-down. Make dua. Sleep.",
+    detail: "Phone in another room. Make dua. Sleep. 6 hours is the budget — protect it.",
     kind: "sleep",
   },
 ];
@@ -403,84 +427,32 @@ export function buildDayBlocks(
   if (starbucks) {
     blocks.push(...starbucksBlocks);
   } else if (!isWeekend) {
+    // Summer hardcore — sales-push weekday blocks (formerly schoolBlocks).
     blocks.push(...schoolBlocks);
   } else {
     blocks.push({
       id: "weekend-home-work",
-      time: "07:30",
-      durationMin: 6 * 60 + 30,
-      label: "Home work session",
+      time: "08:30",
+      durationMin: 4 * 60,
+      label: "Weekend lock-in — build + recovery",
       detail:
-        "Long-form deep work — affiliate planning, study, content batch, cold call prep, journaling.",
+        "Lighter dial day. Batch content, ship automations, study, weekly review, family/personal time.",
       kind: "deep-work",
       weekendOnly: true,
     });
   }
 
-  const afternoon = afternoonBlocks.map((b) => {
-    if (b.id !== "cold-calls") return b;
-    if (plan && plan.coldCallTarget === 0) {
-      return {
-        ...b,
-        label: "Rest from dialing today",
-        detail: plan.isWeeklyReview
-          ? "No cold calls — weekly review + personal/family time. Show up for the people who got you here."
-          : "No cold calls today — recovery, batch planning, study.",
-        kind: "personal" as const,
-        durationMin: 30,
-      };
-    }
-    if (plan && typeof plan.coldCallTarget === "number") {
-      return {
-        ...b,
-        label: `Cold call sprint — ${plan.coldCallTarget} dials`,
-        detail: `${b.detail} Target: ${plan.coldCallTarget} dials. Make dua before dialing.`,
-      };
-    }
-    return b;
-  });
-  blocks.push(...afternoon);
+  blocks.push(...afternoonBlocks);
 
   blocks.push({
     id: "dhuhr",
-    time: "13:03",
+    time: "13:00",
     durationMin: 12,
     label: "Pray Dhuhr",
-    detail: "Iqamah 1:30pm. Slip away during break/lunch.",
+    detail: "Summer iqama ~1:30 PM. Pray right after sprint 3 ends.",
     kind: "spiritual",
     prayer: "dhuhr",
   });
-
-  if (plan?.studyFocus) {
-    blocks.push({
-      id: "day-study",
-      time: "18:50",
-      durationMin: 25,
-      label: "Today's study focus",
-      detail: plan.studyFocus,
-      kind: "study",
-    });
-  }
-  if (plan?.affiliateAction) {
-    blocks.push({
-      id: "day-affiliate",
-      time: "16:30",
-      durationMin: 30,
-      label: "Affiliate action",
-      detail: plan.affiliateAction,
-      kind: "affiliate",
-    });
-  }
-  if (plan?.emailTarget && plan.emailTarget > 0) {
-    blocks.push({
-      id: "day-emails",
-      time: "16:15",
-      durationMin: 25,
-      label: `Send ${plan.emailTarget} cold emails`,
-      detail: "Personalized via Instantly. Not AI spam. Track sends.",
-      kind: "agency",
-    });
-  }
 
   if (plan?.isJummah) {
     blocks.push({
@@ -507,6 +479,39 @@ export function buildDayBlocks(
   }
 
   blocks.push(...eveningBlocks);
+
+  // Distribute the day's coldCallTarget across the 4 sprint blocks. On rest
+  // days (coldCallTarget === 0) every sprint converts to a recovery block.
+  const sprintIds = new Set([
+    "calls-sprint-1",
+    "calls-sprint-2",
+    "calls-sprint-3",
+    "calls-sprint-4",
+  ]);
+  const withSprintTargets = blocks.map((b) => {
+    if (!sprintIds.has(b.id)) return b;
+    if (plan && plan.coldCallTarget === 0) {
+      return {
+        ...b,
+        label: "Rest — no dialing",
+        detail: plan.isWeeklyReview
+          ? "No cold calls — weekly review + personal/family time."
+          : "Recovery / planning / batch content. No dials today.",
+        kind: "personal" as const,
+        durationMin: 20,
+      };
+    }
+    if (plan && typeof plan.coldCallTarget === "number") {
+      const sprintNum = Number(b.id.slice(-1));
+      return {
+        ...b,
+        label: `${b.label.split(" — ")[0]} — toward ${plan.coldCallTarget} dials`,
+        detail: `${b.detail} Daily target: ${plan.coldCallTarget} dials across 4 sprints. Make dua before dialing.`,
+      };
+    }
+    return b;
+  });
+
   // Bro split — Mon Chest, Tue Back, Wed Legs, Thu Shoulders, Fri Arms.
   const broSplit: Record<string, { label: string; detail: string }> = {
     Mon: {
@@ -530,7 +535,7 @@ export function buildDayBlocks(
       detail: "Biceps + triceps superset. Cable curls + pushdowns. Finish with hammer + skull crushers.",
     },
   };
-  const blocksWithSplit = blocks.map((b) => {
+  const blocksWithSplit = withSprintTargets.map((b) => {
     if (b.id !== "gym") return b;
     const split = broSplit[weekday];
     if (!split) return b; // Sat/Sun rest
@@ -752,12 +757,14 @@ export const CYCLE_LENGTH = 60;
 export const CYCLE_RANGE = "May 25 → July 23";
 
 export const NON_NEGOTIABLES = [
-  "You don't skip Fajr. That's the floor.",
-  "You write your script every day. Even Sundays. 10 min, pen + paper.",
-  "You make dua before every cold call sprint. Niyyah straight, then dial.",
-  "You don't compare your Day 5 to someone else's Year 5.",
-  "You don't quit on Day 14 because Day 13 sucked. Standards beat motivation.",
-  "Money is a tool to serve people. Not your worth. Not your iman.",
+  "You don't skip Fajr. 4:00 AM wake, 4:18 adhan. That's the floor.",
+  "Four call sprints a day. 100+ dials minimum on weekdays. No skipping the 4th.",
+  "You make dua before every sprint. Niyyah straight, then dial.",
+  "Phone in another room from 9 PM. No scroll. 6 hours of real sleep.",
+  "Build one automation a week. AI agents > more grinding. Compound the leverage.",
   "Post content every single day. Even a bad video beats no video.",
   "You film, you edit, you post. Same day.",
+  "Money is a tool to serve people. Not your worth. Not your iman.",
+  "You don't quit on Day 14 because Day 13 sucked. Standards beat motivation.",
+  "$20k/month is the bar. 158 lb lean is the bar. Both. By July 23.",
 ];
