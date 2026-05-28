@@ -27,7 +27,6 @@ export type BlockKind =
   | "skincare"
   | "study"
   | "deep-work"
-  | "school"
   | "starbucks"
   | "commute"
   | "meal"
@@ -52,7 +51,6 @@ export interface Block {
   kind: BlockKind;
   optional?: boolean;
   starbucksOnly?: boolean;
-  schoolDayOnly?: boolean;
   weekendOnly?: boolean;
   prayer?: "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" | "jummah";
   /** Source for special blocks (calendar import, user-added, etc.). */
@@ -174,7 +172,7 @@ const morningBlocks: Block[] = [
   },
 ];
 
-const schoolBlocks: Block[] = [
+const summerWeekdayBlocks: Block[] = [
   // Summer mode — school is done. This array intentionally kept named "schoolBlocks"
   // for backwards compatibility but is now the summer weekday work block sequence.
   {
@@ -428,7 +426,7 @@ export function buildDayBlocks(
     blocks.push(...starbucksBlocks);
   } else if (!isWeekend) {
     // Summer hardcore — sales-push weekday blocks (formerly schoolBlocks).
-    blocks.push(...schoolBlocks);
+    blocks.push(...summerWeekdayBlocks);
   } else {
     blocks.push({
       id: "weekend-home-work",
