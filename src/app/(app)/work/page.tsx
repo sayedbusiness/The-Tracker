@@ -13,6 +13,10 @@ import {
   Megaphone,
   Settings as Gear,
   GraduationCap,
+  Zap,
+  Rocket,
+  Camera,
+  type LucideIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
@@ -20,12 +24,15 @@ import { useSyncedState } from "@/hooks/use-synced-state";
 import { cn } from "@/lib/utils";
 
 type Category =
+  | "setup"
+  | "cold-calls"
+  | "ghl"
+  | "automation"
+  | "training"
+  | "content"
   | "affiliate"
   | "onboarding"
   | "calls"
-  | "training"
-  | "ads"
-  | "cold-calls"
   | "hiring"
   | "other";
 
@@ -40,25 +47,54 @@ type WorkItem = {
 
 const CATEGORY_META: Record<
   Category,
-  { label: string; icon: typeof Phone; tone: string }
+  { label: string; icon: LucideIcon; tone: string }
 > = {
+  setup: { label: "Setup / foundation", icon: Rocket, tone: "from-violet-600/30 border-violet-500/30 text-violet-200" },
+  "cold-calls": { label: "Cold calls", icon: Phone, tone: "from-rose-500/30 border-rose-500/30 text-rose-200" },
+  ghl: { label: "GoHighLevel (GHL)", icon: Megaphone, tone: "from-amber-500/30 border-amber-500/30 text-amber-200" },
+  automation: { label: "Automations / AI", icon: Zap, tone: "from-cyan-500/30 border-cyan-400/30 text-cyan-200" },
+  training: { label: "Learn sales", icon: GraduationCap, tone: "from-blue-700/30 border-blue-600/30 text-blue-200" },
+  content: { label: "Content", icon: Camera, tone: "from-sky-500/30 border-sky-400/30 text-sky-200" },
   affiliate: { label: "Affiliate", icon: PlayCircle, tone: "from-blue-600/30 border-blue-500/30 text-blue-200" },
   onboarding: { label: "Client onboarding", icon: Users, tone: "from-emerald-600/30 border-emerald-500/30 text-emerald-200" },
   calls: { label: "Calls / mock calls", icon: Phone, tone: "from-sky-500/30 border-sky-400/30 text-sky-200" },
-  training: { label: "Training / learn", icon: GraduationCap, tone: "from-blue-700/30 border-blue-600/30 text-blue-200" },
-  ads: { label: "Ads / GoHighLevel", icon: Megaphone, tone: "from-amber-500/30 border-amber-500/30 text-amber-200" },
-  "cold-calls": { label: "Cold calls", icon: Phone, tone: "from-rose-500/30 border-rose-500/30 text-rose-200" },
   hiring: { label: "Hiring", icon: Users, tone: "from-blue-500/30 border-blue-400/30 text-blue-200" },
   other: { label: "Other", icon: Gear, tone: "from-slate-600/30 border-slate-500/30 text-slate-300" },
 };
 
+// Everything that has to happen to get Apex Growth off the ground. You
+// haven't taken a single cold call yet — so this is the real starting line.
 const SEED: Omit<WorkItem, "createdAt">[] = [
-  { id: "seed-1", title: "Finish affiliate marketing video", category: "affiliate", done: false },
-  { id: "seed-2", title: "Finish client onboarding", category: "onboarding", done: false },
-  { id: "seed-3", title: "Take calls / mock calls", category: "calls", done: false },
-  { id: "seed-4", title: "Learn how to actually run ads", category: "ads", done: false },
-  { id: "seed-5", title: "Set up GoHighLevel (GHL) properly", category: "ads", done: false },
-  { id: "seed-6", title: "Cold calls — daily sprint", category: "cold-calls", done: false },
+  // ── Setup / foundation ──
+  { id: "seed-niche", title: "Lock your niche + offer (who you help + the result)", category: "setup", done: false },
+  { id: "seed-script", title: "Finalize your cold-call script (Impact Formula / NEPQ)", category: "setup", done: false },
+  { id: "seed-list", title: "Build your first lead list — 200+ local business owners + numbers", category: "setup", done: false },
+  { id: "seed-dialer", title: "Set up a dialer + a business phone number", category: "setup", done: false },
+  { id: "seed-calendar", title: "Set up your booking calendar (Calendly / GHL calendar)", category: "setup", done: false },
+  // ── Cold calls ──
+  { id: "seed-firstcall", title: "🔥 Make your FIRST 10 cold calls (just start — break the seal)", category: "cold-calls", done: false },
+  { id: "seed-cc-daily", title: "Cold call sprint — daily reps (build toward 100+/day)", category: "cold-calls", done: false },
+  { id: "seed-cc-record", title: "Record your calls + review 1 every day for mistakes", category: "cold-calls", done: false },
+  { id: "seed-cc-book", title: "Book your first discovery / closing call", category: "cold-calls", done: false },
+  // ── GoHighLevel ──
+  { id: "seed-ghl-buy", title: "Buy GoHighLevel (start the trial / pick a plan)", category: "ghl", done: false },
+  { id: "seed-ghl-learn", title: "Learn GHL — watch the onboarding + 3 tutorials", category: "ghl", done: false },
+  { id: "seed-ghl-pipeline", title: "Build your GHL pipeline + lead stages", category: "ghl", done: false },
+  { id: "seed-ghl-snapshot", title: "Set up a client snapshot you can deploy fast", category: "ghl", done: false },
+  // ── Automations ──
+  { id: "seed-auto-mct", title: "Build missed-call text-back automation in GHL", category: "automation", done: false },
+  { id: "seed-auto-followup", title: "Build a follow-up / nurture sequence (SMS + email)", category: "automation", done: false },
+  { id: "seed-auto-make", title: "Connect Make.com / Zapier to auto-add leads to the CRM", category: "automation", done: false },
+  { id: "seed-auto-ai", title: "Build an AI booking/qualifying agent (Claude API)", category: "automation", done: false },
+  // ── Learn sales ──
+  { id: "seed-learn-nepq", title: "Study NEPQ / Jeremy Miner — 1 video + notes", category: "training", done: false },
+  { id: "seed-learn-objections", title: "Drill objection handling — write a reframe for your top 5", category: "training", done: false },
+  { id: "seed-learn-roleplay", title: "Roleplay a mock call (record + review)", category: "training", done: false },
+  // ── Content + affiliate ──
+  { id: "seed-content-daily", title: "Post 1 agency + main-account video (film, edit, post same day)", category: "content", done: false },
+  { id: "seed-affiliate", title: "Finish + post the affiliate marketing video", category: "affiliate", done: false },
+  // ── Clients ──
+  { id: "seed-onboarding", title: "Build your client onboarding flow (form + welcome + access)", category: "onboarding", done: false },
 ];
 
 export default function WorkListPage() {

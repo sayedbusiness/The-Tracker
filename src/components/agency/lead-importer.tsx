@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Upload, X, Check, FileText, ChevronDown } from "lucide-react";
+import { Upload, X, Check, FileText, ChevronDown, DollarSign } from "lucide-react";
 import type { PipelineStage } from "@/lib/mock-data";
 
 /**
@@ -159,12 +159,23 @@ export function LeadImporter({
     closeDate: null,
     source: null,
   });
+  // Which rows (by index) are selected for import. Defaults to all.
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  // Per-row manual value override (keyed by row index).
+  const [valueOverrides, setValueOverrides] = useState<Record<number, number>>(
+    {}
+  );
+  // The "$ per lead" input used by the bulk "apply to selected" action.
+  const [bulkValue, setBulkValue] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setFilename("");
     setHeaders([]);
     setRows([]);
+    setSelected(new Set());
+    setValueOverrides({});
+    setBulkValue("");
     setMapping({
       company: null,
       contact: null,
@@ -198,6 +209,10 @@ export function LeadImporter({
       if (field && m[field] === null) m[field] = idx;
     });
     setMapping(m);
+    // Select every row by default + clear any prior value edits.
+    setSelected(new Set(rest.map((_, i) => i)));
+    setValueOverrides({});
+    setBulkValue("");
   };
 
   const onDrop = useCallback((e: React.DragEvent) => {
@@ -212,16 +227,58 @@ export function LeadImporter({
     if (file) ingestFile(file);
   };
 
-  const preview = useMemo<ImportedLead[]>(() => {
+  // All leads from the file, with any manual per-row value override applied.
+  const leads = useMemo<ImportedLead[]>(() => {
     if (rows.length === 0) return [];
-    return rows.slice(0, 5).map((r, i) => buildLead(r, mapping, i));
-  }, [rows, mapping]);
+    return rows.map((r, i) => {
+      const lead = buildLead(r, mapping, i);
+      const override = valueOverrides[i];
+      return override === undefined ? lead : { ...lead, value: override };
+    });
+  }, [rows, mapping, valueOverrides]);
+
+  const allSelected = rows.length > 0 && selected.size === rows.length;
+  const selectedCount = selected.size;
+  const selectedValueTotal = leads.reduce(
+    (sum, l, i) => (selected.has(i) ? sum + l.value : sum),
+    0
+  );
+
+  const toggleRow = (i: number) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+
+  const toggleSelectAll = () =>
+    setSelected((prev) =>
+      prev.size === rows.length ? new Set() : new Set(rows.map((_, i) => i))
+    );
+
+  const setRowValue = (i: number, raw: string) => {
+    const n = Math.max(0, Math.round(Number(raw.replace(/[^\d.]/g, "")) || 0));
+    setValueOverrides((prev) => ({ ...prev, [i]: n }));
+  };
+
+  // Apply the bulk "$ per lead" value to every currently-selected row.
+  const applyBulkValue = () => {
+    const n = Math.max(0, Math.round(Number(bulkValue.replace(/[^\d.]/g, "")) || 0));
+    setValueOverrides((prev) => {
+      const next = { ...prev };
+      selected.forEach((i) => {
+        next[i] = n;
+      });
+      return next;
+    });
+  };
 
   const importAll = () => {
-    const all = rows.map((r, i) => buildLead(r, mapping, i));
-    // Only import rows that have at least one of company / contact filled.
-    const cleaned = all.filter(
-      (l) => l.company.trim() !== "" || l.contact.trim() !== ""
+    // Only import selected rows that have at least one of company / contact.
+    const cleaned = leads.filter(
+      (l, i) =>
+        selected.has(i) && (l.company.trim() !== "" || l.contact.trim() !== "")
     );
     onImport(cleaned);
     setOpen(false);
@@ -332,45 +389,120 @@ export function LeadImporter({
                   )}
                 </div>
 
-                <div>
-                  <div className="mb-1.5 text-[10px] uppercase tracking-wider text-slate-500">
-                    Preview · first 5 rows
+                {/* Bulk value assignment — set how much each lead is worth */}
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3">
+                  <DollarSign className="h-4 w-4 shrink-0 text-emerald-300" />
+                  <div className="text-xs font-medium text-emerald-100">
+                    Set value per lead
                   </div>
-                  <div className="overflow-x-auto rounded-xl border border-white/[0.05] bg-black/30">
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      value={bulkValue}
+                      onChange={(e) => setBulkValue(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && applyBulkValue()}
+                      placeholder="e.g. 1500"
+                      className="w-28 rounded-lg border border-white/[0.08] bg-black/40 py-1.5 pl-6 pr-2 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none"
+                    />
+                  </div>
+                  <button
+                    onClick={applyBulkValue}
+                    disabled={selectedCount === 0 || bulkValue.trim() === ""}
+                    className="rounded-lg bg-emerald-500/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-40"
+                  >
+                    Apply to {selectedCount} selected
+                  </button>
+                  <span className="ml-auto text-[11px] text-slate-400">
+                    Pipeline total:{" "}
+                    <b className="tabular text-emerald-300">
+                      ${selectedValueTotal.toLocaleString()}
+                    </b>
+                  </span>
+                </div>
+
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-500">
+                      {rows.length} row{rows.length === 1 ? "" : "s"} · tick to
+                      include · tap a value to edit it
+                    </div>
+                    <button
+                      onClick={toggleSelectAll}
+                      className="text-[11px] font-medium text-emerald-300 hover:text-emerald-200"
+                    >
+                      {allSelected ? "Deselect all" : "Select all"}
+                    </button>
+                  </div>
+                  <div className="max-h-72 overflow-auto rounded-xl border border-white/[0.05] bg-black/30">
                     <table className="min-w-full text-xs">
-                      <thead>
+                      <thead className="sticky top-0 bg-slate-950/95 backdrop-blur">
                         <tr className="border-b border-white/[0.06] text-slate-500">
+                          <th className="px-2 py-2 text-center">
+                            <input
+                              type="checkbox"
+                              checked={allSelected}
+                              onChange={toggleSelectAll}
+                              className="h-3.5 w-3.5 accent-emerald-500"
+                              aria-label="Select all leads"
+                            />
+                          </th>
                           <th className="px-3 py-2 text-left">Company</th>
                           <th className="px-3 py-2 text-left">Contact</th>
-                          <th className="px-3 py-2 text-right">Value</th>
+                          <th className="px-3 py-2 text-right">Value ($)</th>
                           <th className="px-3 py-2 text-left">Stage</th>
-                          <th className="px-3 py-2 text-left">Source</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {preview.map((p, i) => (
-                          <tr key={i} className="border-b border-white/[0.03]">
-                            <td className="px-3 py-1.5 font-medium text-white">
-                              {p.company || "—"}
-                            </td>
-                            <td className="px-3 py-1.5 text-slate-300">
-                              {p.contact || "—"}
-                            </td>
-                            <td className="px-3 py-1.5 text-right tabular text-emerald-300">
-                              {p.value > 0 ? `$${p.value.toLocaleString()}` : "—"}
-                            </td>
-                            <td className="px-3 py-1.5 text-slate-300">{p.stage}</td>
-                            <td className="px-3 py-1.5 text-slate-400">
-                              {p.source || "—"}
-                            </td>
-                          </tr>
-                        ))}
+                        {leads.map((p, i) => {
+                          const isSel = selected.has(i);
+                          return (
+                            <tr
+                              key={i}
+                              className={`border-b border-white/[0.03] ${
+                                isSel ? "" : "opacity-40"
+                              }`}
+                            >
+                              <td className="px-2 py-1.5 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={isSel}
+                                  onChange={() => toggleRow(i)}
+                                  className="h-3.5 w-3.5 accent-emerald-500"
+                                  aria-label={`Select ${p.company || p.contact || "row"}`}
+                                />
+                              </td>
+                              <td className="px-3 py-1.5 font-medium text-white">
+                                {p.company || "—"}
+                              </td>
+                              <td className="px-3 py-1.5 text-slate-300">
+                                {p.contact || "—"}
+                              </td>
+                              <td className="px-2 py-1.5 text-right">
+                                <input
+                                  type="number"
+                                  inputMode="numeric"
+                                  min={0}
+                                  value={p.value || ""}
+                                  onChange={(e) => setRowValue(i, e.target.value)}
+                                  placeholder="0"
+                                  className="w-20 rounded-md border border-white/[0.06] bg-black/40 px-2 py-1 text-right tabular text-emerald-300 placeholder:text-slate-600 focus:border-emerald-400/40 focus:outline-none"
+                                />
+                              </td>
+                              <td className="px-3 py-1.5 text-slate-300">{p.stage}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-1">
+                <div className="flex items-center justify-end gap-2 pt-1">
                   <button
                     onClick={() => {
                       setOpen(false);
@@ -382,11 +514,14 @@ export function LeadImporter({
                   </button>
                   <button
                     onClick={importAll}
-                    disabled={mapping.company === null && mapping.contact === null}
+                    disabled={
+                      selectedCount === 0 ||
+                      (mapping.company === null && mapping.contact === null)
+                    }
                     className="flex items-center gap-1.5 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_4px_12px_rgba(16,185,129,0.4)] disabled:opacity-40"
                   >
-                    <Check className="h-3.5 w-3.5" /> Import {rows.length} lead
-                    {rows.length === 1 ? "" : "s"}
+                    <Check className="h-3.5 w-3.5" /> Import {selectedCount} lead
+                    {selectedCount === 1 ? "" : "s"}
                   </button>
                 </div>
               </div>

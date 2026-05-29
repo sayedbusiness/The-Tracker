@@ -11,6 +11,7 @@ import {
   Timer,
 } from "lucide-react";
 import { HeroStats } from "@/components/dashboard/hero-stats";
+import { NextUp } from "@/components/dashboard/next-up";
 import { DailyQuests } from "@/components/dopamine/daily-quests";
 import { SummerGoals } from "@/components/dashboard/summer-goals";
 import { CallSprintCounter } from "@/components/dashboard/call-sprint-counter";
@@ -87,6 +88,8 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
+      <NextUp />
+
       <HeroStats />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">

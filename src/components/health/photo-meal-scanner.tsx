@@ -132,7 +132,7 @@ export function PhotoMealScanner({
                     <Sparkles className="h-3.5 w-3.5 text-white" />
                   </div>
                   <span className="text-sm font-semibold text-white">
-                    Meal vision · Gemini 2.5
+                    Meal Vision
                   </span>
                 </div>
                 <button

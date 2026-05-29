@@ -18,9 +18,14 @@ import {
   Trophy,
   Settings,
   Command,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { user } from "@/lib/mock-data";
+import { usePending } from "@/components/notifications/pending-provider";
+import { useAuth } from "@/lib/auth/use-auth";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import type { Profile } from "@/lib/auth/types";
 
 const nav = [
   { href: "/", label: "Today", icon: LayoutDashboard, hint: "G D" },
@@ -37,8 +42,24 @@ const nav = [
   { href: "/achievements", label: "Achievements", icon: Trophy, hint: "G V" },
 ];
 
+const SECTION_FOR_HREF: Record<string, "today" | "tasks" | "work" | "health" | "plan"> = {
+  "/": "today",
+  "/tasks": "tasks",
+  "/work": "work",
+  "/health": "health",
+  "/plan": "plan",
+};
+
 export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
   const pathname = usePathname();
+  const { sectionCounts } = usePending();
+  const { user: authUser, signedIn, signOut } = useAuth();
+  const [profile] = useSyncedState<Profile>("profile", {});
+
+  const countFor = (href: string) => {
+    const section = SECTION_FOR_HREF[href];
+    return section ? sectionCounts[section] : 0;
+  };
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col border-r border-white/[0.05] bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-2xl lg:flex">
@@ -102,9 +123,15 @@ export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
                 )}
               />
               <span className="relative flex-1">{item.label}</span>
-              <kbd className="relative hidden font-mono text-[9px] text-slate-600 group-hover:text-slate-400 xl:inline">
-                {item.hint}
-              </kbd>
+              {countFor(item.href) > 0 ? (
+                <span className="relative grid min-h-[16px] min-w-[16px] place-items-center rounded-full bg-rose-500/90 px-1 text-[9px] font-black text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]">
+                  {countFor(item.href)}
+                </span>
+              ) : (
+                <kbd className="relative hidden font-mono text-[9px] text-slate-600 group-hover:text-slate-400 xl:inline">
+                  {item.hint}
+                </kbd>
+              )}
             </Link>
           );
         })}
@@ -121,10 +148,12 @@ export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
               {user.level}
             </div>
           </div>
-          <div className="flex-1 leading-tight">
-            <div className="text-xs font-semibold text-white">{user.name}</div>
-            <div className="text-[10px] text-slate-500">
-              {user.xp.toLocaleString()} / {user.xpToNext.toLocaleString()} XP
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="truncate text-xs font-semibold text-white">
+              {profile.name?.trim() || user.name}
+            </div>
+            <div className="truncate text-[10px] text-slate-500">
+              {signedIn ? authUser?.email : `${user.xp.toLocaleString()} / ${user.xpToNext.toLocaleString()} XP`}
             </div>
           </div>
         </div>
@@ -136,13 +165,24 @@ export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
             className="h-full bg-gradient-to-r from-blue-600 to-sky-400"
           />
         </div>
-        <Link
-          href="/settings"
-          className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-white/[0.05] py-1.5 text-[10px] uppercase tracking-[0.15em] text-slate-400 transition-colors hover:bg-white/[0.04] hover:text-slate-200"
-        >
-          <Settings className="h-3 w-3" />
-          Settings
-        </Link>
+        <div className="mt-3 flex items-center gap-1.5">
+          <Link
+            href="/settings"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.05] py-1.5 text-[10px] uppercase tracking-[0.15em] text-slate-400 transition-colors hover:bg-white/[0.04] hover:text-slate-200"
+          >
+            <Settings className="h-3 w-3" />
+            Settings
+          </Link>
+          {signedIn && (
+            <button
+              onClick={signOut}
+              aria-label="Sign out"
+              className="grid h-7 w-9 place-items-center rounded-lg border border-white/[0.05] text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-rose-300"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
     </aside>
   );

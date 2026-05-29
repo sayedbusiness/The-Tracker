@@ -9,10 +9,16 @@ import {
   Plus,
   Minus,
   Check,
+  Activity,
+  Car,
+  PersonStanding,
+  Play,
+  Square,
 } from "lucide-react";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey } from "@/lib/dates";
 import { useDopamine } from "@/components/dopamine/dopamine-provider";
+import { useStepTracker, type Activity as MotionActivity } from "@/hooks/use-step-tracker";
 
 /**
  * Manual input loggers for steps (today), sleep (last night), and
@@ -22,6 +28,17 @@ import { useDopamine } from "@/components/dopamine/dopamine-provider";
 const STEP_TARGET = 10000;
 const SLEEP_TARGET = 8;
 
+const ACTIVITY_META: Record<
+  MotionActivity,
+  { label: string; icon: typeof Footprints; tone: string }
+> = {
+  walking: { label: "Walking", icon: Footprints, tone: "text-emerald-300 bg-emerald-500/15 border-emerald-500/30" },
+  running: { label: "Running", icon: Activity, tone: "text-rose-300 bg-rose-500/15 border-rose-500/30" },
+  vehicle: { label: "In a vehicle", icon: Car, tone: "text-amber-300 bg-amber-500/15 border-amber-500/30" },
+  still: { label: "Still", icon: PersonStanding, tone: "text-slate-300 bg-white/[0.04] border-white/10" },
+  unknown: { label: "Reading…", icon: PersonStanding, tone: "text-slate-400 bg-white/[0.04] border-white/10" },
+};
+
 export function StepsLogger({ compact = false }: { compact?: boolean }) {
   const [today, setToday] = useState<string>("ssr");
   useEffect(() => {
@@ -29,6 +46,12 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
   }, []);
   const [steps, setSteps] = useSyncedState<number>(`health:steps:${today}`, 0);
   const [draft, setDraft] = useState<string>("");
+
+  // Auto step tracking — counts steps from the accelerometer and only
+  // commits them while walking/running (never in a car).
+  const tracker = useStepTracker({
+    onSteps: (delta) => setSteps((s) => s + delta),
+  });
 
   const pct = Math.min(100, (steps / STEP_TARGET) * 100);
 
@@ -83,6 +106,64 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
         />
       </div>
 
+      {/* Auto-tracking — accelerometer pedometer + activity detection */}
+      {tracker.supported ? (
+        <div className="mb-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            {tracker.running ? (
+              <ActivityPill activity={tracker.activity} />
+            ) : (
+              <div className="flex items-center gap-1.5 text-xs text-slate-300">
+                <Activity className="h-3.5 w-3.5 text-emerald-400" />
+                Auto-track steps
+              </div>
+            )}
+            <button
+              onClick={() => (tracker.running ? tracker.stop() : tracker.start())}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                tracker.running
+                  ? "border border-rose-500/30 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20"
+                  : "bg-gradient-to-br from-emerald-500 to-teal-500 text-white"
+              }`}
+            >
+              {tracker.running ? (
+                <>
+                  <Square className="h-3 w-3" /> Stop
+                </>
+              ) : (
+                <>
+                  <Play className="h-3 w-3" /> Start
+                </>
+              )}
+            </button>
+          </div>
+          {tracker.running && (
+            <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+              <span>
+                {tracker.cadence > 0 ? `${tracker.cadence} steps/min` : "Detecting…"}
+              </span>
+              <span className="tabular text-emerald-300">
+                +{tracker.sessionSteps.toLocaleString()} this session
+              </span>
+            </div>
+          )}
+          {tracker.running && tracker.noSignal && (
+            <div className="mt-1.5 text-[10px] text-amber-300/80">
+              No motion detected on this device — log manually below.
+            </div>
+          )}
+          {tracker.permission === "denied" && (
+            <div className="mt-1.5 text-[10px] text-rose-300/80">
+              Motion access denied. Enable it in your browser/site settings, then Start again.
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mb-3 text-[10px] text-slate-500">
+          Auto-tracking runs on a phone with a motion sensor. On desktop, log manually below.
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -122,6 +203,19 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
     </div>
+  );
+}
+
+function ActivityPill({ activity }: { activity: MotionActivity }) {
+  const meta = ACTIVITY_META[activity];
+  const Icon = meta.icon;
+  return (
+    <span
+      className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${meta.tone}`}
+    >
+      <Icon className="h-3 w-3" />
+      {meta.label}
+    </span>
   );
 }
 

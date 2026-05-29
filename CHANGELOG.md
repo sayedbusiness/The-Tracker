@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Accounts, addiction loop, auto step tracking & notifications
+- **Multi-user accounts**: email/password **login + register** pages backed
+  by Supabase Auth, with a local-account fallback when Supabase isn't
+  configured. All synced state is now namespaced per user (`apex:u:<uid>:…`).
+- **Onboarding questionnaire**: after registering, a multi-step flow captures
+  name, age, business type/stage, goals, income target, work style, daily
+  structure, body stats, experience and motivations — stored as a per-user
+  `profile` and used to personalize the app.
+- **Addiction / retention engine**: a daily **mystery-box reward** (variable
+  reinforcement) that extends your streak, **loss-aversion** streak framing,
+  a dashboard **"Next up"** card that always surfaces the most important open
+  action, and red-dot **counts** across the sidebar + mobile nav.
+- **Live notifications**: a notification center (the top-bar bell) listing
+  everything still open today, plus opt-in **browser reminders** that nudge
+  you about the top item (quiet hours 10 PM–6 AM).
+- **Automatic step tracking**: accelerometer pedometer that classifies
+  **still / walking / running / vehicle** and only counts real walking/running
+  steps — no manual logging.
+
+### Changed
+- **60-day plan** reframed for **home or Starbucks** (school removed),
+  emphasizing first cold calls, buying/learning GHL, building automations and
+  daily sales study. The Work list now seeds the full startup queue, and the
+  Tasks page has a one-tap **starter pack**.
+- **Lead import** now lets you set a **value per lead**, **select all**, and
+  **apply a value to all selected** before importing.
+- Meal photo scanner relabeled to **"Meal Vision"** (model name removed from
+  the UI).
+
 ### Planned for v0.2 — Live data
 - Supabase auth (email magic link + Apple/Google OAuth)
 - Row-level security policies for every Prisma model

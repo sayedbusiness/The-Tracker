@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Search, Zap, Flame } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, Zap, Flame } from "lucide-react";
 import { user } from "@/lib/mock-data";
 import { getGreeting, getDayLabel, todayKey } from "@/lib/dates";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { XPRail } from "@/components/dopamine/xp-rail";
+import { NotificationCenter } from "@/components/notifications/notification-center";
+import type { Profile } from "@/lib/auth/types";
 
 interface Challenge {
   active: boolean;
@@ -28,6 +29,9 @@ export function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
     setDayLabel(getDayLabel());
     setToday(todayKey());
   }, []);
+
+  const [profile] = useSyncedState<Profile>("profile", {});
+  const displayName = profile.name?.trim() || user.name;
 
   // Live streak from activeDays + live discipline from challenges/breaches.
   const [activeDays] = useSyncedState<Set<string>>(
@@ -82,7 +86,7 @@ export function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             {dayLabel ?? " "}
           </div>
           <div className="text-sm font-medium text-slate-200">
-            {greeting ? `${greeting}, ${user.name}.` : " "}
+            {greeting ? `${greeting}, ${displayName}.` : " "}
           </div>
         </div>
 
@@ -116,10 +120,7 @@ export function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
               {discipline}
             </span>
           </div>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-4 w-4" />
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-rose-500 ring-2 ring-black" />
-          </Button>
+          <NotificationCenter />
         </div>
       </div>
     </header>

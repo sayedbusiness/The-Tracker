@@ -7,11 +7,14 @@ import { MobileNav } from "./mobile-nav";
 import { CommandPalette } from "./command-palette";
 import { AiHelperFab } from "./ai-helper-fab";
 import { DopamineProvider } from "@/components/dopamine/dopamine-provider";
+import { PendingProvider } from "@/components/notifications/pending-provider";
+import { DailyReward } from "@/components/dopamine/daily-reward";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
   return (
     <DopamineProvider>
+      <PendingProvider>
       <div className="flex min-h-screen">
         <Sidebar onOpenCommand={() => setCmdOpen(true)} />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -29,7 +32,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <MobileNav />
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
         <AiHelperFab />
+        <DailyReward />
       </div>
+      </PendingProvider>
     </DopamineProvider>
   );
 }

@@ -2,27 +2,32 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Password gate. APEX_PASSWORD env var on the server controls access.
+ * Route gate with three modes, auto-selected from env:
  *
- * - If APEX_PASSWORD is unset → open mode (dev / local). Useful when
- *   running locally without setting up auth.
- * - If APEX_PASSWORD is set → cookie `apex-auth` must contain its
- *   sha256(password) hash to reach any page. Otherwise redirect to /login.
+ *  1. supabase — NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY set.
+ *     Real multi-user accounts. Requires the `apex-uid` cookie (set by the
+ *     client after Supabase sign-in). No cookie → redirect to /login.
  *
- * The hash never leaves the server. The browser only ever sees the
- * opaque digest in an HttpOnly cookie set by /api/login.
+ *  2. password — only APEX_PASSWORD set. Legacy single shared password.
+ *     Requires the `apex-auth` cookie (sha256 of the password) set by
+ *     /api/login. No/!match → redirect to /login.
+ *
+ *  3. open — nothing set. No gate (local/dev). The app still runs and the
+ *     login/register pages work against local accounts.
  */
 export async function middleware(req: NextRequest) {
+  const supabaseConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+  );
   const password = process.env.APEX_PASSWORD;
-  // Dev / unconfigured: no gate
-  if (!password) return NextResponse.next();
-
   const path = req.nextUrl.pathname;
 
-  // Always allow login page, login API, manifest, icons, static assets
+  // Always-allowed paths (auth screens, all APIs, static assets, manifest).
   if (
     path === "/login" ||
-    path.startsWith("/api/login") ||
+    path === "/register" ||
+    path.startsWith("/api/") ||
     path === "/manifest.webmanifest" ||
     path === "/icon.svg" ||
     path === "/apple-icon" ||
@@ -32,13 +37,24 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const cookie = req.cookies.get("apex-auth")?.value;
-  const expected = await sha256(password);
-
-  if (cookie && cookie === expected) {
-    return NextResponse.next();
+  if (supabaseConfigured) {
+    const uid = req.cookies.get("apex-uid")?.value;
+    if (uid) return NextResponse.next();
+    return redirectToLogin(req, path);
   }
 
+  if (password) {
+    const cookie = req.cookies.get("apex-auth")?.value;
+    const expected = await sha256(password);
+    if (cookie && cookie === expected) return NextResponse.next();
+    return redirectToLogin(req, path);
+  }
+
+  // Open mode — no gate.
+  return NextResponse.next();
+}
+
+function redirectToLogin(req: NextRequest, path: string) {
   const loginUrl = new URL("/login", req.url);
   if (path !== "/") loginUrl.searchParams.set("next", path);
   return NextResponse.redirect(loginUrl);

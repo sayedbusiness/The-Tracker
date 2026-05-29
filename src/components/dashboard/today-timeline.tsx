@@ -349,11 +349,7 @@ export function TodayTimeline({ plan }: { plan: DayPlan | null }) {
             <Plus className="h-3.5 w-3.5" />
             Add block
           </button>
-          <StarbucksToggle
-            starbucks={starbucks}
-            onChange={setStarbucks}
-            weekday={plan.weekday}
-          />
+          <StarbucksToggle starbucks={starbucks} onChange={setStarbucks} />
         </div>
       </div>
 
@@ -763,13 +759,10 @@ function Callout({
 function StarbucksToggle({
   starbucks,
   onChange,
-  weekday,
 }: {
   starbucks: boolean;
   onChange: (v: boolean) => void;
-  weekday: string;
 }) {
-  const isWeekend = weekday === "Sat" || weekday === "Sun";
   return (
     <div className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
       <button
@@ -781,8 +774,8 @@ function StarbucksToggle({
             : "text-slate-400 hover:text-white"
         )}
       >
-        {isWeekend ? <Home className="h-3.5 w-3.5" /> : <GraduationCap className="h-3.5 w-3.5" />}
-        {isWeekend ? "Home" : "School"}
+        <Home className="h-3.5 w-3.5" />
+        Home
       </button>
       <button
         onClick={() => onChange(true)}

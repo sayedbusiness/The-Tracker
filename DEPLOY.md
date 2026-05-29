@@ -60,6 +60,70 @@ you made it.
 
 ---
 
+## 👤 Turning on accounts (login + register, multi-user)
+
+The app supports real email/password accounts so anyone can sign up and
+get their own private data. It auto-detects which mode to run in:
+
+| Mode | When it's used | What the user sees |
+|------|----------------|--------------------|
+| **Accounts** | `NEXT_PUBLIC_SUPABASE_URL` **and** `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set | A real login + register screen. After signing up they answer a short personalization questionnaire. Each account's data is private. |
+| **Password** | Only `APEX_PASSWORD` is set | The single shared-password gate (legacy). |
+| **Open** | Neither is set | No gate. The login/register screens still work, backed by local (device-only) accounts — handy for demos. |
+
+**To enable real accounts (5 min, free):**
+
+1. In Supabase → **Project Settings → API**, copy the **anon / public**
+   key (this one is safe in client code).
+2. In Vercel → **Settings → Environment Variables**, add:
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = that anon key.
+   - (You already have `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` from the sync step above.)
+3. In Supabase → **Authentication → Providers → Email**, decide on
+   confirmation:
+   - **Off** (recommended for a fast start): users can sign in the moment
+     they register.
+   - **On**: users must click an email link before their first sign-in.
+4. Redeploy.
+
+**How data is kept separate:** every synced key is namespaced with the
+signed-in user's id (`apex:u:<uid>:…`) in the same `apex_state` table —
+no schema change needed. The personalization answers from onboarding are
+stored per user under the `profile` key.
+
+> Note on isolation: the per-user `apex-uid` cookie is a pragmatic v1
+> boundary, not a hardened one. For strict isolation later, move state
+> reads/writes behind Supabase **Row Level Security** keyed on the JWT.
+
+---
+
+## 🔔 Notifications
+
+- **In-app:** the bell in the top bar always shows everything still open
+  today (calls, tasks, quests, habits, health) with a live count, and the
+  nav items show red-dot badges. No setup needed.
+- **Browser push (while a tab is open):** tap **Turn on reminders** in the
+  bell menu (or Settings → Reminders) and grant permission. The app then
+  nudges you about the top open item, with quiet hours 10 PM–6 AM.
+- **Fully-closed-app push** (notifications when the PWA isn't running at
+  all) needs a service worker + Web Push subscription (or Expo on the
+  native shells) — that's the next layer.
+
+---
+
+## 👟 Automatic step tracking
+
+The Health page can count steps from the phone's motion sensor and detect
+whether you're **still / walking / running / in a vehicle** — only real
+walking/running steps are counted. Requirements:
+
+- Must be served over **HTTPS** (Vercel is) — the motion API is disabled
+  on insecure origins.
+- On **iPhone/Safari**, tapping **Start** prompts for motion access (a
+  one-time iOS permission). Grant it.
+- On desktop (no motion sensor) it falls back to manual entry.
+
+---
+
 ## 📅 Connecting Google Calendar (3 min)
 
 The `/calendar` page reads the next 24 hours of your Google Calendar.

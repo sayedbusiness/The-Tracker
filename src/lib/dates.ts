@@ -73,3 +73,24 @@ export function getGreeting(d: Date = new Date()): string {
 
 /** "Monday, May 25" — alias for top-bar use. */
 export const getDayLabel = dayLabel;
+
+/**
+ * Monday-anchored ISO week key in the user's timezone (matches the
+ * habit-grid week bucketing). Habits + weekly state roll over Monday
+ * morning PT.
+ */
+export function weekKeyMonday(now: Date = new Date()): string {
+  const today = dateKey(now);
+  const d = new Date(today + "T12:00:00Z");
+  const weekdayShort = d.toLocaleString("en-US", {
+    timeZone: APP_TZ,
+    weekday: "short",
+  });
+  const map: Record<string, number> = {
+    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+  };
+  const jsDay = map[weekdayShort] ?? 1;
+  const offset = jsDay === 0 ? 6 : jsDay - 1;
+  d.setUTCDate(d.getUTCDate() - offset);
+  return d.toISOString().slice(0, 10);
+}

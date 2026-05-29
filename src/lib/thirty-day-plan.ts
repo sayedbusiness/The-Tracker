@@ -173,12 +173,21 @@ const morningBlocks: Block[] = [
 ];
 
 const summerWeekdayBlocks: Block[] = [
-  // Summer mode — school is done. This array intentionally kept named "schoolBlocks"
-  // for backwards compatibility but is now the summer weekday work block sequence.
+  // Home base mode — school is done. Work happens from home (or flip the
+  // toggle to Starbucks). Same sprints, same build block — just your desk.
+  {
+    id: "home-setup",
+    time: "07:50",
+    durationMin: 10,
+    label: "Set up your work station (home or Starbucks)",
+    detail:
+      "Desk clear. Water + coffee. Dialer + CRM open. Phone face-down on Do Not Disturb. If going to Starbucks, flip the toggle — same blocks travel with you.",
+    kind: "deep-work",
+  },
   {
     id: "outreach-am",
-    time: "07:50",
-    durationMin: 40,
+    time: "08:00",
+    durationMin: 30,
     label: "Outreach + follow-ups",
     detail:
       "DMs, warm-prospect follow-ups, calendar confirms for today's closes, LinkedIn touches.",
@@ -204,9 +213,9 @@ const summerWeekdayBlocks: Block[] = [
     id: "build-block",
     time: "10:10",
     durationMin: 80,
-    label: "Build block — AI agents · automations · GHL",
+    label: "Build block — buy/learn GHL · automations · AI agents",
     detail:
-      "Make.com / Zapier flows, Claude API helpers, GHL pipelines, n8n. Build the machine that calls/closes/follows-up for you.",
+      "Get GoHighLevel set up and learn it. Build automations: Make.com / Zapier / n8n flows, Claude API helpers, GHL pipelines + missed-call text-back. Build the machine that calls/closes/follows-up for you so you're not doing it all by hand.",
     kind: "study",
   },
   {
@@ -756,12 +765,13 @@ export const CYCLE_RANGE = "May 25 → July 23";
 
 export const NON_NEGOTIABLES = [
   "You don't skip Fajr. 4:00 AM wake, 4:18 adhan. That's the floor.",
-  "Four call sprints a day. 100+ dials minimum on weekdays. No skipping the 4th.",
+  "Work from home or Starbucks — but you WORK. The desk is wherever you decide to lock in.",
+  "Make the calls. You haven't started yet — so today you make your FIRST dials. Then more tomorrow.",
   "You make dua before every sprint. Niyyah straight, then dial.",
   "Phone in another room from 9 PM. No scroll. 6 hours of real sleep.",
-  "Build one automation a week. AI agents > more grinding. Compound the leverage.",
-  "Post content every single day. Even a bad video beats no video.",
-  "You film, you edit, you post. Same day.",
+  "Buy GHL, learn it, and build one automation a week. AI agents > more grinding. Compound the leverage.",
+  "Learn sales every single day — NEPQ, Impact Formula, tonality. Reps on the script, reps on the phone.",
+  "Post content every single day. Even a bad video beats no video. Film, edit, post — same day.",
   "Money is a tool to serve people. Not your worth. Not your iman.",
   "You don't quit on Day 14 because Day 13 sucked. Standards beat motivation.",
   "$20k/month is the bar. 158 lb lean is the bar. Both. By July 23.",

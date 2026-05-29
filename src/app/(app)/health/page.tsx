@@ -26,6 +26,7 @@ import {
 import { todayMetrics } from "@/lib/mock-data";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey, dateKey } from "@/lib/dates";
+import type { Profile } from "@/lib/auth/types";
 import {
   Area,
   AreaChart,
@@ -74,6 +75,7 @@ export default function HealthPage() {
     []
   );
   const [allWorkouts] = useSyncedState<Workout[]>("health:workouts", []);
+  const [profile] = useSyncedState<Profile>("profile", {});
 
   // Build last 60 day weight series from history.
   const weightSeries = useMemo(() => {
@@ -317,7 +319,7 @@ export default function HealthPage() {
               </div>
             </div>
             <p className="mt-4 text-xs leading-relaxed text-slate-400">
-              <b>Photo:</b> snap your plate, Gemini estimates portions.<br />
+              <b>Photo:</b> snap your plate, Meal Vision estimates portions.<br />
               <b>Barcode/ingredients:</b> paste the back of the package + how much you ate.<br />
               <b>Manual:</b> type the macros directly when you know them.
             </p>
@@ -336,7 +338,7 @@ export default function HealthPage() {
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <StepsLogger />
         <SleepLogger />
-        <WeightLogger starting={todayMetrics.weight} />
+        <WeightLogger starting={profile.weightLb ?? todayMetrics.weight} />
       </section>
 
       <section className="surface-card rounded-2xl p-5">
@@ -460,7 +462,9 @@ export default function HealthPage() {
                 ? todayMetrics.weight
                 : weightHistory[weightHistory.length - 1].weight}
             </span>
-            <span className="text-xs text-slate-500">lb · goal: lean & muscular</span>
+            <span className="text-xs text-slate-500">
+              lb · {profile.goalWeightLb ? `goal: ${profile.goalWeightLb} lb` : "goal: lean & muscular"}
+            </span>
           </div>
         </div>
 

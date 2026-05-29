@@ -130,6 +130,22 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
     setAdding(false);
   };
 
+  // One-tap starter pack — the real next actions for someone who hasn't
+  // taken a single cold call yet. Seeds today's list so you're not staring
+  // at a blank screen wondering what to do.
+  const seedStarter = () => {
+    const base = Date.now();
+    const starter: SavedTask[] = [
+      { id: `t-${base}-1`, title: "🔥 Make your FIRST 10 cold calls — just start", category: "agency", priority: "p0", estimated: 60, difficulty: 4, energy: "high" },
+      { id: `t-${base}-2`, title: "Buy + set up GoHighLevel (GHL)", category: "deep-work", priority: "p0", estimated: 60, difficulty: 3, energy: "high" },
+      { id: `t-${base}-3`, title: "Learn sales — 1 NEPQ video + notes", category: "learning", priority: "p1", estimated: 30, difficulty: 2, energy: "med" },
+      { id: `t-${base}-4`, title: "Build 1 automation (missed-call text-back in GHL)", category: "deep-work", priority: "p1", estimated: 45, difficulty: 3, energy: "med" },
+      { id: `t-${base}-5`, title: "Film + post 1 piece of content", category: "personal", priority: "p2", estimated: 30, difficulty: 2, energy: "med" },
+      { id: `t-${base}-6`, title: "Gym session", category: "health", priority: "p1", estimated: 55, difficulty: 3, energy: "high" },
+    ];
+    setTasksList((prev) => [...starter, ...prev]);
+  };
+
   const visible = compact ? tasks.slice(0, 5) : tasks;
 
   return (
@@ -263,14 +279,22 @@ export function TodayTasks({ compact = false }: { compact?: boolean }) {
             No tasks yet — make today count
           </div>
           <div className="mt-1 text-xs text-slate-400">
-            Add at least one P0 and one health task. The AI will suggest the rest.
+            Add at least one P0 and one health task — or load the starter pack to begin.
           </div>
-          <button
-            onClick={startAdd}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-700 to-sky-500 px-3 py-1.5 text-xs font-medium text-white shadow-[0_4px_15px_rgba(30,58,138,0.35)] transition-all hover:shadow-[0_6px_20px_rgba(59,130,246,0.55)]"
-          >
-            <Plus className="h-3 w-3" /> Add your first task
-          </button>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+            <button
+              onClick={seedStarter}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-700 to-sky-500 px-3 py-1.5 text-xs font-medium text-white shadow-[0_4px_15px_rgba(30,58,138,0.35)] transition-all hover:shadow-[0_6px_20px_rgba(59,130,246,0.55)]"
+            >
+              <Sparkles className="h-3 w-3" /> Load starter tasks
+            </button>
+            <button
+              onClick={startAdd}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.06] hover:text-white"
+            >
+              <Plus className="h-3 w-3" /> Add your own
+            </button>
+          </div>
         </div>
       )}
 

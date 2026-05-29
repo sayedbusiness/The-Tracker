@@ -1,21 +1,26 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Settings as SettingsIcon,
   User,
   Bell,
+  BellRing,
   Shield,
   Sparkles,
   Database,
   Smartphone,
-  Moon,
-  Zap,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Badge } from "@/components/ui/badge";
 import { user } from "@/lib/mock-data";
+import { useAuth } from "@/lib/auth/use-auth";
+import { useSyncedState } from "@/hooks/use-synced-state";
+import type { Profile } from "@/lib/auth/types";
 
 const sections = [
   {
@@ -79,6 +84,13 @@ const sections = [
 ];
 
 export default function SettingsPage() {
+  const { user: authUser, signedIn, signOut } = useAuth();
+  const [profile] = useSyncedState<Profile>("profile", {});
+
+  const displayName = profile.name?.trim() || user.name;
+  const displayEmail = authUser?.email || user.email;
+  const avatar = displayName.charAt(0).toUpperCase() || "A";
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
@@ -95,22 +107,34 @@ export default function SettingsPage() {
         <div className="relative flex items-center gap-4">
           <div className="relative">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 via-blue-600 to-sky-400 text-2xl font-black text-white shadow-[0_0_30px_rgba(30,58,138,0.5)]">
-              {user.avatar}
+              {avatar}
             </div>
             <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full border-2 border-black bg-gradient-to-br from-amber-400 to-orange-500 text-[10px] font-black text-black">
               {user.level}
             </div>
           </div>
-          <div className="flex-1">
-            <div className="text-xl font-semibold text-white">{user.name}</div>
-            <div className="text-sm text-slate-400">{user.email}</div>
-            <div className="mt-1 flex items-center gap-2 text-[10px]">
-              <Badge variant="violet">OPERATOR · TIER IV</Badge>
-              <Badge variant="emerald">APEX PLUS</Badge>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-xl font-semibold text-white">{displayName}</div>
+            <div className="truncate text-sm text-slate-400">{displayEmail}</div>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
+              <Badge variant="violet">
+                {profile.businessType ? profile.businessType.toUpperCase() : "OPERATOR"}
+              </Badge>
+              {profile.incomeGoal && <Badge variant="emerald">{profile.incomeGoal} GOAL</Badge>}
             </div>
           </div>
+          {signedIn && (
+            <button
+              onClick={signOut}
+              className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-rose-500/10 hover:text-rose-200"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Sign out
+            </button>
+          )}
         </div>
       </section>
+
+      <AccountPanel onboarded={Boolean(profile.onboardingComplete)} />
 
       {sections.map((section, idx) => {
         const Icon = section.icon;
@@ -154,5 +178,83 @@ export default function SettingsPage() {
         APEX OS v0.1 · alpha · made with discipline
       </div>
     </div>
+  );
+}
+
+/** Live, interactive account + reminders controls. */
+function AccountPanel({ onboarded }: { onboarded: boolean }) {
+  const [notif, setNotif] = useSyncedState<boolean>("settings:notifications", false);
+  // Start "unsupported" so SSR + first client render match, then read the
+  // real permission after mount.
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">("unsupported");
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setPermission(Notification.permission);
+    }
+  }, []);
+
+  const enable = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const res = await Notification.requestPermission();
+    setPermission(res);
+    if (res === "granted") setNotif(true);
+  };
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="surface-card overflow-hidden rounded-2xl"
+    >
+      <div className="border-b border-white/[0.04] px-5 py-4">
+        <div className="flex items-center gap-2">
+          <BellRing className="h-4 w-4 text-blue-400" />
+          <h2 className="text-sm font-semibold text-white">Reminders & personalization</h2>
+        </div>
+      </div>
+      <div className="divide-y divide-white/[0.04]">
+        <div className="flex items-center justify-between px-5 py-3">
+          <div>
+            <div className="text-sm text-slate-200">Push reminders</div>
+            <div className="text-[11px] text-slate-500">
+              Get nudged about calls, tasks, habits & health while the app is open.
+            </div>
+          </div>
+          {permission === "granted" ? (
+            <button
+              onClick={() => setNotif((v) => !v)}
+              className={`rounded-full px-3 py-1 text-[11px] font-bold transition-colors ${
+                notif ? "bg-emerald-500/20 text-emerald-300" : "bg-white/[0.06] text-slate-400"
+              }`}
+            >
+              {notif ? "ON" : "OFF"}
+            </button>
+          ) : permission === "unsupported" ? (
+            <span className="text-[11px] text-slate-500">Not supported</span>
+          ) : (
+            <button
+              onClick={enable}
+              className="rounded-lg bg-blue-600/90 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-600"
+            >
+              Enable
+            </button>
+          )}
+        </div>
+        <Link
+          href="/onboarding"
+          className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-white/[0.02]"
+        >
+          <div>
+            <div className="text-sm text-slate-200">
+              {onboarded ? "Edit your personalization" : "Finish personalization"}
+            </div>
+            <div className="text-[11px] text-slate-500">
+              Age, business, goals, work style, body — retune anytime.
+            </div>
+          </div>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+        </Link>
+      </div>
+    </motion.section>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getUserPrefix } from "@/lib/auth/session";
 
 /**
  * Cross-device synced state with localStorage as the local cache.
@@ -53,6 +54,12 @@ export function useSyncedState<T>(
   options: Options = {}
 ) {
   const { serializer = "json", pollMs = 20_000 } = options;
+  // Namespace every key by the signed-in user so two accounts on one
+  // browser never collide. Signed out → empty prefix (back-compat with the
+  // original single-user data). Read once at mount; auth changes do a hard
+  // navigation, so this stays stable for the component's lifetime.
+  const [prefix] = useState(getUserPrefix);
+  const fullKey = prefix + key;
   const initialRef = useRef(initial);
   const [value, setValue] = useState<T>(initial);
   const [hydrated, setHydrated] = useState(false);
@@ -64,7 +71,7 @@ export function useSyncedState<T>(
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const raw = window.localStorage.getItem(key);
+      const raw = window.localStorage.getItem(fullKey);
       if (raw !== null) {
         const parsed = JSON.parse(raw);
         setValue(deserialize<T>(parsed, serializer));
@@ -74,7 +81,7 @@ export function useSyncedState<T>(
     }
     setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [fullKey]);
 
   // Pull latest value from server on mount + every pollMs.
   useEffect(() => {
@@ -83,7 +90,7 @@ export function useSyncedState<T>(
 
     const pull = async () => {
       try {
-        const res = await fetch(`/api/state/${encodeURIComponent(key)}`, {
+        const res = await fetch(`/api/state/${encodeURIComponent(fullKey)}`, {
           cache: "no-store",
         });
         if (res.status === 503) {
@@ -95,17 +102,17 @@ export function useSyncedState<T>(
           entry: { value: unknown; updatedAt: number } | null;
         };
         if (!body.entry || cancelled) return;
-        const localStamp = readStamp(key);
+        const localStamp = readStamp(fullKey);
         // Only adopt if the server copy is strictly newer.
         if (body.entry.updatedAt > localStamp) {
           const next = deserialize<T>(body.entry.value, serializer);
           setValue(next);
           try {
             window.localStorage.setItem(
-              key,
+              fullKey,
               JSON.stringify(serialize(next, serializer))
             );
-            writeStamp(key, body.entry.updatedAt);
+            writeStamp(fullKey, body.entry.updatedAt);
           } catch {
             /* quota or storage unavailable */
           }
@@ -121,13 +128,13 @@ export function useSyncedState<T>(
       cancelled = true;
       clearInterval(id);
     };
-  }, [hydrated, key, pollMs, serializer]);
+  }, [hydrated, fullKey, pollMs, serializer]);
 
   // Cross-tab sync via the storage event (instant, no network).
   useEffect(() => {
     if (typeof window === "undefined") return;
     const onStorage = (e: StorageEvent) => {
-      if (e.key !== key) return;
+      if (e.key !== fullKey) return;
       try {
         if (e.newValue === null) {
           setValue(initialRef.current);
@@ -141,7 +148,7 @@ export function useSyncedState<T>(
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, [key, serializer]);
+  }, [fullKey, serializer]);
 
   const update = useCallback(
     (next: T | ((prev: T) => T)) => {
@@ -154,10 +161,10 @@ export function useSyncedState<T>(
         if (typeof window !== "undefined") {
           try {
             const wire = serialize(v, serializer);
-            window.localStorage.setItem(key, JSON.stringify(wire));
-            writeStamp(key, stamp);
+            window.localStorage.setItem(fullKey, JSON.stringify(wire));
+            writeStamp(fullKey, stamp);
             if (syncOnlineRef.current) {
-              fetch(`/api/state/${encodeURIComponent(key)}`, {
+              fetch(`/api/state/${encodeURIComponent(fullKey)}`, {
                 method: "POST",
                 headers: { "content-type": "application/json" },
                 body: JSON.stringify({ value: wire, updatedAt: stamp }),
@@ -177,7 +184,7 @@ export function useSyncedState<T>(
         return v;
       });
     },
-    [key, serializer]
+    [fullKey, serializer]
   );
 
   return [value, update, hydrated] as const;
