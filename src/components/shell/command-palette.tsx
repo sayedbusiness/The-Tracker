@@ -22,6 +22,8 @@ import {
   Brain,
   Droplet,
   Upload,
+  Settings,
+  Phone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +51,8 @@ const items: Item[] = [
   { group: "Navigate", icon: Sparkles, label: "Open AI Coach", href: "/assistant" },
   { group: "Navigate", icon: LineChart, label: "Open Insights", href: "/insights" },
   { group: "Navigate", icon: Trophy, label: "Open Achievements", href: "/achievements" },
+  { group: "Navigate", icon: Settings, label: "Open Settings", href: "/settings" },
+  { group: "Quick action", icon: Phone, label: "Open Dialer", href: "/agency?dialer=1", hint: "Call or text a lead" },
   {
     group: "Quick action",
     icon: Plus,

@@ -110,6 +110,53 @@ stored per user under the `profile` key.
 
 ---
 
+## ☎️ Twilio dialer & texting (Agency / CRM page)
+
+The Agency page has a built-in **dialer** (call leads from the browser) and
+**texting**, plus per-deal Call/Text buttons and an activity log — a
+GoHighLevel-style CRM. It's powered by Twilio and turns on once these env
+vars are set (server-only — never commit them):
+
+| Env var | What it is | Where to get it |
+|---------|-----------|-----------------|
+| `TWILIO_ACCOUNT_SID` | `AC…` Account SID | Twilio Console home |
+| `TWILIO_API_KEY_SID` | `SK…` Standard API Key SID | Console → Account → API keys & tokens → Create API key |
+| `TWILIO_API_KEY_SECRET` | the API key secret | shown **once** when you create the key |
+| `TWILIO_TWIML_APP_SID` | `AP…` TwiML App SID | see step 1 below |
+| `TWILIO_PHONE_NUMBER` | your Twilio number, E.164 (`+1…`) | Console → Phone Numbers |
+
+> ⚠️ **Security:** the API key secret is a credential. Keep it only in Vercel
+> env vars. If it's ever pasted somewhere shared (chat, screenshot, commit),
+> **rotate it** in the Twilio Console.
+
+**Step 1 — Create a TwiML App** (Console → Voice → TwiML → TwiML Apps → Create):
+Give it a name like "APEX Dialer". Set the request URLs to your deployed app
+(replace `your-app.vercel.app` with your real domain):
+
+- **Voice Configuration → Request URL:**
+  `https://your-app.vercel.app/api/twilio/voice`  (HTTP **POST**)
+- **Messaging Configuration → Request URL:**
+  `https://your-app.vercel.app/api/twilio/sms/incoming`  (HTTP **POST**)
+
+Save it, then copy its SID (`AP…`) into `TWILIO_TWIML_APP_SID`.
+
+**Step 2 — Point your phone number at the app** (optional, for inbound):
+On your Twilio number's config, set the **Messaging** webhook to
+`https://your-app.vercel.app/api/twilio/sms/incoming` (POST). Voice inbound is
+handled by the TwiML App above.
+
+**Step 3 — Add the env vars in Vercel** (Settings → Environment Variables),
+then redeploy. Open the Agency page → the **Dialer** card goes live (grant mic
+access when prompted). If the vars are missing, the page shows a friendly
+"Connect Twilio" card instead.
+
+How it works: the browser gets a short-lived Voice token from
+`/api/twilio/token`, the Voice SDK places the call, and Twilio fetches
+`/api/twilio/voice` (your TwiML App URL) to bridge it from your number. Texts
+post to `/api/twilio/sms/send`.
+
+---
+
 ## 👟 Automatic step tracking
 
 The Health page can count steps from the phone's motion sensor and detect

@@ -14,6 +14,9 @@ import {
   ArrowUpRight,
   X,
   Trash2,
+  Phone,
+  MessageSquare,
+  History,
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,8 @@ import {
   LeadImporter,
   type ImportedLead,
 } from "@/components/agency/lead-importer";
+import { Dialer, type CallActivity } from "@/components/agency/dialer";
+import { SmsComposer, type SmsActivity } from "@/components/agency/sms-composer";
 import {
   agencyRevenue,
   sales,
@@ -43,12 +48,15 @@ type Deal = {
   id: string;
   company: string;
   contact: string;
+  phone?: string;
   value: number;
   stage: PipelineStage;
   probability: number;
   closeDate: string;
   source: string;
 };
+
+type Activity = (CallActivity | SmsActivity) & { contact?: string };
 
 type Client = {
   id: string;
@@ -113,12 +121,32 @@ export default function AgencyPage() {
     "agency:campaigns",
     []
   );
+  const [activity, setActivity] = useSyncedState<Activity[]>("agency:activity", []);
 
   const [composer, setComposer] = useState<null | "deal" | "client" | "campaign">(
     null
   );
   const [draftStage, setDraftStage] = useState<PipelineStage>("lead");
   const [importerOpen, setImporterOpen] = useState(false);
+  const [smsTarget, setSmsTarget] = useState<{ to: string; contact?: string } | null>(
+    null
+  );
+
+  const logActivity = (a: Activity) =>
+    setActivity((prev) => [a, ...prev].slice(0, 200));
+
+  const callLead = (deal: Deal) => {
+    if (!deal.phone) return;
+    window.dispatchEvent(
+      new CustomEvent("apex:dial", { detail: { number: deal.phone } })
+    );
+    document
+      .getElementById("apex-dialer")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const textLead = (deal: Deal) =>
+    setSmsTarget({ to: deal.phone || "", contact: deal.contact || deal.company });
 
   // Auto-open composer via command palette: ?add=deal|client|campaign or ?import=1.
   useEffect(() => {
@@ -131,10 +159,20 @@ export default function AgencyPage() {
     if (params.get("import") === "1") {
       setImporterOpen(true);
     }
-    if (add || params.get("import")) {
+    if (params.get("dialer") === "1") {
+      setTimeout(
+        () =>
+          document
+            .getElementById("apex-dialer")
+            ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        120
+      );
+    }
+    if (add || params.get("import") || params.get("dialer")) {
       const url = new URL(window.location.href);
       url.searchParams.delete("add");
       url.searchParams.delete("import");
+      url.searchParams.delete("dialer");
       window.history.replaceState({}, "", url.toString());
     }
   }, []);
@@ -182,6 +220,7 @@ export default function AgencyPage() {
       id: l.id,
       company: l.company || l.contact || "Untitled lead",
       contact: l.contact || "—",
+      phone: l.phone || "",
       value: l.value,
       stage: l.stage,
       probability: l.probability,
@@ -200,7 +239,7 @@ export default function AgencyPage() {
             Run the agency like a <span className="gradient-text">machine.</span>
           </>
         }
-        subtitle="One operational picture: clients, pipeline, campaigns, and revenue. The AI advisor flags risks and scaling opportunities daily."
+        subtitle="Your CRM: call and text leads from the built-in dialer, track the pipeline, clients, campaigns, and revenue — one operational picture, like GoHighLevel."
         icon={Briefcase}
         accent="emerald"
         actions={
@@ -360,6 +399,45 @@ export default function AgencyPage() {
         </div>
       </section>
 
+      {/* Dialer + texting + activity — the CRM comms layer */}
+      <section id="apex-dialer" className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
+        <Dialer onActivity={(a) => logActivity(a)} />
+        <div className="surface-card rounded-2xl p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <History className="h-4 w-4 text-slate-400" />
+              <h3 className="text-sm font-semibold text-white">Call & text activity</h3>
+            </div>
+            {activity.length > 0 && (
+              <button
+                onClick={() => setActivity([])}
+                className="text-[10px] text-slate-500 hover:text-rose-300"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          {activity.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/[0.08] p-6 text-center">
+              <div className="text-2xl">☎️</div>
+              <div className="mt-1 text-sm font-medium text-white">No activity yet</div>
+              <div className="mt-1 text-xs text-slate-400">
+                Calls and texts you make from here show up as a live timeline.
+                Use the keypad, or tap Call/Text on any deal below.
+              </div>
+            </div>
+          ) : (
+            <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">
+              <AnimatePresence initial={false}>
+                {activity.map((a) => (
+                  <ActivityRow key={a.id} a={a} />
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
+      </section>
+
       <section>
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -477,6 +555,23 @@ export default function AgencyPage() {
                             className="h-full bg-gradient-to-r from-blue-600 via-blue-600 to-sky-400"
                             style={{ width: `${d.probability}%` }}
                           />
+                        </div>
+                        <div className="mt-2.5 flex gap-1.5">
+                          <button
+                            onClick={() => callLead(d)}
+                            disabled={!d.phone}
+                            title={d.phone ? `Call ${d.phone}` : "No phone number"}
+                            className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-emerald-500/25 bg-emerald-500/10 py-1.5 text-[11px] font-semibold text-emerald-200 transition-colors hover:bg-emerald-500/20 disabled:opacity-30"
+                          >
+                            <Phone className="h-3 w-3" /> Call
+                          </button>
+                          <button
+                            onClick={() => textLead(d)}
+                            title="Send a text"
+                            className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-sky-500/25 bg-sky-500/10 py-1.5 text-[11px] font-semibold text-sky-200 transition-colors hover:bg-sky-500/20"
+                          >
+                            <MessageSquare className="h-3 w-3" /> Text
+                          </button>
                         </div>
                       </motion.div>
                     ))}
@@ -708,8 +803,73 @@ export default function AgencyPage() {
           />
         )}
       </AnimatePresence>
+
+      <SmsComposer
+        open={smsTarget !== null}
+        to={smsTarget?.to ?? ""}
+        contact={smsTarget?.contact}
+        onClose={() => setSmsTarget(null)}
+        onSent={(a) => logActivity({ ...a, contact: smsTarget?.contact })}
+      />
     </div>
   );
+}
+
+function ActivityRow({ a }: { a: Activity }) {
+  const when = relativeTime(a.at);
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: 12 }}
+      className="flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5"
+    >
+      <div
+        className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
+          a.type === "call"
+            ? "bg-emerald-500/15 text-emerald-300"
+            : "bg-sky-500/15 text-sky-300"
+        }`}
+      >
+        {a.type === "call" ? (
+          <Phone className="h-4 w-4" />
+        ) : (
+          <MessageSquare className="h-4 w-4" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-white">
+            {a.contact || a.number}
+          </span>
+          {a.contact && (
+            <span className="truncate text-[10px] tabular text-slate-500">
+              {a.number}
+            </span>
+          )}
+        </div>
+        <div className="truncate text-[11px] text-slate-500">
+          {a.type === "call"
+            ? a.durationSec > 0
+              ? `Call · ${Math.floor(a.durationSec / 60)}:${String(a.durationSec % 60).padStart(2, "0")}`
+              : "Call · not connected"
+            : `“${a.body}”`}
+        </div>
+      </div>
+      <span className="shrink-0 text-[10px] text-slate-500">{when}</span>
+    </motion.div>
+  );
+}
+
+function relativeTime(ts: number): string {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "now";
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
 }
 
 function DealComposer({
@@ -723,6 +883,7 @@ function DealComposer({
 }) {
   const [company, setCompany] = useState("");
   const [contact, setContact] = useState("");
+  const [phone, setPhone] = useState("");
   const [value, setValue] = useState(2000);
   const [probability, setProbability] = useState(30);
   const [stage, setStage] = useState<PipelineStage>(initialStage);
@@ -734,6 +895,7 @@ function DealComposer({
       id: `d-${Date.now()}`,
       company: company.trim(),
       contact: contact.trim() || "—",
+      phone: phone.trim(),
       value,
       stage,
       probability,
@@ -747,7 +909,10 @@ function DealComposer({
   return (
     <Modal title="New deal" onClose={onClose}>
       <Field label="Company"><Input value={company} onChange={setCompany} placeholder="Acme Roofing" autoFocus /></Field>
-      <Field label="Contact"><Input value={contact} onChange={setContact} placeholder="John, Owner" /></Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Contact"><Input value={contact} onChange={setContact} placeholder="John, Owner" /></Field>
+        <Field label="Phone"><Input value={phone} onChange={setPhone} placeholder="+1 555 123 4567" /></Field>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Value ($)">
           <NumberInput value={value} onChange={setValue} />

@@ -17,6 +17,7 @@ export interface ImportedLead {
   id: string;
   company: string;
   contact: string;
+  phone: string;
   value: number;
   stage: PipelineStage;
   probability: number;
@@ -27,6 +28,7 @@ export interface ImportedLead {
 const FIELD_HINTS: Record<keyof Omit<ImportedLead, "id">, string[]> = {
   company: ["company", "company name", "account", "organization", "business"],
   contact: ["contact", "name", "first name", "full name", "person", "lead"],
+  phone: ["phone", "mobile", "cell", "number", "phone number", "tel", "telephone"],
   value: ["value", "amount", "deal amount", "deal value", "revenue", "mrr"],
   stage: ["stage", "deal stage", "status", "pipeline stage"],
   probability: ["probability", "likelihood", "confidence"],
@@ -153,6 +155,7 @@ export function LeadImporter({
   >({
     company: null,
     contact: null,
+    phone: null,
     value: null,
     stage: null,
     probability: null,
@@ -179,6 +182,7 @@ export function LeadImporter({
     setMapping({
       company: null,
       contact: null,
+      phone: null,
       value: null,
       stage: null,
       probability: null,
@@ -198,6 +202,7 @@ export function LeadImporter({
     const m: Record<keyof Omit<ImportedLead, "id">, number | null> = {
       company: null,
       contact: null,
+      phone: null,
       value: null,
       stage: null,
       probability: null,
@@ -453,6 +458,7 @@ export function LeadImporter({
                           </th>
                           <th className="px-3 py-2 text-left">Company</th>
                           <th className="px-3 py-2 text-left">Contact</th>
+                          <th className="px-3 py-2 text-left">Phone</th>
                           <th className="px-3 py-2 text-right">Value ($)</th>
                           <th className="px-3 py-2 text-left">Stage</th>
                         </tr>
@@ -481,6 +487,9 @@ export function LeadImporter({
                               </td>
                               <td className="px-3 py-1.5 text-slate-300">
                                 {p.contact || "—"}
+                              </td>
+                              <td className="px-3 py-1.5 tabular text-slate-400">
+                                {p.phone || "—"}
                               </td>
                               <td className="px-2 py-1.5 text-right">
                                 <input
@@ -586,6 +595,7 @@ function buildLead(
     id: `imp-${Date.now()}-${i}`,
     company: get("company"),
     contact: get("contact"),
+    phone: get("phone"),
     value: parseMoney(valueRaw),
     stage: parseStage(get("stage")),
     probability: probabilityRaw ? parseProbability(probabilityRaw) : 25,

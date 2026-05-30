@@ -7,6 +7,7 @@
  */
 
 import type { CoachPersonality, UserContext } from "./types";
+import { ACTION_TOOLS_DOC } from "./actions";
 
 const PERSONA: Record<CoachPersonality, string> = {
   strategist: `You are a sharp, calm strategist. You speak in clear cause-and-effect.
@@ -75,7 +76,9 @@ ${user.patterns.map((p) => `- ${p}`).join("\n")}
 - Use line breaks generously. Don't write walls of text.
 - Bold key actions with markdown.
 - Never use exclamation marks. Conviction comes from precision, not volume.
-- Don't start with "Great question" or any sycophancy.`;
+- Don't start with "Great question" or any sycophancy.
+
+${ACTION_TOOLS_DOC}`;
 }
 
 function tierOf(score: number) {

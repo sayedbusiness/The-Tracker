@@ -7,6 +7,7 @@ import { getGreeting, getDayLabel, todayKey } from "@/lib/dates";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { XPRail } from "@/components/dopamine/xp-rail";
 import { NotificationCenter } from "@/components/notifications/notification-center";
+import { MobileMenu } from "@/components/shell/mobile-menu";
 import type { Profile } from "@/lib/auth/types";
 
 interface Challenge {
@@ -80,7 +81,8 @@ export function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
       className="sticky top-0 z-30 border-b border-white/[0.04] bg-black/30 backdrop-blur-2xl"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <div className="flex h-16 items-center gap-4 px-4 lg:px-8">
+      <div className="flex h-16 items-center gap-3 px-4 lg:px-8">
+        <MobileMenu />
         <div className="hidden flex-1 md:block" suppressHydrationWarning>
           <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
             {dayLabel ?? " "}

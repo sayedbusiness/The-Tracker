@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Twilio dialer/CRM, agentic AI, mobile nav
+- **Twilio dialer + texting** on the Agency page: a browser dialer (call
+  leads through your Twilio number via the Voice SDK), SMS composer, per-deal
+  **Call/Text** buttons, and a call/text **activity log** — a GoHighLevel-style
+  CRM. New routes: `/api/twilio/{token,voice,sms/send,sms/incoming}`. Lead
+  import + the deal form now capture **phone numbers**. Everything is driven by
+  env vars and shows a "Connect Twilio" card until configured.
+- **Agentic AI coach**: the assistant can now *do things* in the app — add
+  tasks/work items/leads, log water/steps/weight/meals, create challenges,
+  navigate, and even start a call or send a text. It emits structured action
+  blocks that run against your own synced state; confirmation chips show what
+  it did. Works with Claude (via the system-prompt tool spec) and in mock mode.
+- **Mobile navigation fix**: a new slide-out menu (top-bar) gives phones the
+  full nav — including **Settings**, which was previously unreachable on mobile.
+  Settings + a Dialer shortcut were also added to the command palette.
+
 ### Added — Accounts, addiction loop, auto step tracking & notifications
 - **Multi-user accounts**: email/password **login + register** pages backed
   by Supabase Auth, with a local-account fallback when Supabase isn't

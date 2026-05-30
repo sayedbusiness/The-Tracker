@@ -10,9 +10,10 @@ import {
   Brain,
   Target,
   Calendar,
-  TrendingUp,
   Heart,
   Zap,
+  Check,
+  X as XIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { chatHistory, user } from "@/lib/mock-data";
@@ -21,6 +22,17 @@ import { useSyncedState } from "@/hooks/use-synced-state";
 import type { CoachPersonality } from "@/lib/ai/types";
 import { todayKey } from "@/lib/dates";
 import type { LoggedMeal } from "@/components/health/meal-composer";
+import { extractActions, stripActionBlocks } from "@/lib/ai/actions";
+import { useAiActions } from "@/hooks/use-ai-actions";
+
+type ActionResult = { label: string; ok: boolean };
+type Msg = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  time: string;
+  actions?: ActionResult[];
+};
 
 const COACH_MODES: Array<{
   id: CoachPersonality;
@@ -35,11 +47,11 @@ const COACH_MODES: Array<{
 
 const suggestedPrompts = [
   { icon: Target, label: "What's my highest leverage today?" },
+  { icon: Check, label: "Add a task: 50 cold calls today" },
+  { icon: Heart, label: "Log 3 cups of water" },
   { icon: Calendar, label: "Plan my next 90 days" },
-  { icon: TrendingUp, label: "Why did my output drop last week?" },
-  { icon: Heart, label: "Optimize my sleep schedule" },
   { icon: Zap, label: "Push me to level up" },
-  { icon: Brain, label: "Audit my consistency" },
+  { icon: Brain, label: "Open my work list" },
 ];
 
 const memoryFacts = [
@@ -52,10 +64,18 @@ const memoryFacts = [
 ];
 
 export default function AssistantPage() {
-  const [messages, setMessages] = useState(chatHistory);
+  const [messages, setMessages] = useState<Msg[]>(() =>
+    chatHistory.map((m) => ({
+      id: m.id,
+      role: m.role as "user" | "assistant",
+      content: m.content,
+      time: m.time,
+    }))
+  );
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const runAction = useAiActions();
   const [coachMode, setCoachMode] = useSyncedState<CoachPersonality>(
     "coach:mode",
     "strategist"
@@ -137,8 +157,27 @@ export default function AssistantPage() {
         const { done, value } = await reader.read();
         if (done) break;
         acc += decoder.decode(value, { stream: true });
+        // Hide raw action blocks from the bubble while streaming.
+        const display = stripActionBlocks(acc);
         setMessages((m) =>
-          m.map((msg) => (msg.id === assistantId ? { ...msg, content: acc } : msg))
+          m.map((msg) => (msg.id === assistantId ? { ...msg, content: display } : msg))
+        );
+      }
+
+      // Execute any in-app actions the coach emitted.
+      const { clean, actions } = extractActions(acc);
+      if (actions.length > 0) {
+        const results: ActionResult[] = [];
+        for (const action of actions) {
+          const r = await runAction(action);
+          results.push({ label: r.message, ok: r.ok });
+        }
+        setMessages((m) =>
+          m.map((msg) =>
+            msg.id === assistantId
+              ? { ...msg, content: clean || "Done.", actions: results }
+              : msg
+          )
         );
       }
     } catch (err) {
@@ -164,7 +203,7 @@ export default function AssistantPage() {
             Always on. <span className="gradient-electric">Always sharp.</span>
           </>
         }
-        subtitle="Your strategist, coach, mentor, and accountability partner. The AI knows your patterns, goals, and weaknesses — and is brutally honest by design."
+        subtitle="Your strategist, coach, and accountability partner — and it can act inside the app: add tasks, log meals or water, add leads, start a call, send a text. Just ask."
         icon={Sparkles}
         accent="violet"
       />
@@ -210,6 +249,28 @@ export default function AssistantPage() {
                     )}
                   >
                     {msg.content}
+                    {msg.actions && msg.actions.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {msg.actions.map((a, i) => (
+                          <span
+                            key={i}
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                              a.ok
+                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                                : "border-rose-500/30 bg-rose-500/10 text-rose-200"
+                            )}
+                          >
+                            {a.ok ? (
+                              <Check className="h-2.5 w-2.5" />
+                            ) : (
+                              <XIcon className="h-2.5 w-2.5" />
+                            )}
+                            {a.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div
                       className={cn(
                         "mt-1 text-[10px]",

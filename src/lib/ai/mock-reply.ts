@@ -9,8 +9,93 @@
 
 import type { ChatMessage } from "./types";
 
+/** ```apex-action fenced block for a single tool call. */
+function block(obj: Record<string, unknown>): string {
+  return "```apex-action\n" + JSON.stringify(obj) + "\n```";
+}
+
+const ROUTE_WORDS: Record<string, string> = {
+  today: "/", dashboard: "/", home: "/",
+  task: "/tasks", tasks: "/tasks",
+  work: "/work",
+  health: "/health", food: "/health", meals: "/health",
+  agency: "/agency", crm: "/agency", dialer: "/agency", pipeline: "/agency",
+  plan: "/plan",
+  discipline: "/discipline",
+  learn: "/learn",
+  insights: "/insights",
+  achievements: "/achievements",
+  settings: "/settings",
+  calendar: "/calendar",
+};
+
+/**
+ * Best-effort intent → action for mock mode (no ANTHROPIC_API_KEY). Lets the
+ * "AI can do things" feature work out of the box. Real Claude does this far
+ * better via the tools doc in the system prompt.
+ */
+function tryActionReply(raw: string): string | null {
+  const text = raw.trim();
+  const low = text.toLowerCase();
+
+  // text someone: "text +1555... : message"
+  const textMatch = text.match(/\btext\s+(\+?[\d][\d\s().-]{6,})\s*[:,-]?\s*(.+)/i);
+  if (textMatch) {
+    const to = textMatch[1].replace(/[^\d+]/g, "");
+    const body = textMatch[2].trim();
+    return `Sending that text now.\n\n${block({ tool: "send_text", to, body })}`;
+  }
+  // call someone
+  const callMatch = low.match(/\bcall\s+(\+?[\d][\d\s().-]{6,})/);
+  if (callMatch) {
+    const to = callMatch[1].replace(/[^\d+]/g, "");
+    return `Opening the dialer for you.\n\n${block({ tool: "start_call", to })}`;
+  }
+  // add lead
+  const leadMatch = text.match(/\badd (?:a )?(?:new )?lead\s*[:-]?\s*(.+)/i);
+  if (leadMatch) {
+    return `Added to your pipeline.\n\n${block({ tool: "add_lead", company: leadMatch[1].trim() })}`;
+  }
+  // add to work list
+  const workMatch = text.match(/\badd\s+(.+?)\s+to (?:my )?work(?: list)?/i) || text.match(/\bwork list[:-]?\s*(.+)/i);
+  if (workMatch) {
+    return `Added to your work list.\n\n${block({ tool: "add_work_item", title: workMatch[1].trim() })}`;
+  }
+  // add task
+  const taskMatch = text.match(/\badd (?:a )?task\s*(?:to|:|-)?\s*(.+)/i) || text.match(/\bremind me to\s+(.+)/i);
+  if (taskMatch) {
+    const title = taskMatch[1].trim().replace(/[.!]+$/, "");
+    const priority = /\b(p0|urgent|important|must|critical)\b/i.test(low) ? "p0" : "p1";
+    return `Done — that's on today's list.\n\n${block({ tool: "add_task", title, priority })}`;
+  }
+  // log water
+  const waterMatch = low.match(/(\d+)\s*(?:cups?|glass(?:es)?)?\s*(?:of\s+)?water/) || low.match(/\blog\s+(\d+)\s+water/);
+  if (waterMatch) {
+    return `Logged.\n\n${block({ tool: "log_water", cups: Number(waterMatch[1]) })}`;
+  }
+  // log steps
+  const stepMatch = low.match(/(\d[\d,]{2,})\s*steps/);
+  if (stepMatch) {
+    return `Updated your steps.\n\n${block({ tool: "log_steps", steps: Number(stepMatch[1].replace(/,/g, "")) })}`;
+  }
+  // log weight
+  const weightMatch = low.match(/(?:weigh|weight)\D*(\d{2,3}(?:\.\d)?)/);
+  if (weightMatch) {
+    return `Logged your weigh-in.\n\n${block({ tool: "log_weight", lb: Number(weightMatch[1]) })}`;
+  }
+  // navigate
+  const navMatch = low.match(/\b(?:open|go to|take me to|show me)\s+(?:the\s+|my\s+)?(\w+)/);
+  if (navMatch && ROUTE_WORDS[navMatch[1]]) {
+    return `Opening ${navMatch[1]}.\n\n${block({ tool: "navigate", to: ROUTE_WORDS[navMatch[1]] })}`;
+  }
+  return null;
+}
+
 export function generateMockReply(messages: ChatMessage[]): string {
-  const last = messages[messages.length - 1]?.content.toLowerCase() ?? "";
+  const lastRaw = messages[messages.length - 1]?.content ?? "";
+  const action = tryActionReply(lastRaw);
+  if (action) return action;
+  const last = lastRaw.toLowerCase();
 
   if (last.includes("leverage") || last.includes("today") || last.includes("important")) {
     return "Day 1 leverage is simple: pick the **one** thing you'd be embarrassed to skip tomorrow morning. That's your P0.\n\nFor most people building a service business with a body composition goal, the answer is:\n\n1. Morning workout before email\n2. One deep work block on your highest-priority business task\n3. Sleep 8h tonight\n\nWhich of those three do you want to lock first?";
