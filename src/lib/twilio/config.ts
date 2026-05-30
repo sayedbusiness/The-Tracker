@@ -36,3 +36,18 @@ export function twilioSmsConfigured(): boolean {
       TWILIO.phoneNumber
   );
 }
+
+/**
+ * Which required env vars are still missing for the dialer. Returns only
+ * the variable NAMES (never values) so the UI can show a setup checklist
+ * without ever exposing a secret.
+ */
+export function twilioVoiceMissing(): string[] {
+  const missing: string[] = [];
+  if (!TWILIO.accountSid) missing.push("TWILIO_ACCOUNT_SID");
+  if (!TWILIO.apiKeySid) missing.push("TWILIO_API_KEY_SID");
+  if (!TWILIO.apiKeySecret) missing.push("TWILIO_API_KEY_SECRET");
+  if (!TWILIO.appSid) missing.push("TWILIO_TWIML_APP_SID");
+  if (!TWILIO.phoneNumber) missing.push("TWILIO_PHONE_NUMBER");
+  return missing;
+}

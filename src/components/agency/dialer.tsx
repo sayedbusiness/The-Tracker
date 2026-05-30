@@ -12,8 +12,18 @@ import {
   PlugZap,
   ChevronDown,
   ChevronUp,
+  Check,
+  X,
 } from "lucide-react";
 import type { Call, Device } from "@twilio/voice-sdk";
+
+const VOICE_VARS: { key: string; label: string; hint: string }[] = [
+  { key: "TWILIO_ACCOUNT_SID", label: "Account SID", hint: "AC… from the Twilio console home" },
+  { key: "TWILIO_API_KEY_SID", label: "API Key SID", hint: "SK… (Account → API keys)" },
+  { key: "TWILIO_API_KEY_SECRET", label: "API Key secret", hint: "shown once when you make the key" },
+  { key: "TWILIO_TWIML_APP_SID", label: "TwiML App SID", hint: "AP… (Voice → TwiML Apps → create)" },
+  { key: "TWILIO_PHONE_NUMBER", label: "Phone number", hint: "your Twilio number, +1… (caller ID)" },
+];
 
 export interface CallActivity {
   id: string;
@@ -52,6 +62,7 @@ export function Dialer({ onActivity }: { onActivity?: (a: CallActivity) => void 
   const [seconds, setSeconds] = useState(0);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [missing, setMissing] = useState<string[]>([]);
 
   const deviceRef = useRef<Device | null>(null);
   const callRef = useRef<Call | null>(null);
@@ -60,14 +71,16 @@ export function Dialer({ onActivity }: { onActivity?: (a: CallActivity) => void 
 
   const fetchToken = useCallback(async (): Promise<string | null> => {
     const res = await fetch("/api/twilio/token");
+    const data = (await res.json().catch(() => ({}))) as {
+      token?: string;
+      error?: string;
+      missing?: string[];
+    };
+    if (Array.isArray(data.missing)) setMissing(data.missing);
     if (res.status === 503) {
       setPhase("unconfigured");
       return null;
     }
-    const data = (await res.json().catch(() => ({}))) as {
-      token?: string;
-      error?: string;
-    };
     if (!res.ok || !data.token) {
       setErrMsg(data.error || `Token error (${res.status})`);
       setPhase("error");
@@ -199,25 +212,57 @@ export function Dialer({ onActivity }: { onActivity?: (a: CallActivity) => void 
 
   // ── Unconfigured / error states ──
   if (phase === "unconfigured") {
+    const setCount = VOICE_VARS.length - missing.length;
     return (
       <div className="surface-card rounded-2xl p-5">
         <div className="flex items-center gap-2">
           <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
             <PlugZap className="h-4 w-4 text-white" />
           </div>
-          <h3 className="text-sm font-semibold text-white">Connect Twilio to dial</h3>
+          <div>
+            <h3 className="text-sm font-semibold text-white">Connect Twilio to dial</h3>
+            <p className="text-[10px] text-slate-500">
+              {setCount}/{VOICE_VARS.length} keys detected · set the rest in Vercel
+            </p>
+          </div>
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-slate-400">
-          Add your Twilio keys to environment variables to turn on the in-app
-          dialer + texting. You&apos;ll need <b className="text-slate-300">TWILIO_ACCOUNT_SID</b>,{" "}
-          <b className="text-slate-300">TWILIO_API_KEY_SID</b>,{" "}
-          <b className="text-slate-300">TWILIO_API_KEY_SECRET</b>,{" "}
-          <b className="text-slate-300">TWILIO_TWIML_APP_SID</b>, and{" "}
-          <b className="text-slate-300">TWILIO_PHONE_NUMBER</b>.
-        </p>
-        <p className="mt-2 text-[11px] text-slate-500">
-          See DEPLOY.md → “Twilio dialer &amp; texting” for the 5-minute setup
-          (including the TwiML App URLs to paste).
+
+        <div className="mt-4 space-y-1.5">
+          {VOICE_VARS.map((v) => {
+            const present = !missing.includes(v.key);
+            return (
+              <div
+                key={v.key}
+                className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 ${
+                  present
+                    ? "border-emerald-500/20 bg-emerald-500/[0.05]"
+                    : "border-white/[0.06] bg-white/[0.02]"
+                }`}
+              >
+                <div
+                  className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
+                    present ? "bg-emerald-500/20 text-emerald-300" : "bg-white/[0.06] text-slate-500"
+                  }`}
+                >
+                  {present ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-white">{v.label}</span>
+                    <code className="truncate text-[9px] text-slate-500">{v.key}</code>
+                  </div>
+                  {!present && (
+                    <div className="text-[10px] text-slate-500">{v.hint}</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+          Add the missing ones in <b className="text-slate-300">Vercel → Settings → Environment Variables</b>, then redeploy.
+          Full walkthrough (incl. the TwiML App URLs to paste) is in DEPLOY.md → “Twilio dialer &amp; texting”.
         </p>
       </div>
     );
@@ -255,6 +300,12 @@ export function Dialer({ onActivity }: { onActivity?: (a: CallActivity) => void 
 
       {!collapsed && (
         <div className="px-5 pb-5">
+          {missing.includes("TWILIO_PHONE_NUMBER") && (
+            <div className="mb-3 rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-[11px] text-amber-200">
+              Add <b>TWILIO_PHONE_NUMBER</b> in Vercel — calls need a caller ID
+              or Twilio rejects them.
+            </div>
+          )}
           <div className="relative">
             <input
               value={number}
