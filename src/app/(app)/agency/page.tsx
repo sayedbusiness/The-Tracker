@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import {
   Briefcase,
   TrendingUp,
@@ -17,6 +17,7 @@ import {
   Phone,
   MessageSquare,
   History,
+  GripVertical,
 } from "lucide-react";
 import { PageHeader } from "@/components/tasks/page-header";
 import { Button } from "@/components/ui/button";
@@ -129,6 +130,10 @@ export default function AgencyPage() {
   const [draftStage, setDraftStage] = useState<PipelineStage>("lead");
   const [importerOpen, setImporterOpen] = useState(false);
   const [smsTarget, setSmsTarget] = useState<{ to: string; contact?: string } | null>(
+    null
+  );
+
+  const [dragOverStage, setDragOverStage] = useState<PipelineStage | null>(
     null
   );
 
@@ -443,7 +448,7 @@ export default function AgencyPage() {
           <div>
             <h2 className="text-sm font-semibold text-white">Sales pipeline</h2>
             <p className="text-[10px] text-slate-500">
-              Use the · menu on each deal to advance stages · AI scores probability
+              Press &amp; hold the grip to drag a deal between stages · or tap ↗ to advance
             </p>
           </div>
           <Button
@@ -464,7 +469,12 @@ export default function AgencyPage() {
             return (
               <div
                 key={stage}
-                className={`rounded-2xl border bg-gradient-to-b ${stageColors[stage]} to-transparent p-3`}
+                data-stage={stage}
+                className={`rounded-2xl border bg-gradient-to-b ${stageColors[stage]} to-transparent p-3 transition-all ${
+                  dragOverStage === stage
+                    ? "ring-2 ring-emerald-400/70 ring-offset-2 ring-offset-black"
+                    : ""
+                }`}
               >
                 <div className="mb-3 flex items-center justify-between px-1">
                   <div>
@@ -501,79 +511,18 @@ export default function AgencyPage() {
                   )}
                   <AnimatePresence initial={false}>
                     {deals.map((d, i) => (
-                      <motion.div
+                      <DealCard
                         key={d.id}
-                        layout
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.92 }}
-                        transition={{ delay: i * 0.04 }}
-                        whileHover={{ y: -2 }}
-                        className="group cursor-default rounded-xl border border-white/[0.06] bg-black/40 p-3 backdrop-blur-sm"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="text-sm font-semibold text-white">
-                            {d.company}
-                          </div>
-                          <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                            {stage !== "won" && (
-                              <button
-                                onClick={() => {
-                                  const next =
-                                    stageOrder[stageOrder.indexOf(stage) + 1] ??
-                                    "won";
-                                  advanceDeal(d.id, next);
-                                }}
-                                className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-white/[0.05] hover:text-emerald-300"
-                                title="Advance"
-                              >
-                                <ArrowUpRight className="h-3 w-3" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => removeDeal(d.id)}
-                              className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-rose-500/15 hover:text-rose-300"
-                              title="Remove"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="mt-0.5 text-[10px] text-slate-500">
-                          {d.contact}
-                        </div>
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className="text-sm font-bold tabular gradient-text">
-                            {formatCurrency(d.value)}
-                          </span>
-                          <span className="rounded-md border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-[10px] tabular text-slate-300">
-                            {d.probability}%
-                          </span>
-                        </div>
-                        <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
-                          <div
-                            className="h-full bg-gradient-to-r from-blue-600 via-blue-600 to-sky-400"
-                            style={{ width: `${d.probability}%` }}
-                          />
-                        </div>
-                        <div className="mt-2.5 flex gap-1.5">
-                          <button
-                            onClick={() => callLead(d)}
-                            disabled={!d.phone}
-                            title={d.phone ? `Call ${d.phone}` : "No phone number"}
-                            className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-emerald-500/25 bg-emerald-500/10 py-1.5 text-[11px] font-semibold text-emerald-200 transition-colors hover:bg-emerald-500/20 disabled:opacity-30"
-                          >
-                            <Phone className="h-3 w-3" /> Call
-                          </button>
-                          <button
-                            onClick={() => textLead(d)}
-                            title="Send a text"
-                            className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-sky-500/25 bg-sky-500/10 py-1.5 text-[11px] font-semibold text-sky-200 transition-colors hover:bg-sky-500/20"
-                          >
-                            <MessageSquare className="h-3 w-3" /> Text
-                          </button>
-                        </div>
-                      </motion.div>
+                        d={d}
+                        stage={stage}
+                        index={i}
+                        onMove={advanceDeal}
+                        onAdvance={advanceDeal}
+                        onRemove={removeDeal}
+                        onCall={callLead}
+                        onText={textLead}
+                        onDragOver={setDragOverStage}
+                      />
                     ))}
                   </AnimatePresence>
                 </div>
@@ -1279,3 +1228,154 @@ function Insight({
   );
 }
 
+
+
+/** Find which pipeline column the viewport point is over (drag drop). */
+function stageFromPoint(x: number, y: number): PipelineStage | null {
+  if (typeof document === "undefined") return null;
+  const el = document.elementFromPoint(x, y);
+  const col = el?.closest("[data-stage]") as HTMLElement | null;
+  const s = col?.dataset.stage;
+  return s ? (s as PipelineStage) : null;
+}
+
+/**
+ * A draggable pipeline deal card. Press & hold the grip handle to drag it
+ * into another stage column. Works with mouse and touch (the handle has
+ * touch-action:none so dragging it never fights page scroll, while the rest
+ * of the card stays tappable + scrollable).
+ */
+function DealCard({
+  d,
+  stage,
+  index,
+  onMove,
+  onAdvance,
+  onRemove,
+  onCall,
+  onText,
+  onDragOver,
+}: {
+  d: Deal;
+  stage: PipelineStage;
+  index: number;
+  onMove: (id: string, to: PipelineStage) => void;
+  onAdvance: (id: string, to: PipelineStage) => void;
+  onRemove: (id: string) => void;
+  onCall: (d: Deal) => void;
+  onText: (d: Deal) => void;
+  onDragOver: (s: PipelineStage | null) => void;
+}) {
+  const controls = useDragControls();
+  const [dragging, setDragging] = useState(false);
+
+  const startDrag = (e: React.PointerEvent) => {
+    e.preventDefault();
+    controls.start(e);
+  };
+
+  return (
+    <motion.div
+      layout
+      drag
+      dragControls={controls}
+      dragListener={false}
+      dragSnapToOrigin
+      dragElastic={0.12}
+      onDragStart={() => setDragging(true)}
+      onDrag={(e) => {
+        const pe = e as PointerEvent;
+        onDragOver(stageFromPoint(pe.clientX, pe.clientY));
+      }}
+      onDragEnd={(e) => {
+        const pe = e as PointerEvent;
+        const to = stageFromPoint(pe.clientX, pe.clientY);
+        if (to && to !== stage) onMove(d.id, to);
+        onDragOver(null);
+        setDragging(false);
+      }}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.92 }}
+      transition={{ delay: index * 0.04 }}
+      whileDrag={{
+        scale: 1.05,
+        zIndex: 50,
+        boxShadow: "0 18px 50px rgba(0,0,0,0.6)",
+      }}
+      className={`group relative rounded-xl border bg-black/40 p-3 backdrop-blur-sm ${
+        dragging ? "border-emerald-400/50" : "border-white/[0.06]"
+      }`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <div
+            onPointerDown={startDrag}
+            title="Drag to move stage"
+            style={{ touchAction: "none" }}
+            className="-m-1 cursor-grab p-1 text-slate-600 hover:text-slate-300 active:cursor-grabbing"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+          <div className="truncate text-sm font-semibold text-white">
+            {d.company}
+          </div>
+        </div>
+        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+          {stage !== "won" && (
+            <button
+              onClick={() => {
+                const next =
+                  stageOrder[stageOrder.indexOf(stage) + 1] ?? "won";
+                onAdvance(d.id, next);
+              }}
+              className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-white/[0.05] hover:text-emerald-300"
+              title="Advance"
+            >
+              <ArrowUpRight className="h-3 w-3" />
+            </button>
+          )}
+          <button
+            onClick={() => onRemove(d.id)}
+            className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-rose-500/15 hover:text-rose-300"
+            title="Remove"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+      <div className="mt-0.5 pl-5 text-[10px] text-slate-500">{d.contact}</div>
+      <div className="mt-3 flex items-center justify-between">
+        <span className="text-sm font-bold tabular gradient-text">
+          {formatCurrency(d.value)}
+        </span>
+        <span className="rounded-md border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-[10px] tabular text-slate-300">
+          {d.probability}%
+        </span>
+      </div>
+      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.05]">
+        <div
+          className="h-full bg-gradient-to-r from-blue-600 via-blue-600 to-sky-400"
+          style={{ width: `${d.probability}%` }}
+        />
+      </div>
+      <div className="mt-2.5 flex gap-1.5">
+        <button
+          onClick={() => onCall(d)}
+          disabled={!d.phone}
+          title={d.phone ? `Call ${d.phone}` : "No phone number"}
+          className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-emerald-500/25 bg-emerald-500/10 py-1.5 text-[11px] font-semibold text-emerald-200 transition-colors hover:bg-emerald-500/20 disabled:opacity-30"
+        >
+          <Phone className="h-3 w-3" /> Call
+        </button>
+        <button
+          onClick={() => onText(d)}
+          title="Send a text"
+          className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-sky-500/25 bg-sky-500/10 py-1.5 text-[11px] font-semibold text-sky-200 transition-colors hover:bg-sky-500/20"
+        >
+          <MessageSquare className="h-3 w-3" /> Text
+        </button>
+      </div>
+    </motion.div>
+  );
+}

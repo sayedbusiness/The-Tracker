@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Drag & drop sales pipeline
+- The Agency pipeline is now a real **kanban board**: press & hold the grip
+  handle on any deal and drag it between **Lead → Qualified → Proposal →
+  Negotiation → Won** (or Lost). Works on touch (iPhone) and mouse; the
+  target column highlights as you drag, and the card snaps into place on drop.
+  The tap ↗ "advance" and Call/Text buttons still work.
+
 ### Rebrand → Avori OS + mobile/notification fixes
 - **Renamed the app to "Avori OS"** everywhere it's shown (UI, PWA name, page
   titles, docs). Internal storage keys (`apex:*`, `apex_state`, auth cookies)
