@@ -6,18 +6,20 @@ export const runtime = "edge";
  * POST /api/login
  * Body: { password: string }
  *
- * Verifies against APEX_PASSWORD env var (server-only). On success,
+ * Verifies against AVORI_PASSWORD (or legacy APEX_PASSWORD) env var
+ * (server-only). On success,
  * sets an HttpOnly `apex-auth` cookie containing sha256(password)
  * with a 30-day expiry. On failure, returns 401 after a small delay
  * (rate-limit friction).
  */
 export async function POST(req: NextRequest) {
-  const expected = process.env.APEX_PASSWORD;
+  // Prefer AVORI_PASSWORD; fall back to the legacy APEX_PASSWORD name.
+  const expected = process.env.AVORI_PASSWORD ?? process.env.APEX_PASSWORD;
   if (!expected) {
     return Response.json(
       {
         error:
-          "Auth not configured. Add APEX_PASSWORD to Vercel env vars to lock the site.",
+          "Auth not configured. Add AVORI_PASSWORD to Vercel env vars to lock the site.",
       },
       { status: 500 }
     );

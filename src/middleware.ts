@@ -8,9 +8,9 @@ import type { NextRequest } from "next/server";
  *     Real multi-user accounts. Requires the `apex-uid` cookie (set by the
  *     client after Supabase sign-in). No cookie → redirect to /login.
  *
- *  2. password — only APEX_PASSWORD set. Legacy single shared password.
- *     Requires the `apex-auth` cookie (sha256 of the password) set by
- *     /api/login. No/!match → redirect to /login.
+ *  2. password — only AVORI_PASSWORD (or legacy APEX_PASSWORD) set. Single
+ *     shared password. Requires the `apex-auth` cookie (sha256 of the
+ *     password) set by /api/login. No/!match → redirect to /login.
  *
  *  3. open — nothing set. No gate (local/dev). The app still runs and the
  *     login/register pages work against local accounts.
@@ -20,7 +20,7 @@ export async function middleware(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
   );
-  const password = process.env.APEX_PASSWORD;
+  const password = process.env.AVORI_PASSWORD ?? process.env.APEX_PASSWORD;
   const path = req.nextUrl.pathname;
 
   // Always-allowed paths (auth screens, all APIs, static assets, manifest).

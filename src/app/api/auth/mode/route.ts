@@ -5,7 +5,7 @@ export const runtime = "edge";
  *
  * Tells the login screen which auth mode the server is configured for:
  *   - "supabase" → real multi-user accounts (Supabase Auth)
- *   - "password" → legacy single shared password (APEX_PASSWORD)
+ *   - "password" → single shared password (AVORI_PASSWORD / APEX_PASSWORD)
  *   - "open"     → no gate; local accounts available for demo
  */
 export function GET() {
@@ -13,7 +13,9 @@ export function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
   );
-  const password = Boolean(process.env.APEX_PASSWORD);
+  const password = Boolean(
+    process.env.AVORI_PASSWORD ?? process.env.APEX_PASSWORD
+  );
   const mode = supabase ? "supabase" : password ? "password" : "open";
   return Response.json({ mode });
 }
