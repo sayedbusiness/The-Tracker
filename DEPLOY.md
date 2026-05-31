@@ -68,7 +68,7 @@ get their own private data. It auto-detects which mode to run in:
 | Mode | When it's used | What the user sees |
 |------|----------------|--------------------|
 | **Accounts** | `NEXT_PUBLIC_SUPABASE_URL` **and** `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set | A real login + register screen. After signing up they answer a short personalization questionnaire. Each account's data is private. |
-| **Password** | Only `APEX_PASSWORD` is set | The single shared-password gate (legacy). |
+| **Password** | Only `AVORI_PASSWORD` (or legacy `APEX_PASSWORD`) is set | The single shared-password gate. |
 | **Open** | Neither is set | No gate. The login/register screens still work, backed by local (device-only) accounts — handy for demos. |
 
 **To enable real accounts (5 min, free):**
@@ -196,10 +196,10 @@ You need to set up an OAuth client once:
 
 Anyone with your Vercel URL can currently see your data. To gate it:
 
-1. Pick a password you'll remember (e.g. `apex-sayed-2026`)
+1. Pick a password you'll remember (e.g. `avori-sayed-2026`)
 2. Go to **vercel.com** → your project → **Settings** → **Environment Variables**
 3. Add a new variable:
-   - **Key:** `APEX_PASSWORD`
+   - **Key:** `AVORI_PASSWORD`  _(legacy `APEX_PASSWORD` also works)_
    - **Value:** your chosen password
    - **Environments:** Production AND Preview (default)
 4. Click **Save**
@@ -210,7 +210,7 @@ login screen. Type the password once and you're in for 30 days (cookie
 remembers you per device). If anyone else has the URL but not the
 password, they're blocked.
 
-To kick yourself out and force re-login, delete the `APEX_PASSWORD` env
+To kick yourself out and force re-login, delete the `AVORI_PASSWORD` env
 var, redeploy, then re-add it. Or change the value to a new password.
 
 ---
