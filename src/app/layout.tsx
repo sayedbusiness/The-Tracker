@@ -16,13 +16,13 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "APEX OS — The Life Operating System",
+  title: "Avori OS — The Life Operating System",
   description:
     "A cinematic AI-powered personal operating system. Track, optimize, and dominate every area of your life.",
-  applicationName: "APEX OS",
+  applicationName: "Avori OS",
   appleWebApp: {
     capable: true,
-    title: "APEX OS",
+    title: "Avori OS",
     statusBarStyle: "black-translucent",
   },
 };

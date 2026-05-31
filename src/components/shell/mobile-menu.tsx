@@ -38,7 +38,7 @@ const NAV: { href: string; label: string; icon: LucideIcon; section?: "today" | 
   { href: "/tasks", label: "Tasks", icon: ListTodo, section: "tasks" },
   { href: "/discipline", label: "Discipline", icon: Flame },
   { href: "/health", label: "Health", icon: Heart, section: "health" },
-  { href: "/agency", label: "Apex Growth · CRM", icon: Briefcase },
+  { href: "/agency", label: "Avori Growth · CRM", icon: Briefcase },
   { href: "/learn", label: "Learn", icon: GraduationCap },
   { href: "/assistant", label: "AI Coach", icon: Sparkles },
   { href: "/insights", label: "Insights", icon: LineChart },
@@ -85,7 +85,7 @@ export function MobileMenu() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 38 }}
-              className="glass-strong fixed inset-y-0 left-0 z-[61] flex w-[82vw] max-w-xs flex-col"
+              className="fixed inset-y-0 left-0 z-[61] flex w-[82vw] max-w-xs flex-col border-r border-white/10 bg-[#0b1120] shadow-[0_0_80px_rgba(0,0,0,0.9)]"
               style={{ paddingTop: "env(safe-area-inset-top)" }}
             >
               <div className="flex items-center justify-between px-4 py-4">
@@ -96,7 +96,7 @@ export function MobileMenu() {
                   <div className="min-w-0 leading-tight">
                     <div className="truncate text-sm font-semibold text-white">{name}</div>
                     <div className="truncate text-[10px] text-slate-500">
-                      {signedIn ? authUser?.email : "APEX OS"}
+                      {signedIn ? authUser?.email : "Avori OS"}
                     </div>
                   </div>
                 </div>

@@ -35,7 +35,7 @@ const nav = [
   { href: "/tasks", label: "Tasks", icon: ListTodo, hint: "G T" },
   { href: "/discipline", label: "Discipline", icon: Flame, hint: "G I" },
   { href: "/health", label: "Health", icon: Heart, hint: "G H" },
-  { href: "/agency", label: "Apex Growth", icon: Briefcase, hint: "G A" },
+  { href: "/agency", label: "Avori Growth", icon: Briefcase, hint: "G A" },
   { href: "/learn", label: "Learn", icon: GraduationCap, hint: "G L" },
   { href: "/assistant", label: "AI Coach", icon: Sparkles, hint: "G C" },
   { href: "/insights", label: "Insights", icon: LineChart, hint: "G N" },
@@ -72,7 +72,7 @@ export function Sidebar({ onOpenCommand }: { onOpenCommand: () => void }) {
           <div className="shimmer-bg absolute inset-0 opacity-60" />
         </div>
         <div className="flex flex-col leading-tight">
-          <span className="text-sm font-semibold text-white">APEX OS</span>
+          <span className="text-sm font-semibold text-white">Avori OS</span>
           <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
             v0.1 · alpha
           </span>

@@ -175,7 +175,7 @@ export default function SettingsPage() {
       })}
 
       <div className="text-center text-[10px] uppercase tracking-[0.2em] text-slate-600">
-        APEX OS v0.1 · alpha · made with discipline
+        Avori OS v0.1 · alpha · made with discipline
       </div>
     </div>
   );

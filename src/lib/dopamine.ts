@@ -106,7 +106,7 @@ export const LEVEL_TIERS: LevelTier[] = [
   { level: 5, name: "Operator", gradient: "from-violet-400 to-purple-600", glow: "rgba(139,92,246,0.75)" },
   { level: 8, name: "Closer", gradient: "from-amber-400 to-orange-500", glow: "rgba(251,146,60,0.8)" },
   { level: 12, name: "Killer", gradient: "from-rose-400 to-red-600", glow: "rgba(244,63,94,0.85)" },
-  { level: 18, name: "Apex", gradient: "from-emerald-300 to-teal-500", glow: "rgba(16,185,129,0.9)" },
+  { level: 18, name: "Avori", gradient: "from-emerald-300 to-teal-500", glow: "rgba(16,185,129,0.9)" },
   { level: 25, name: "Legend", gradient: "from-yellow-300 to-amber-500", glow: "rgba(250,204,21,1)" },
 ];
 
@@ -128,7 +128,7 @@ export const LEVEL_UP_LINES: Record<number, string> = {
   10: "Standards beat motivation. Always.",
   12: "KILLER. They feel you coming.",
   15: "You and your past self aren't the same person.",
-  18: "APEX. Nobody outworks you.",
+  18: "Avori. Nobody outworks you.",
   20: "The version of you they doubted is gone.",
   25: "LEGEND. You wrote your own rules.",
 };
@@ -136,7 +136,7 @@ export const LEVEL_UP_LINES: Record<number, string> = {
 export function levelUpLine(level: number): string {
   if (LEVEL_UP_LINES[level]) return LEVEL_UP_LINES[level];
   if (level >= 25) return "LEGEND. Untouchable.";
-  if (level >= 18) return "APEX. Nobody outworks you.";
+  if (level >= 18) return "Avori. Nobody outworks you.";
   if (level >= 12) return "KILLER. They feel you coming.";
   if (level >= 8) return "CLOSER. You make money happen.";
   if (level >= 5) return "OPERATOR. You run your day now.";

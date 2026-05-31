@@ -2,7 +2,7 @@
   "name": "apex-os",
   "version": "0.1.0",
   "private": true,
-  "description": "APEX OS — The Ultimate AI Life Operating System. A futuristic personal command center for discipline, productivity, health, business, and growth.",
+  "description": "Avori OS — The Ultimate AI Life Operating System. A futuristic personal command center for discipline, productivity, health, business, and growth.",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

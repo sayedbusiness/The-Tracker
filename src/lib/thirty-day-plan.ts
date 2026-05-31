@@ -1,5 +1,5 @@
 /**
- * APEX OS — Sayed's 60-Day Operating System (Cycle 1)
+ * Avori OS — Sayed's 60-Day Operating System (Cycle 1)
  *
  *   Day 1 = Monday May 25, 2026
  *   Day 60 = Thursday July 23, 2026

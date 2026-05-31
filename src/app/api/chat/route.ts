@@ -6,7 +6,7 @@ import { user as mockUser, todayMetrics } from "@/lib/mock-data";
 export const runtime = "edge";
 
 const goals = [
-  "Build Apex Growth Corp — close first paying clients",
+  "Build Avori Growth Corp — close first paying clients",
   "Body composition: lean and muscular (starting 172 lb)",
   "Lock in non-negotiables: workout, sleep, Quran, walk",
 ];

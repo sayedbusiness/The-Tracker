@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "APEX OS — The Life Operating System",
-    short_name: "APEX OS",
+    name: "Avori OS — The Life Operating System",
+    short_name: "Avori OS",
     description:
       "A cinematic AI-powered personal operating system. Track, optimize, and dominate every area of your life.",
     start_url: "/",
@@ -49,7 +49,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Agency",
         short_name: "Agency",
         url: "/agency",
-        description: "Open the Apex Growth Corp command center",
+        description: "Open the Avori Growth Corp command center",
       },
       {
         name: "Health",

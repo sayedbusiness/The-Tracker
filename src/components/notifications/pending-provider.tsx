@@ -69,7 +69,7 @@ export function PendingProvider({ children }: { children: React.ReactNode }) {
       lastNotifiedAt.current = Date.now();
       try {
         const n = new Notification(`${top.emoji} ${top.label}`, {
-          body: top.hint ?? "Open APEX OS and knock it out.",
+          body: top.hint ?? "Open Avori OS and knock it out.",
           tag: "apex-reminder",
         });
         n.onclick = () => {

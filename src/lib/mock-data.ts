@@ -26,11 +26,11 @@ export const user = {
 };
 
 export const disciplineQuotes = [
-  { text: "Motivation fades. Discipline remains.", attr: "APEX" },
-  { text: "You said you wanted greatness. This is the cost.", attr: "APEX" },
-  { text: "Future you is built by today's actions.", attr: "APEX" },
-  { text: "Consistency compounds. Excuses don't.", attr: "APEX" },
-  { text: "You cannot build an empire through excuses.", attr: "APEX" },
+  { text: "Motivation fades. Discipline remains.", attr: "Avori" },
+  { text: "You said you wanted greatness. This is the cost.", attr: "Avori" },
+  { text: "Future you is built by today's actions.", attr: "Avori" },
+  { text: "Consistency compounds. Excuses don't.", attr: "Avori" },
+  { text: "You cannot build an empire through excuses.", attr: "Avori" },
   { text: "Hard chosen, easy life. Easy chosen, hard life.", attr: "Jerzy Gregorek" },
   { text: "Discipline equals freedom.", attr: "Jocko Willink" },
   {
@@ -134,7 +134,7 @@ export const aiInsights = [
   },
 ];
 
-// ─── Apex Growth Corp — clean slate ──────────────────────────
+// ─── Avori Growth Corp — clean slate ──────────────────────────
 export const clients: Array<{
   id: string;
   name: string;
@@ -223,7 +223,7 @@ export const learningTracks = [
   {
     id: "l3",
     title: "Agency Scaling Playbook 2026",
-    instructor: "Apex Internal",
+    instructor: "Avori Internal",
     duration: "12h 30m",
     progress: 0,
     category: "Business",

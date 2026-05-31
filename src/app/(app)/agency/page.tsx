@@ -233,7 +233,7 @@ export default function AgencyPage() {
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
       <PageHeader
-        eyebrow="Apex Growth Corp · Command Center"
+        eyebrow="Avori Growth Corp · Command Center"
         title={
           <>
             Run the agency like a <span className="gradient-text">machine.</span>

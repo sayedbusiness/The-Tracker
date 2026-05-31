@@ -9,11 +9,13 @@ import { AiHelperFab } from "./ai-helper-fab";
 import { DopamineProvider } from "@/components/dopamine/dopamine-provider";
 import { PendingProvider } from "@/components/notifications/pending-provider";
 import { DailyReward } from "@/components/dopamine/daily-reward";
+import { StepTrackingProvider } from "@/components/health/step-tracking-provider";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
   return (
     <DopamineProvider>
+      <StepTrackingProvider>
       <PendingProvider>
       <div className="flex min-h-screen">
         <Sidebar onOpenCommand={() => setCmdOpen(true)} />
@@ -35,6 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <DailyReward />
       </div>
       </PendingProvider>
+      </StepTrackingProvider>
     </DopamineProvider>
   );
 }

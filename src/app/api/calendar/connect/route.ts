@@ -78,7 +78,7 @@ function renderErrorPage({
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>${title} · APEX OS</title>
+  <title>${title} · Avori OS</title>
   <style>
     :root { color-scheme: dark; }
     body { background: #000; color: #e8ecf5; font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 40px 20px; line-height: 1.5; }

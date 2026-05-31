@@ -53,7 +53,7 @@ export function AuthScreen({ initialTab = "login" }: { initialTab?: Tab }) {
           </motion.div>
 
           <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-            APEX <span className="gradient-electric">OS</span>
+            Avori <span className="gradient-electric">OS</span>
           </h1>
 
           <Suspense fallback={null}>
@@ -63,7 +63,7 @@ export function AuthScreen({ initialTab = "login" }: { initialTab?: Tab }) {
       </motion.div>
 
       <div className="absolute bottom-6 text-[10px] uppercase tracking-[0.2em] text-slate-600">
-        Built for operators · © Apex Growth Corp
+        Built for operators · © Avori Growth Corp
       </div>
     </div>
   );
@@ -165,7 +165,7 @@ function AuthForms({ initialTab }: { initialTab: Tab }) {
             autoComplete="current-password"
             value={password}
             onChange={setPassword}
-            placeholder="Enter your APEX password"
+            placeholder="Enter your Avori password"
           />
           {error && <ErrorBox>{error}</ErrorBox>}
           <Button type="submit" size="lg" className="w-full" disabled={loading || !password}>

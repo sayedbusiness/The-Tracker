@@ -90,7 +90,7 @@ export default function CalendarPage() {
           </h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
             Read-only access to your primary calendar. Events stay on Google's
-            servers — APEX OS just fetches the next 24 hours. Syncs to your
+            servers — Avori OS just fetches the next 24 hours. Syncs to your
             iPhone Calendar app via Google.
           </p>
           <a

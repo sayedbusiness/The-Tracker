@@ -130,7 +130,7 @@ export default function AssistantPage() {
 
     const totalCal = meals.reduce((s, m) => s + m.calories, 0);
     const totalProtein = meals.reduce((s, m) => s + m.protein, 0);
-    const snapshot = `[Live context from APEX OS — today ${today}]
+    const snapshot = `[Live context from Avori OS — today ${today}]
 - Tasks: ${completedIds.size}/${tasksList.length} complete
 - Meals logged: ${meals.length} (${totalCal} kcal, ${totalProtein}g protein)
 - Water: ${waterCups} cups (${(waterCups * 0.25).toFixed(2)} L)`;

@@ -18,7 +18,8 @@ import {
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey } from "@/lib/dates";
 import { useDopamine } from "@/components/dopamine/dopamine-provider";
-import { useStepTracker, type Activity as MotionActivity } from "@/hooks/use-step-tracker";
+import { type Activity as MotionActivity } from "@/hooks/use-step-tracker";
+import { useStepTracking } from "@/components/health/step-tracking-provider";
 
 /**
  * Manual input loggers for steps (today), sleep (last night), and
@@ -47,11 +48,9 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
   const [steps, setSteps] = useSyncedState<number>(`health:steps:${today}`, 0);
   const [draft, setDraft] = useState<string>("");
 
-  // Auto step tracking — counts steps from the accelerometer and only
-  // commits them while walking/running (never in a car).
-  const tracker = useStepTracker({
-    onSteps: (delta) => setSteps((s) => s + delta),
-  });
+  // App-wide auto step tracking (shared across pages via the provider, so
+  // it keeps counting as you navigate and auto-resumes when you reopen).
+  const tracker = useStepTracking();
 
   const pct = Math.min(100, (steps / STEP_TARGET) * 100);
 
@@ -106,7 +105,7 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
         />
       </div>
 
-      {/* Auto-tracking — accelerometer pedometer + activity detection */}
+      {/* Always-on auto-tracking — accelerometer pedometer + activity detection */}
       {tracker.supported ? (
         <div className="mb-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
           <div className="flex items-center justify-between gap-2">
@@ -115,24 +114,24 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
             ) : (
               <div className="flex items-center gap-1.5 text-xs text-slate-300">
                 <Activity className="h-3.5 w-3.5 text-emerald-400" />
-                Auto-track steps
+                {tracker.autotrack ? "Auto-track on" : "Auto-track steps"}
               </div>
             )}
             <button
-              onClick={() => (tracker.running ? tracker.stop() : tracker.start())}
+              onClick={() => (tracker.autotrack ? tracker.disable() : tracker.enable())}
               className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                tracker.running
+                tracker.autotrack
                   ? "border border-rose-500/30 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20"
                   : "bg-gradient-to-br from-emerald-500 to-teal-500 text-white"
               }`}
             >
-              {tracker.running ? (
+              {tracker.autotrack ? (
                 <>
                   <Square className="h-3 w-3" /> Stop
                 </>
               ) : (
                 <>
-                  <Play className="h-3 w-3" /> Start
+                  <Play className="h-3 w-3" /> Always on
                 </>
               )}
             </button>
@@ -147,6 +146,11 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
               </span>
             </div>
           )}
+          {tracker.autotrack && !tracker.running && tracker.permission !== "denied" && (
+            <div className="mt-1.5 text-[10px] text-slate-400">
+              On — keeps counting as you move around the app. Tap “Stop” to turn off.
+            </div>
+          )}
           {tracker.running && tracker.noSignal && (
             <div className="mt-1.5 text-[10px] text-amber-300/80">
               No motion detected on this device — log manually below.
@@ -154,7 +158,8 @@ export function StepsLogger({ compact = false }: { compact?: boolean }) {
           )}
           {tracker.permission === "denied" && (
             <div className="mt-1.5 text-[10px] text-rose-300/80">
-              Motion access denied. Enable it in your browser/site settings, then Start again.
+              Motion access denied. Enable it in your iPhone Settings → the
+              browser/app → Motion &amp; Orientation, then tap Always on again.
             </div>
           )}
         </div>

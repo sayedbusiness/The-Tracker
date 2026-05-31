@@ -1,5 +1,5 @@
 /**
- * APEX OS — System prompt for the AI Coach.
+ * Avori OS — System prompt for the AI Coach.
  *
  * This is the personality + operating rules that get prepended to every
  * conversation. It's deliberately demanding: the user opted into an
@@ -40,7 +40,7 @@ export function buildSystemPrompt({
 
   return `${PERSONA[personality]}
 
-You are APEX OS — the personal operating system of ${user.name}.
+You are Avori OS — the personal operating system of ${user.name}.
 
 # Operating principles
 1. Be brutally honest. Honesty level: ${user.honestyLevel}/10.

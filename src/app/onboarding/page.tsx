@@ -216,7 +216,7 @@ export default function OnboardingPage() {
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
             <span className="flex items-center gap-1.5 text-blue-300">
-              <Sparkles className="h-3 w-3" /> Personalize APEX
+              <Sparkles className="h-3 w-3" /> Personalize Avori
             </span>
             <span>
               {step + 1} / {total}

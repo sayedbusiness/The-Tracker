@@ -1,4 +1,4 @@
-# How to access APEX OS
+# How to access Avori OS
 
 Three paths depending on what you want to do. Pick one.
 
@@ -6,7 +6,7 @@ Three paths depending on what you want to do. Pick one.
 
 ## ① The fastest path — run it locally (5 minutes)
 
-You have everything you need to run APEX OS on your machine right now. No
+You have everything you need to run Avori OS on your machine right now. No
 database, no API keys, no cloud accounts. Mock data is built in.
 
 ```bash
@@ -39,7 +39,7 @@ fully wired against the demo dataset.
 
 ## ② Make it install like a real app (PWA — 30 seconds)
 
-APEX OS ships as a Progressive Web App. On any device you can install
+Avori OS ships as a Progressive Web App. On any device you can install
 it without an App Store:
 
 **On iPhone / iPad (Safari):**
@@ -50,7 +50,7 @@ it without an App Store:
 
 **On Mac (Safari or Chrome):**
 1. Open in Safari → File → "Add to Dock"  *(or in Chrome: ⋮ → "Cast,
-   Save and Share" → "Install APEX OS…")*
+   Save and Share" → "Install Avori OS…")*
 2. Launches in its own window from your Dock with a custom icon
 
 **On Windows (Edge or Chrome):**

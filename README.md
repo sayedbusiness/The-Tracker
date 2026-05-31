@@ -1,4 +1,4 @@
-# APEX OS — The Life Operating System
+# Avori OS — The Life Operating System
 
 > A cinematic, AI-powered personal command center for discipline, productivity,
 > health, business, and growth. Built like a venture-backed product, designed
@@ -14,7 +14,7 @@ version of yourself you said you wanted to become.
 ## Why this exists
 
 Most productivity apps are graveyards of good intentions. They give you a
-todo list and walk away. APEX OS does the opposite — it **learns who you are
+todo list and walk away. Avori OS does the opposite — it **learns who you are
 and pushes you toward who you said you'd become**.
 
 The system is built around four pillars:
@@ -79,7 +79,7 @@ The-Tracker/
 │   │   │   ├── tasks/         ← AI Adaptive Todos
 │   │   │   ├── discipline/    ← Discipline Engine
 │   │   │   ├── health/        ← Food / fitness / sleep
-│   │   │   ├── agency/        ← Apex Growth Corp command center
+│   │   │   ├── agency/        ← Avori Growth Corp command center
 │   │   │   ├── learn/         ← Learning library
 │   │   │   ├── assistant/     ← AI Coach chat
 │   │   │   ├── insights/      ← Pattern analysis + memory
@@ -176,7 +176,7 @@ Critically: the floor (1.0) means the system never lets you coast indefinitely. 
 | AI Adaptive Todo System       | ✅ Built | `src/app/(app)/tasks/`                  |
 | AI Discipline Engine          | ✅ Built | `src/app/(app)/discipline/`             |
 | Health + Food + Fitness       | ✅ Built | `src/app/(app)/health/`                 |
-| Apex Growth Corp Command Ctr  | ✅ Built | `src/app/(app)/agency/`                 |
+| Avori Growth Corp Command Ctr  | ✅ Built | `src/app/(app)/agency/`                 |
 | Learning library + AI summaries| ✅ Built | `src/app/(app)/learn/`                  |
 | AI Coach (chat)               | ✅ Built | `src/app/(app)/assistant/`              |
 | Pattern Analysis + Memory     | ✅ Built | `src/app/(app)/insights/`               |
@@ -261,4 +261,4 @@ pnpm db:studio    # Open Prisma Studio
 
 ## License
 
-Private. © Apex Growth Corp.
+Private. © Avori Growth Corp.

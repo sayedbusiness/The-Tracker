@@ -59,7 +59,7 @@ export function stripActionBlocks(text: string): string {
  */
 export const ACTION_TOOLS_DOC = `# Acting inside the app (tools)
 
-You can DO things in APEX OS, not just advise. When ${"the user"} asks you to add, log,
+You can DO things in Avori OS, not just advise. When ${"the user"} asks you to add, log,
 create, call, text, or open something, perform it by emitting a fenced block:
 
 \`\`\`apex-action

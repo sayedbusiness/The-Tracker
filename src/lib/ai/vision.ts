@@ -1,5 +1,5 @@
 /**
- * APEX OS — Vision: meal photo analysis via Google Gemini 2.5.
+ * Avori OS — Vision: meal photo analysis via Google Gemini 2.5.
  *
  * Sends a base64 image to Gemini's multimodal endpoint and parses a
  * strict JSON response describing the meal. Falls back to a mock

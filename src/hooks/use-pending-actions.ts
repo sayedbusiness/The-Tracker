@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSyncedState } from "@/hooks/use-synced-state";
-import { todayKey, weekKeyMonday } from "@/lib/dates";
+import { todayKey, weekKeyMonday, minutesOfDayPT } from "@/lib/dates";
 import { questsForDate } from "@/lib/dopamine";
-import { getTodayPlan } from "@/lib/thirty-day-plan";
+import { getTodayPlan, buildDayBlocks } from "@/lib/thirty-day-plan";
 import { habits as habitDefs } from "@/lib/mock-data";
 
 /** A single "you still have to do this" item. */
@@ -63,6 +63,8 @@ export function usePendingActions() {
   const [weightHistory] = useSyncedState<WeightEntry[]>("health:weight:history", []);
   const [calls] = useSyncedState<number>(`calls:${today}`, 0);
   const [habitDone] = useSyncedState<Set<string>>(`habits:${weekKey}`, new Set<string>(), { serializer: "set" });
+  const [planDone] = useSyncedState<Set<string>>(`completed:${today}`, new Set<string>(), { serializer: "set" });
+  const [starbucks] = useSyncedState<boolean>(`starbucks:${today}`, false);
 
   return useMemo(() => {
     const actions: PendingAction[] = [];
@@ -82,6 +84,32 @@ export function usePendingActions() {
         priority: 100,
         section: "today",
       });
+    }
+
+    // ── Day-plan blocks past their time but not checked off ──
+    if (plan) {
+      const blocks = buildDayBlocks(starbucks, plan.weekday, plan);
+      const nowMin = minutesOfDayPT();
+      const overdue = blocks.filter((b) => {
+        if (b.kind === "sleep") return false;
+        const [h, m] = b.time.split(":").map(Number);
+        return h * 60 + m <= nowMin && !planDone.has(b.id);
+      });
+      if (overdue.length > 0) {
+        const recent = overdue[overdue.length - 1];
+        actions.push({
+          id: "plan",
+          label: `Plan: ${recent.label}`,
+          hint:
+            overdue.length > 1
+              ? `Not checked off — and ${overdue.length - 1} more behind on today's plan`
+              : "On your day plan — check it off or do it now.",
+          href: "/",
+          emoji: "🗓️",
+          priority: 90,
+          section: "plan",
+        });
+      }
     }
 
     // ── Today's tasks ──
@@ -166,7 +194,7 @@ export function usePendingActions() {
     for (const a of actions) sectionCounts[a.section] += 1;
 
     return { actions, count: actions.length, sectionCounts };
-  }, [today, calls, tasksList, completedIds, questsDone, workItems, habitDone, meals, water, steps, weightHistory, sleep]);
+  }, [today, calls, tasksList, completedIds, questsDone, workItems, habitDone, planDone, starbucks, meals, water, steps, weightHistory, sleep]);
 }
 
 function emptySections(): Record<PendingAction["section"], number> {

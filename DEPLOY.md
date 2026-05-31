@@ -130,7 +130,7 @@ vars are set (server-only — never commit them):
 > **rotate it** in the Twilio Console.
 
 **Step 1 — Create a TwiML App** (Console → Voice → TwiML → TwiML Apps → Create):
-Give it a name like "APEX Dialer". Set the request URLs to your deployed app
+Give it a name like "Avori Dialer". Set the request URLs to your deployed app
 (replace `your-app.vercel.app` with your real domain):
 
 - **Voice Configuration → Request URL:**
@@ -364,7 +364,7 @@ npx cap add ios          # creates ios/ folder
 npx cap open ios         # opens Xcode
 
 # In Xcode:
-# 1. Select "APEX OS" → "Signing & Capabilities" → check "Automatically manage signing"
+# 1. Select "Avori OS" → "Signing & Capabilities" → check "Automatically manage signing"
 # 2. Team: pick your Apple Developer account
 # 3. Bundle ID: co.apexgrowth.os (matches capacitor.config.ts)
 # 4. Product → Archive → "Distribute App" → "App Store Connect"
@@ -413,7 +413,7 @@ Output lands in `src-tauri/target/release/bundle/`:
 - Windows: `.msi` and `.exe` installers
 - Linux: `.deb` and `.AppImage`
 
-**The catch:** unsigned builds trigger scary warnings ("APEX OS can't be
+**The catch:** unsigned builds trigger scary warnings ("Avori OS can't be
 opened because it is from an unidentified developer"). For personal use,
 right-click → Open works fine.
 

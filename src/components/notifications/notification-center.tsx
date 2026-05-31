@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, BellRing, Check, ChevronRight } from "lucide-react";
+import { Bell, BellRing, Check, ChevronRight, X } from "lucide-react";
 import { usePending } from "@/components/notifications/pending-provider";
 import { useSyncedState } from "@/hooks/use-synced-state";
 
@@ -31,7 +31,7 @@ export function NotificationCenter() {
     setPermission(result);
     if (result === "granted") {
       setNotif(true);
-      new Notification("APEX OS reminders are on 🔔", {
+      new Notification("Avori OS reminders are on 🔔", {
         body: "I'll nudge you about what's left — calls, tasks, habits, health.",
       });
     }
@@ -56,7 +56,7 @@ export function NotificationCenter() {
         {open && (
           <>
             <div
-              className="fixed inset-0 z-40"
+              className="fixed inset-0 z-[55] bg-black/50"
               onClick={() => setOpen(false)}
             />
             <motion.div
@@ -64,17 +64,27 @@ export function NotificationCenter() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.18 }}
-              className="glass-strong absolute right-3 top-14 z-50 max-h-[70vh] w-[88vw] max-w-sm overflow-hidden rounded-2xl border border-white/[0.08] lg:right-8"
+              style={{ top: "calc(env(safe-area-inset-top) + 3.75rem)" }}
+              className="fixed right-2 z-[56] max-h-[75vh] w-[94vw] max-w-sm overflow-hidden rounded-2xl border border-white/15 bg-[#0b1120] shadow-[0_24px_70px_rgba(0,0,0,0.85)] lg:right-8"
             >
-              <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+              <div className="flex items-center justify-between border-b border-white/[0.08] bg-white/[0.03] px-4 py-3">
                 <div className="text-sm font-semibold text-white">
                   {count > 0 ? `${count} thing${count === 1 ? "" : "s"} to do` : "All caught up"}
                 </div>
-                {count > 0 && (
-                  <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold text-rose-300">
-                    LIVE
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {count > 0 && (
+                    <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold text-rose-300">
+                      LIVE
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setOpen(false)}
+                    aria-label="Close notifications"
+                    className="grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-white/[0.08] hover:text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
               {permission !== "granted" && permission !== "unsupported" && (

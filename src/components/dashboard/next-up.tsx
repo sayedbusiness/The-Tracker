@@ -54,7 +54,7 @@ export function NextUp() {
         eyebrow="Finish setup"
         tone="violet"
         icon={<Sparkles className="h-5 w-5 text-white" />}
-        title="Personalize your APEX OS"
+        title="Personalize your Avori OS"
         body="Answer a few quick questions so your plan, targets, and coach fit you."
         href="/onboarding"
         cta="Personalize now"

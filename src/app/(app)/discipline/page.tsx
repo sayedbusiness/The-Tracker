@@ -51,7 +51,7 @@ const SEED_CHALLENGES: Omit<Challenge, "progress" | "active">[] = [
   },
   {
     id: "c2",
-    name: "75 Hard — Apex Edition",
+    name: "75 Hard — Avori Edition",
     target: "Workout 2× · Quran daily · 30m Speechify · Walk 20m",
     total: 75,
     reward: "+5000 XP · Hardened badge",

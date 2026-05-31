@@ -20,7 +20,7 @@
  */
 const config = {
   appId: "co.apexgrowth.os",
-  appName: "APEX OS",
+  appName: "Avori OS",
   webDir: "out",
   bundledWebRuntime: false,
   backgroundColor: "#050507",

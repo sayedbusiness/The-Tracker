@@ -86,7 +86,7 @@ export function AiHelperFab() {
     // AI's first reply already knows what the user has logged today.
     const totalCal = meals.reduce((s, m) => s + m.calories, 0);
     const totalProtein = meals.reduce((s, m) => s + m.protein, 0);
-    const snapshot = `[Live context from APEX OS — today ${today}]
+    const snapshot = `[Live context from Avori OS — today ${today}]
 - Tasks: ${completedIds.size}/${tasksList.length} complete
 - Meals logged: ${meals.length} (${totalCal} kcal, ${totalProtein}g protein)
 - Water: ${waterCups} cups (${(waterCups * 0.25).toFixed(2)} L)
@@ -205,7 +205,7 @@ Coach mode: ${coachMode}`;
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-white">
-                      APEX AI helper
+                      Avori AI helper
                     </div>
                     <div className="text-[10px] text-slate-500">
                       Knows your plan · stats · tasks

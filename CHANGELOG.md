@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Rebrand → Avori OS + mobile/notification fixes
+- **Renamed the app to "Avori OS"** everywhere it's shown (UI, PWA name, page
+  titles, docs). Internal storage keys (`apex:*`, `apex_state`, auth cookies)
+  and the `APEX_PASSWORD` env var are intentionally unchanged so existing data
+  and deployments keep working.
+- **Notification panel fixed**: it was see-through and hard to dismiss. Now a
+  solid, opaque panel anchored under the bell (safe-area aware) with a clear ✕
+  close button and a tap-anywhere backdrop.
+- **Mobile menu fixed**: the top-left slide-out drawer was transparent/broken —
+  now solid and opaque.
+- **Always-on step tracking**: tracking moved to an app-wide provider so it
+  keeps counting as you move between pages and **auto-resumes when you reopen**
+  the app (no re-allowing each time, as long as the browser keeps motion
+  access). Toggle it once on the Health page. *(A website still can't count
+  while fully closed — that needs the native HealthKit build.)*
+- **Day-plan reminders**: unchecked day-plan blocks that are past their time now
+  show in the bell, the nav counts, and the reminder nudges.
+
+
 ### Added — Twilio dialer/CRM, agentic AI, mobile nav
 - **Twilio dialer + texting** on the Agency page: a browser dialer (call
   leads through your Twilio number via the Voice SDK), SMS composer, per-deal

@@ -62,7 +62,7 @@ const CATEGORY_META: Record<
   other: { label: "Other", icon: Gear, tone: "from-slate-600/30 border-slate-500/30 text-slate-300" },
 };
 
-// Everything that has to happen to get Apex Growth off the ground. You
+// Everything that has to happen to get Avori Growth off the ground. You
 // haven't taken a single cold call yet — so this is the real starting line.
 const SEED: Omit<WorkItem, "createdAt">[] = [
   // ── Setup / foundation ──
@@ -152,7 +152,7 @@ export default function WorkListPage() {
             Everything that <span className="gradient-electric">has to ship.</span>
           </>
         }
-        subtitle="The full execution list for Apex Growth Corp — pinned items, ad-hoc tasks, follow-ups. Check off as you complete; add new ones as they come up."
+        subtitle="The full execution list for Avori Growth Corp — pinned items, ad-hoc tasks, follow-ups. Check off as you complete; add new ones as they come up."
         icon={Briefcase}
         accent="violet"
       />

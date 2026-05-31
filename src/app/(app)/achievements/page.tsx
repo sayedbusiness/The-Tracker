@@ -84,7 +84,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: "active-week",
     name: "Week One",
-    desc: "Use APEX OS on 7 different days.",
+    desc: "Use Avori OS on 7 different days.",
     icon: "📅",
     rarity: "common",
     compute: (c) => Math.min(1, c.activeDays / 7),
@@ -154,7 +154,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     icon: "🏛️",
     rarity: "mythic",
     compute: (c) => Math.min(1, c.mrr / 83333),
-    next: "Add paying clients on Apex Growth.",
+    next: "Add paying clients on Avori Growth.",
   },
   {
     id: "six-figures",
@@ -171,7 +171,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     icon: "📈",
     rarity: "rare",
     compute: (c) => Math.min(1, c.pipeValue / 50000),
-    next: "Add deals on the Apex Growth pipeline.",
+    next: "Add deals on the Avori Growth pipeline.",
   },
   {
     id: "untouchable",
@@ -326,7 +326,7 @@ export default function AchievementsPage() {
   const xpToNext = 1000;
   const level =
     xp < 100 ? 1 : xp < 300 ? 2 : xp < 700 ? 3 : xp < 1500 ? 4 : 5;
-  const tierName = ["Initiate", "Operator", "Hardened", "Apex", "Mythic"][
+  const tierName = ["Initiate", "Operator", "Hardened", "Avori", "Mythic"][
     level - 1
   ];
 
