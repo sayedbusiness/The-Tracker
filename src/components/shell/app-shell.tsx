@@ -10,6 +10,7 @@ import { DopamineProvider } from "@/components/dopamine/dopamine-provider";
 import { PendingProvider } from "@/components/notifications/pending-provider";
 import { DailyReward } from "@/components/dopamine/daily-reward";
 import { StepTrackingProvider } from "@/components/health/step-tracking-provider";
+import { OnboardingGate } from "@/components/auth/onboarding-gate";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -17,6 +18,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <DopamineProvider>
       <StepTrackingProvider>
       <PendingProvider>
+      <OnboardingGate />
       <div className="flex min-h-screen">
         <Sidebar onOpenCommand={() => setCmdOpen(true)} />
         <div className="flex min-w-0 flex-1 flex-col">

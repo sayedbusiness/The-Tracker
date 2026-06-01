@@ -19,6 +19,19 @@ export default function OnboardingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
+  // Block leaving onboarding (back button) until it's finished — the
+  // questions are mandatory for a new account.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (profile.onboardingComplete === true) return;
+    window.history.pushState(null, "", window.location.href);
+    const onPop = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [profile.onboardingComplete]);
+
   const set = <K extends keyof Profile>(key: K, value: Profile[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
 
@@ -70,14 +83,20 @@ export default function OnboardingPage() {
       },
       {
         title: "Your business",
-        subtitle: "What are you building?",
+        subtitle: "This personalizes your whole CRM. Required.",
         body: (
           <div className="space-y-3">
             <ChipSelect
-              label="Type of business"
+              label="What are you running?"
               value={draft.businessType}
               onChange={(v) => set("businessType", v)}
               options={["Agency / SMMA", "Freelance", "E-commerce", "Coaching", "Local services", "Other"]}
+            />
+            <TextField
+              label="What's the name of your business?"
+              value={draft.businessName ?? ""}
+              onChange={(v) => set("businessName", v)}
+              placeholder="e.g. Avori Growth"
             />
             <ChipSelect
               label="Where are you at?"
@@ -87,7 +106,10 @@ export default function OnboardingPage() {
             />
           </div>
         ),
-        valid: () => true,
+        // Required: must say what they're running AND name the business.
+        valid: () =>
+          Boolean(draft.businessType) &&
+          (draft.businessName ?? "").trim().length > 0,
       },
       {
         title: "The mission",

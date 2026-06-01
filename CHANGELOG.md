@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Mandatory per-account onboarding + personalized CRM + close XP
+- **Onboarding is now required per account** (not per device): the questions
+  live in the synced per-user `profile`, pop up right after registration, and
+  an `OnboardingGate` bounces a signed-in user back to `/onboarding` from any
+  page until they finish. The back button is blocked while it's incomplete.
+- **Business questions are mandatory**: you can't continue past the business
+  step without saying **what you're running** and **your business name**.
+- **Agency page is personalized**: it's now titled with your business name and
+  reads as your own built-in CRM throughout.
+- **Close XP**: moving a deal to **Won** grants XP (scaled by deal value) — but
+  **only once per lead**, so a won deal can't be farmed by dragging it in and
+  out of Won.
+
 ### Added — Drag & drop sales pipeline
 - The Agency pipeline is now a real **kanban board**: press & hold the grip
   handle on any deal and drag it between **Lead → Qualified → Proposal →

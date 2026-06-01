@@ -26,7 +26,10 @@ export interface Profile {
   weightLb?: number;
   goalWeightLb?: number;
   heightIn?: number;
+  /** What they're running, e.g. "Agency / SMMA". */
   businessType?: string;
+  /** The actual name of their business — personalizes the Agency/CRM page. */
+  businessName?: string;
   businessStage?: string;
   primaryGoal?: string;
   incomeGoal?: string;

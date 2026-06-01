@@ -22,6 +22,7 @@ import { useSyncedState } from "@/hooks/use-synced-state";
 import type { CoachPersonality } from "@/lib/ai/types";
 import { todayKey } from "@/lib/dates";
 import type { LoggedMeal } from "@/components/health/meal-composer";
+import type { Profile } from "@/lib/auth/types";
 import { extractActions, stripActionBlocks } from "@/lib/ai/actions";
 import { useAiActions } from "@/hooks/use-ai-actions";
 
@@ -96,6 +97,7 @@ export default function AssistantPage() {
   );
   const [meals] = useSyncedState<LoggedMeal[]>(`health:meals:${today}`, []);
   const [waterCups] = useSyncedState<number>(`water:${today}`, 0);
+  const [profile] = useSyncedState<Profile>("profile", {});
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -130,7 +132,12 @@ export default function AssistantPage() {
 
     const totalCal = meals.reduce((s, m) => s + m.calories, 0);
     const totalProtein = meals.reduce((s, m) => s + m.protein, 0);
+    const bizLine = profile.businessName
+      ? `\n- Business: ${profile.businessName}${profile.businessType ? ` (${profile.businessType})` : ""}${profile.businessStage ? `, stage: ${profile.businessStage}` : ""}`
+      : "";
+    const goalLine = profile.primaryGoal ? `\n- #1 goal: ${profile.primaryGoal}` : "";
     const snapshot = `[Live context from Avori OS — today ${today}]
+- Name: ${profile.name ?? "operator"}${bizLine}${goalLine}
 - Tasks: ${completedIds.size}/${tasksList.length} complete
 - Meals logged: ${meals.length} (${totalCal} kcal, ${totalProtein}g protein)
 - Water: ${waterCups} cups (${(waterCups * 0.25).toFixed(2)} L)`;

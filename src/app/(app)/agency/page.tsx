@@ -44,6 +44,8 @@ import {
 } from "recharts";
 import { formatCurrency, formatCompact } from "@/lib/utils";
 import { useSyncedState } from "@/hooks/use-synced-state";
+import { useDopamine } from "@/components/dopamine/dopamine-provider";
+import type { Profile } from "@/lib/auth/types";
 
 type Deal = {
   id: string;
@@ -123,6 +125,17 @@ export default function AgencyPage() {
     []
   );
   const [activity, setActivity] = useSyncedState<Activity[]>("agency:activity", []);
+  const [profile] = useSyncedState<Profile>("profile", {});
+  // Deals that have already paid out win-XP — so a deal can't be farmed by
+  // moving it out of and back into "Won".
+  const [wonRewarded, setWonRewarded] = useSyncedState<Set<string>>(
+    "agency:won-rewarded",
+    new Set<string>(),
+    { serializer: "set" }
+  );
+  const { hit } = useDopamine();
+
+  const businessName = profile.businessName?.trim();
 
   const [composer, setComposer] = useState<null | "deal" | "client" | "campaign">(
     null
@@ -207,10 +220,28 @@ export default function AgencyPage() {
   const mrrGrowth =
     prevMRR === 0 ? (currMRR > 0 ? 100 : 0) : ((currMRR - prevMRR) / prevMRR) * 100;
 
-  const advanceDeal = (id: string, stage: PipelineStage) =>
+  const advanceDeal = (id: string, stage: PipelineStage) => {
     setPipeline((prev) =>
       prev.map((d) => (d.id === id ? { ...d, stage } : d))
     );
+    // Award XP the first time a lead is moved to "Won" — once per lead.
+    if (stage === "won" && !wonRewarded.has(id)) {
+      const deal = pipeline.find((d) => d.id === id);
+      // Bigger deals = bigger hit: 100 base + 1 XP per $100 of value (cap 400).
+      const bonus = Math.min(300, Math.round((deal?.value ?? 0) / 100));
+      hit("close", {
+        amount: 100 + bonus,
+        label: deal ? `Closed ${deal.company}` : "Deal won",
+        x: typeof window !== "undefined" ? window.innerWidth / 2 : undefined,
+        y: typeof window !== "undefined" ? window.innerHeight / 3 : undefined,
+      });
+      setWonRewarded((prev) => {
+        const next = new Set(prev);
+        next.add(id);
+        return next;
+      });
+    }
+  };
   const removeDeal = (id: string) =>
     setPipeline((prev) => prev.filter((d) => d.id !== id));
 
@@ -238,13 +269,29 @@ export default function AgencyPage() {
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
       <PageHeader
-        eyebrow="Avori Growth Corp · Command Center"
-        title={
-          <>
-            Run the agency like a <span className="gradient-text">machine.</span>
-          </>
+        eyebrow={
+          businessName
+            ? `${businessName} · CRM`
+            : "Your business · CRM"
         }
-        subtitle="Your CRM: call and text leads from the built-in dialer, track the pipeline, clients, campaigns, and revenue — one operational picture, like GoHighLevel."
+        title={
+          businessName ? (
+            <>
+              Run <span className="gradient-text">{businessName}</span> like a
+              machine.
+            </>
+          ) : (
+            <>
+              Run your business like a{" "}
+              <span className="gradient-text">machine.</span>
+            </>
+          )
+        }
+        subtitle={
+          businessName
+            ? `${businessName}'s built-in CRM: call and text leads from the dialer, drag deals through your pipeline, track clients, campaigns, and revenue. Close a lead, earn XP.`
+            : "Your built-in CRM: call and text leads from the dialer, drag deals through your pipeline, track clients, campaigns, and revenue. Close a lead, earn XP."
+        }
         icon={Briefcase}
         accent="emerald"
         actions={
@@ -448,7 +495,7 @@ export default function AgencyPage() {
           <div>
             <h2 className="text-sm font-semibold text-white">Sales pipeline</h2>
             <p className="text-[10px] text-slate-500">
-              Press &amp; hold the grip to drag a deal between stages · or tap ↗ to advance
+              Press &amp; hold the grip to drag a deal between stages · move one to Won to earn XP (once per lead)
             </p>
           </div>
           <Button
