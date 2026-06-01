@@ -158,8 +158,8 @@ export default function DashboardPage() {
       </section>
 
       {/* Main grid */}
-      <section className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <section className="grid min-w-0 gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <div className="surface-card rounded-2xl p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           <DisciplineQuote />
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <DailyQuests />
 
           <WaterTracker />

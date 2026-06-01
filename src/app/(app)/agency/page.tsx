@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import {
   Briefcase,
@@ -11,7 +11,6 @@ import {
   Target,
   Sparkles,
   Plus,
-  ArrowUpRight,
   X,
   Trash2,
   Phone,
@@ -350,7 +349,7 @@ export default function AgencyPage() {
         />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+      <section className="grid min-w-0 gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -363,7 +362,7 @@ export default function AgencyPage() {
             </div>
             <Badge variant="default">DAY 1</Badge>
           </div>
-          <div className="h-[240px]">
+          <div className="h-[240px] min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={agencyRevenue}>
                 <defs>
@@ -564,7 +563,6 @@ export default function AgencyPage() {
                         stage={stage}
                         index={i}
                         onMove={advanceDeal}
-                        onAdvance={advanceDeal}
                         onRemove={removeDeal}
                         onCall={callLead}
                         onText={textLead}
@@ -1297,7 +1295,6 @@ function DealCard({
   stage,
   index,
   onMove,
-  onAdvance,
   onRemove,
   onCall,
   onText,
@@ -1307,7 +1304,6 @@ function DealCard({
   stage: PipelineStage;
   index: number;
   onMove: (id: string, to: PipelineStage) => void;
-  onAdvance: (id: string, to: PipelineStage) => void;
   onRemove: (id: string) => void;
   onCall: (d: Deal) => void;
   onText: (d: Deal) => void;
@@ -1315,14 +1311,29 @@ function DealCard({
 }) {
   const controls = useDragControls();
   const [dragging, setDragging] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const startDrag = (e: React.PointerEvent) => {
     e.preventDefault();
     controls.start(e);
   };
 
+  // The lifted card sits under the pointer (zIndex 50), so a naive
+  // elementFromPoint() hits the card itself and resolves to its OWN
+  // column — the move never fires. Briefly disable the card's pointer
+  // events so we read the stage column underneath the finger.
+  const stageUnder = (x: number, y: number): PipelineStage | null => {
+    const node = cardRef.current;
+    const prev = node?.style.pointerEvents;
+    if (node) node.style.pointerEvents = "none";
+    const s = stageFromPoint(x, y);
+    if (node) node.style.pointerEvents = prev ?? "";
+    return s;
+  };
+
   return (
     <motion.div
+      ref={cardRef}
       layout
       drag
       dragControls={controls}
@@ -1332,11 +1343,11 @@ function DealCard({
       onDragStart={() => setDragging(true)}
       onDrag={(e) => {
         const pe = e as PointerEvent;
-        onDragOver(stageFromPoint(pe.clientX, pe.clientY));
+        onDragOver(stageUnder(pe.clientX, pe.clientY));
       }}
       onDragEnd={(e) => {
         const pe = e as PointerEvent;
-        const to = stageFromPoint(pe.clientX, pe.clientY);
+        const to = stageUnder(pe.clientX, pe.clientY);
         if (to && to !== stage) onMove(d.id, to);
         onDragOver(null);
         setDragging(false);
@@ -1368,23 +1379,25 @@ function DealCard({
             {d.company}
           </div>
         </div>
-        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-          {stage !== "won" && (
-            <button
-              onClick={() => {
-                const next =
-                  stageOrder[stageOrder.indexOf(stage) + 1] ?? "won";
-                onAdvance(d.id, next);
-              }}
-              className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-white/[0.05] hover:text-emerald-300"
-              title="Advance"
-            >
-              <ArrowUpRight className="h-3 w-3" />
-            </button>
-          )}
+        <div className="flex shrink-0 items-center gap-1">
+          {/* Move to ANY stage — tap-friendly native picker (works on
+              touch, no hover needed). Drag via the grip still works too. */}
+          <select
+            value={stage}
+            onChange={(e) => onMove(d.id, e.target.value as PipelineStage)}
+            onPointerDown={(e) => e.stopPropagation()}
+            title="Move to stage"
+            className="max-w-[8rem] rounded-md border border-white/[0.1] bg-black/50 px-1.5 py-1 text-[10px] font-medium text-slate-200 focus:border-emerald-400/40 focus:outline-none"
+          >
+            {stageOrder.map((s) => (
+              <option key={s} value={s} className="bg-[#0b1120] text-white">
+                {stageLabels[s]}
+              </option>
+            ))}
+          </select>
           <button
             onClick={() => onRemove(d.id)}
-            className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-rose-500/15 hover:text-rose-300"
+            className="grid h-6 w-6 shrink-0 place-items-center rounded text-slate-400 hover:bg-rose-500/15 hover:text-rose-300"
             title="Remove"
           >
             <Trash2 className="h-3 w-3" />

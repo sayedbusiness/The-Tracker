@@ -119,6 +119,10 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+    /* iOS scrolls on <html>; clip here too so nothing can force a
+       horizontal scrollbar / dead bar on the right. */
+    overflow-x: hidden;
+    width: 100%;
   }
 
   body {
@@ -127,7 +131,16 @@
     font-family: var(--font-sans);
     font-feature-settings: "cv11", "ss01", "ss03";
     overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
     min-height: 100vh;
+  }
+
+  /* Recharts' ResponsiveContainer reports a min-content width that props
+     open its grid/flex parent on mobile (the classic right-side overflow).
+     Force it to be shrinkable so it always fits the column. */
+  .recharts-responsive-container {
+    min-width: 0 !important;
   }
 
   /* Cinematic ambient backdrop — deep ocean → oxford → electric blue */

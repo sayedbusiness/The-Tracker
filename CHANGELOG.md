@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — Mobile layout, slide-out menu & pipeline dragging
+- **App now fits the phone screen.** A Recharts `ResponsiveContainer`
+  reported a min-content width that propped its grid column open past the
+  viewport, leaving a dead bar down the right side. Charts are now
+  `min-w-0 overflow-hidden` (dashboard, agency, health, insights), and
+  `html`/`body` clamp horizontal overflow as a safety net.
+- **Top-left menu opens fully.** The slide-out drawer lived inside the
+  top bar, whose `backdrop-filter` became the containing block for its
+  `position: fixed` — trapping the drawer to the 64px bar (only the header
+  showed). It's now portaled to `<body>`, so it spans the full height with
+  the whole nav + Sign out.
+- **Pipeline deals can be dragged to any stage.** The lifted card sat
+  under the pointer, so the drop hit-test (`elementFromPoint`) resolved to
+  the card's *own* column and the move never fired — now the card's
+  pointer events are suppressed during the hit-test so it reads the column
+  underneath. Each deal also gets an always-visible **stage picker**
+  (native, tap-friendly) so you can jump a lead to Lead / Qualified /
+  Proposal / Negotiation / Won on touch without hover — the old advance/
+  delete buttons were hover-only and invisible on phones.
+
 ### Added — Mandatory per-account onboarding + personalized CRM + close XP
 - **Onboarding is now required per account** (not per device): the questions
   live in the synced per-user `profile`, pop up right after registration, and

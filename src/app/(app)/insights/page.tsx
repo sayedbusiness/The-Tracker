@@ -390,7 +390,7 @@ export default function InsightsPage() {
         accent="cyan"
       />
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
+      <section className="grid min-w-0 gap-4 lg:grid-cols-[1fr_1.4fr]">
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-3 flex items-center justify-between">
             <div>
@@ -401,7 +401,7 @@ export default function InsightsPage() {
             </div>
             <Badge variant="default">LIVE</Badge>
           </div>
-          <div className="h-[280px]">
+          <div className="h-[280px] min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData}>
                 <PolarGrid stroke="rgba(255,255,255,0.06)" />
@@ -447,7 +447,7 @@ export default function InsightsPage() {
               </span>
             </div>
           </div>
-          <div className="h-[280px]">
+          <div className="h-[280px] min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthlyTrend.map((d, i) => ({ day: d.day, score: i === monthlyTrend.length - 1 ? lifeScore : d.score }))}>
                 <defs>

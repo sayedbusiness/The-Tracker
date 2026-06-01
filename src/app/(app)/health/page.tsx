@@ -415,7 +415,7 @@ export default function HealthPage() {
 
       <WorkoutLogger />
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid min-w-0 gap-4 lg:grid-cols-3">
         <div className="surface-card rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -426,7 +426,7 @@ export default function HealthPage() {
               {weightHistory.length === 0 ? "NO LOGS" : `${weightHistory.length} LOGS`}
             </Badge>
           </div>
-          <div className="h-32">
+          <div className="h-32 min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weightSeries}>
                 <defs>
