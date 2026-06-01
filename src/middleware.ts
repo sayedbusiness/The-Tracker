@@ -29,6 +29,7 @@ export async function middleware(req: NextRequest) {
     path === "/register" ||
     path.startsWith("/api/") ||
     path === "/manifest.webmanifest" ||
+    path === "/sw.js" ||
     path === "/icon.svg" ||
     path === "/apple-icon" ||
     path.startsWith("/_next") ||
