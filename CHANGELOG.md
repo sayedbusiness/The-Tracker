@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Closed-app push notifications + native step bridge
+- **Web Push** so Avori can notify you **even when it's fully closed** (on
+  the installed iPhone PWA). New service worker (`public/sw.js`), VAPID-based
+  send pipeline, and subscriptions stored in the existing `apex_state` table
+  (no new table). Settings → **Phone notifications** has Turn on / **Send
+  test** / Turn off, plus an iOS "Add to Home Screen" hint.
+- **Scheduled reminder cron** (`/api/cron/reminders`, via `vercel.json`)
+  pushes a time-of-day-aware "come back / close strong" nudge to every
+  subscribed device — the loss-aversion hook that pulls you back in.
+- **Native background step bridge** (`src/lib/health/native-steps.ts`):
+  when Avori runs as the Capacitor native app with a Health plugin, it reads
+  the *real* daily step total iOS counts in the background (HealthKit) and
+  mirrors it in — no double-counting with the web accelerometer. Dormant on
+  the web build. Full build guide in DEPLOY.md (a website physically can't
+  count steps while closed; this needs the native shell).
+
 ### Fixed — Mobile layout, slide-out menu & pipeline dragging
 - **App now fits the phone screen.** A Recharts `ResponsiveContainer`
   reported a min-content width that propped its grid column open past the

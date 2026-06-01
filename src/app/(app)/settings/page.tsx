@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { user } from "@/lib/mock-data";
 import { useAuth } from "@/lib/auth/use-auth";
 import { useSyncedState } from "@/hooks/use-synced-state";
+import { PushSettings } from "@/components/push/push-settings";
 import type { Profile } from "@/lib/auth/types";
 
 const sections = [
@@ -133,6 +134,8 @@ export default function SettingsPage() {
           )}
         </div>
       </section>
+
+      <PushSettings />
 
       <AccountPanel onboarded={Boolean(profile.onboardingComplete)} />
 

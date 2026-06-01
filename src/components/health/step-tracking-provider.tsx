@@ -9,6 +9,7 @@ import {
 import { useStepTracker, type Activity } from "@/hooks/use-step-tracker";
 import { useSyncedState } from "@/hooks/use-synced-state";
 import { todayKey } from "@/lib/dates";
+import { isNativeStepsAvailable, readTodaySteps } from "@/lib/health/native-steps";
 
 interface StepTrackingValue {
   supported: boolean;
@@ -66,30 +67,52 @@ export function StepTrackingProvider({ children }: { children: React.ReactNode }
 
   const tracker = useStepTracker({ onSteps: (delta) => setSteps((s) => s + delta) });
 
+  // Native shell (Capacitor + HealthKit): read the REAL daily step total iOS
+  // has been counting in the background — even while the app was fully closed
+  // — and mirror it into today's state. On the web this stays false and the
+  // accelerometer pedometer below is the source of truth.
+  const [native, setNative] = useState(false);
+  useEffect(() => setNative(isNativeStepsAvailable()), []);
+  useEffect(() => {
+    if (!native || today === "ssr") return;
+    let cancelled = false;
+    const sync = async () => {
+      const n = await readTodaySteps();
+      if (!cancelled && typeof n === "number") setSteps(() => n);
+    };
+    void sync();
+    const id = setInterval(sync, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [native, today, setSteps]);
+
   // Auto-resume when the preference is on + the sensor is available. On iOS
   // this silently succeeds if motion access was already granted; if the OS
   // forgot the grant it needs one tap (the Health page shows a resume hint).
+  // Skipped on native — HealthKit is already counting, no need to double up.
   useEffect(() => {
-    if (autotrack && tracker.supported && !tracker.running && today !== "ssr") {
+    if (autotrack && tracker.supported && !tracker.running && today !== "ssr" && !native) {
       void tracker.start();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autotrack, tracker.supported, today]);
+  }, [autotrack, tracker.supported, today, native]);
 
   const enable = () => {
     setAutotrack(true);
-    void tracker.start(); // called from a tap → satisfies iOS gesture rule
+    if (!native) void tracker.start(); // tap → satisfies iOS gesture rule
   };
   const disable = () => {
     setAutotrack(false);
-    tracker.stop();
+    if (!native) tracker.stop();
   };
 
   return (
     <Ctx.Provider
       value={{
-        supported: tracker.supported,
-        running: tracker.running,
+        supported: native || tracker.supported,
+        running: native || tracker.running,
         activity: tracker.activity,
         cadence: tracker.cadence,
         sessionSteps: tracker.sessionSteps,

@@ -473,3 +473,116 @@ The keys you shared in chat earlier should be considered compromised
 even if no one else has seen them — chat transcripts get logged,
 screenshots happen, devices get stolen. Rotating is a 60-second hygiene
 habit that saves you from a 6-figure bill if a key leaks.
+
+---
+
+## Push notifications (works when the app is CLOSED)
+
+This sends real notifications to your phone even when Avori isn't open —
+via the service worker (`public/sw.js`) + Web Push. Subscriptions are
+stored in the existing `apex_state` table (no new table needed).
+
+> **iPhone requirement (Apple's rule, not ours):** Web Push only works
+> from an **installed** PWA. On your phone, open the site in Safari → tap
+> **Share** → **Add to Home Screen**, then open Avori from that icon.
+> Notifications enabled from a normal Safari tab will *not* fire.
+
+### 1. Add these env vars in Vercel (Settings → Environment Variables)
+
+| Key | Value |
+| --- | --- |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | your VAPID **public** key |
+| `VAPID_PRIVATE_KEY` | your VAPID **private** key |
+| `VAPID_SUBJECT` | *(optional)* `mailto:you@email.com` |
+| `CRON_SECRET` | *(recommended)* any long random string |
+
+`SUPABASE_SERVICE_ROLE_KEY` + `NEXT_PUBLIC_SUPABASE_URL` are already set
+and are reused to store subscriptions.
+
+Generate a fresh VAPID pair anytime with:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+### 2. Redeploy, then test
+
+1. Open the **installed** PWA → **Settings → Phone notifications →
+   Turn on notifications** (grant permission).
+2. Tap **Send test** — your phone should buzz within a second or two,
+   even with the app backgrounded.
+
+### 3. Scheduled "come back" nudges
+
+`vercel.json` registers one daily cron (`/api/cron/reminders`, ~8 PM PT)
+that pushes an end-of-day "close strong / don't break your streak" nudge
+to every subscribed device. The message auto-adapts to morning / midday /
+evening, so on a **Vercel Pro** plan you can add more schedules:
+
+```json
+"crons": [
+  { "path": "/api/cron/reminders", "schedule": "0 14 * * *" },
+  { "path": "/api/cron/reminders", "schedule": "0 20 * * *" },
+  { "path": "/api/cron/reminders", "schedule": "0 3  * * *" }
+]
+```
+
+(Hobby plan allows ~2 crons, once/day — that's why the default ships
+with just one.) Vercel sends `Authorization: Bearer $CRON_SECRET`
+automatically. You can fire one manually to test:
+`curl "https://<your-app>/api/cron/reminders?secret=<CRON_SECRET>"`.
+
+---
+
+## Native background step tracking (HealthKit — needs a native build)
+
+**Reality check:** a website *cannot* count steps while it's closed —
+iOS only exposes background step data to a **native app** through
+HealthKit. The web build uses the in-app accelerometer pedometer (it
+counts while Avori is open). To get true always-on, background steps you
+have to ship the native shell. The code is already wired
+(`src/lib/health/native-steps.ts`) — it auto-activates inside the native
+app and stays dormant on the web.
+
+### What you need (one-time)
+
+- A **Mac** with **Xcode**
+- An **Apple Developer** account ($99/yr) to install on a real device / ship
+
+### Steps
+
+```bash
+# 1. Install Capacitor + a Health plugin
+npm i @capacitor/core @capacitor/cli @capacitor/ios
+npm i capacitor-health        # or @capacitor-community/health
+
+# 2. Static-export the web app for the native shell
+#    (set output: "export" in next.config.ts for the native build)
+npm run build
+
+# 3. Create the iOS project and sync
+npx cap add ios
+npx cap sync ios
+
+# 4. In Xcode: enable the HealthKit capability
+#    Signing & Capabilities → + Capability → HealthKit
+#    Bundle ID: co.avorigrowth.os (matches capacitor.config.ts)
+
+# 5. Add the usage strings to ios/App/App/Info.plist:
+#    NSHealthShareUsageDescription = "Avori reads your step count to track movement."
+#    NSHealthUpdateUsageDescription = "Avori logs activity to your health data."
+
+# 6. Run on your iPhone
+npx cap run ios
+```
+
+Once installed, `native-steps.ts` calls the Health plugin's
+`requestAuthorization` + `queryAggregated({ dataType: "steps" })` each
+minute and mirrors the real daily total (which iOS counts in the
+background via the motion coprocessor) into Avori. If your chosen plugin
+names the data type differently, adjust the `dataType` string in
+`native-steps.ts` — everything else is generic.
+
+> Shipping to the App Store / TestFlight is the Apple flow: Product →
+> Archive → Distribute. There's no way to "promote a native app to
+> production" from the web dashboard — it's a separate binary.
