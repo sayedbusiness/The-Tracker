@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "APEX OS",
+  "productName": "Avori OS",
   "version": "0.1.0",
-  "identifier": "co.apexgrowth.os",
+  "identifier": "co.avorigrowth.os",
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3000",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "APEX OS",
+        "title": "Avori OS",
         "label": "main",
         "width": 1440,
         "height": 900,
@@ -36,7 +36,7 @@
       "iconPath": "icons/icon.png",
       "iconAsTemplate": true,
       "menuOnLeftClick": false,
-      "tooltip": "APEX OS — Life command center"
+      "tooltip": "Avori OS — Life command center"
     }
   },
   "bundle": {
@@ -51,8 +51,8 @@
     ],
     "category": "Productivity",
     "shortDescription": "AI-powered life operating system",
-    "longDescription": "APEX OS is a cinematic, AI-powered personal operating system that tracks, optimizes, and improves every area of your life — from discipline and productivity to health, business, and learning.",
-    "copyright": "© 2026 Apex Growth Corp"
+    "longDescription": "Avori OS is a cinematic, AI-powered personal operating system that tracks, optimizes, and improves every area of your life — from discipline and productivity to health, business, and learning.",
+    "copyright": "© 2026 Avori Growth Corp"
   },
   "plugins": {
     "global-shortcut": {

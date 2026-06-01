@@ -19,7 +19,7 @@
  *  switch `output: "export"` in next.config.ts for native builds.
  */
 const config = {
-  appId: "co.apexgrowth.os",
+  appId: "co.avorigrowth.os",
   appName: "Avori OS",
   webDir: "out",
   bundledWebRuntime: false,

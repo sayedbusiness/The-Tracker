@@ -243,7 +243,7 @@ When you're ready, the cheapest path is **Supabase**:
 1. Go to [supabase.com](https://supabase.com) → "Start your project"
 2. Sign in with GitHub
 3. Click "New project"
-4. Project name: `apex-os` · Region: closest to you · Password: pick a strong one (save it)
+4. Project name: `avori-os` · Region: closest to you · Password: pick a strong one (save it)
 5. Wait ~2 minutes for provisioning
 6. Once ready, go to **Project Settings → Database → Connection string → URI**
 7. Copy the **Session pooler** URL — it looks like:
@@ -269,7 +269,7 @@ when you outgrow that.
 
 ## ② Deploy to the web (Vercel) — 5 minutes, free
 
-This makes your app accessible at a real URL like `apex-os.vercel.app`
+This makes your app accessible at a real URL like `avori-os.vercel.app`
 or `os.yourdomain.com`. Anyone you give the link to can use it.
 
 ### Step 1 — Push your code to GitHub
@@ -366,7 +366,7 @@ npx cap open ios         # opens Xcode
 # In Xcode:
 # 1. Select "Avori OS" → "Signing & Capabilities" → check "Automatically manage signing"
 # 2. Team: pick your Apple Developer account
-# 3. Bundle ID: co.apexgrowth.os (matches capacitor.config.ts)
+# 3. Bundle ID: co.avorigrowth.os (matches capacitor.config.ts)
 # 4. Product → Archive → "Distribute App" → "App Store Connect"
 ```
 
@@ -447,7 +447,7 @@ If I were you, here's the sequence with no wasted spend:
    machine without scary warnings** — Apple Developer for Mac
    notarization. Skip Windows EV cert unless you're going commercial.
 
-6. **When you want a custom domain** — buy `apex.yourname.com` for
+6. **When you want a custom domain** — buy `avori.yourname.com` for
    ~$10/yr at Cloudflare and point it at Vercel.
 
 The whole thing runs at **$0/month** for personal use indefinitely.

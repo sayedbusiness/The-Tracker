@@ -1,4 +1,4 @@
-# Tauri 2 — desktop shells for APEX OS
+# Tauri 2 — desktop shells for Avori OS
 
 This directory holds the Tauri 2 configuration for native macOS, Windows,
 and Linux desktop builds. The Tauri runtime wraps the Next.js PWA in a
@@ -43,7 +43,7 @@ for macOS, `.msi` + `.nsis` for Windows, `.deb` + `.AppImage` for Linux.
 
 ## What's configured
 
-- App identifier: `co.apexgrowth.os`
+- App identifier: `co.avorigrowth.os`
 - Window: 1440×900 default, 1024×720 min, overlay titlebar (looks native
   on macOS while letting our CSS chrome sit edge-to-edge)
 - Tray icon: enabled, shows on left-click of the menubar item

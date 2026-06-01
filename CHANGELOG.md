@@ -1,6 +1,6 @@
 # CHANGELOG
 
-All notable changes to APEX OS will be documented here.
+All notable changes to Avori OS will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
@@ -134,11 +134,11 @@ The bootstrap. First production-grade scaffold of the AI Life Operating System.
   recommendation card, difficulty calibration timeline, and energy-curve
   intelligence panel
 - `/discipline` — Discipline Engine: score ring, daily reinforcement
-  quote, active challenges (Operator, 75 Hard Apex Edition, Deep Work
+  quote, active challenges (Operator, 75 Hard Avori Edition, Deep Work
   Marathon), breach log, non-negotiable habits
 - `/health` — Macro ring + calorie tracking, photo-meal scan CTA, vitals
   (water/steps/sleep/HR), weight trend, sleep bar chart, workout log
-- `/agency` — Apex Growth Corp command center: KPI strip, MRR
+- `/agency` — Avori Growth Corp command center: KPI strip, MRR
   trajectory chart, sales pipeline kanban (5 stages), client roster
   with health scores, active campaigns, AI business advisor
 - `/learn` — Curated track library, in-progress hero cards, AI lesson

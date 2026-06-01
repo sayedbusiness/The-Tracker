@@ -10,8 +10,8 @@
 
 export const user = {
   name: "Sayed",
-  handle: "@apex",
-  email: "sayed@apexgrowth.co",
+  handle: "@avori",
+  email: "sayed@avorigrowth.co",
   avatar: "S",
   level: 1,
   xp: 0,

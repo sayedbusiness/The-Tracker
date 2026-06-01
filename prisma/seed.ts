@@ -1,5 +1,5 @@
 /**
- * APEX OS — Database seed
+ * Avori OS — Database seed
  *
  * Populates a fresh database with a demo account that matches the mock
  * data layer used in development. Run with:
@@ -17,10 +17,10 @@ const prisma = new PrismaClient();
 async function main() {
   // Create or reset the demo user
   const user = await prisma.user.upsert({
-    where: { email: "sayed@apexgrowth.co" },
+    where: { email: "sayed@avorigrowth.co" },
     update: {},
     create: {
-      email: "sayed@apexgrowth.co",
+      email: "sayed@avorigrowth.co",
       name: "Sayed",
       timezone: "America/Toronto",
       level: 27,

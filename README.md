@@ -57,7 +57,7 @@ The system is built around four pillars:
 
 One codebase. Three deliveries:
 
-1. **Web (`apex.os`)** — Next.js running on Vercel edge. Works on every browser, every device.
+1. **Web (`avori.os`)** — Next.js running on Vercel edge. Works on every browser, every device.
 2. **Mobile (iOS / iPadOS / Android)** — Capacitor 6 wraps the PWA. Real notifications, real App Store distribution, but the UI is the same React code.
 3. **Desktop (macOS / Windows / Linux)** — Tauri 2 wraps the same PWA into a ~10MB native binary with system tray, global shortcuts, and OS-level notifications.
 
