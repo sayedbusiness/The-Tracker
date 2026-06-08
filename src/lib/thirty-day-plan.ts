@@ -173,8 +173,7 @@ const morningBlocks: Block[] = [
 ];
 
 const summerWeekdayBlocks: Block[] = [
-  // Summer mode — school is done. This array intentionally kept named "schoolBlocks"
-  // for backwards compatibility but is now the summer weekday work block sequence.
+  // Summer weekday work sequence — outreach + cold-call sprints 2 & 3 + build block.
   {
     id: "outreach-am",
     time: "07:50",
@@ -425,7 +424,7 @@ export function buildDayBlocks(
   if (starbucks) {
     blocks.push(...starbucksBlocks);
   } else if (!isWeekend) {
-    // Summer hardcore — sales-push weekday blocks (formerly schoolBlocks).
+    // Summer hardcore — sales-push weekday blocks.
     blocks.push(...summerWeekdayBlocks);
   } else {
     blocks.push({
