@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -43,29 +42,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${mono.variable}`}>
-      <head>
-        {/* Sentry — error monitoring, tracing, and session replay.
-            Loaded before hydration so it catches the earliest errors.
-            The DSN is embedded in the loader script URL. */}
-        <Script
-          src="https://js.sentry-cdn.com/df02f167625e73a802d5d25f4a7889c3.min.js"
-          crossOrigin="anonymous"
-          strategy="beforeInteractive"
-        />
-        <Script id="sentry-onload" strategy="beforeInteractive">
-          {`
-            Sentry.onLoad(function () {
-              Sentry.init({
-                // Tracing — capture 100% of transactions.
-                tracesSampleRate: 1.0,
-                // Session Replay — 10% of all sessions, 100% of sessions with an error.
-                replaysSessionSampleRate: 0.1,
-                replaysOnErrorSampleRate: 1.0,
-              });
-            });
-          `}
-        </Script>
-      </head>
       <body className="font-sans antialiased">
         <div className="relative z-10 min-h-screen">{children}</div>
         <Toaster
